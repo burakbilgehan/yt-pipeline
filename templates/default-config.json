@@ -4,7 +4,7 @@
   "description": "",
   "createdAt": "",
   "updatedAt": "",
-  "stage": "research",
+  "currentWork": null,
   "tags": [],
   "metadata": {
     "targetLength": 300,
@@ -13,11 +13,12 @@
     "language": "en"
   },
   "pipeline": {
-    "research": { "status": "pending" },
-    "content": { "status": "pending" },
-    "storyboard": { "status": "pending" },
-    "production": { "status": "pending" },
-    "publishing": { "status": "pending" },
-    "analytics": { "status": "pending" }
-  }
+    "research": { "status": "pending", "version": 0 },
+    "content": { "status": "pending", "version": 0 },
+    "storyboard": { "status": "pending", "version": 0 },
+    "production": { "status": "pending", "version": 0 },
+    "publishing": { "status": "pending", "version": 0 },
+    "analytics": { "status": "pending", "version": 0 }
+  },
+  "history": []
 }

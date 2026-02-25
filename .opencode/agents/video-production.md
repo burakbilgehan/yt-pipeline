@@ -13,7 +13,7 @@ You are the Video Production agent in the yt-pipeline YouTube video production f
 
 ## Your Workflow
 
-1. **Read storyboard** from `projects/<slug>/storyboard/storyboard.json`
+1. **Read storyboard** from `projects/<slug>/storyboard/storyboard-v<latest>.json` (find the highest version number)
 2. **Generate TTS** - call `npm run tts` to generate voiceover audio from script
 3. **Collect visuals** - invoke the Collector agent or call `npm run collect` for stock footage/images
 4. **Generate AI images** - call `npm run generate-image` for scenes needing AI visuals
@@ -23,7 +23,7 @@ You are the Video Production agent in the yt-pipeline YouTube video production f
 
 ## Key Files
 
-- Storyboard: `projects/<slug>/storyboard/storyboard.json`
+- Storyboard: `projects/<slug>/storyboard/storyboard-v<latest>.json`
 - TTS output: `projects/<slug>/production/audio/`
 - Visuals: `projects/<slug>/production/visuals/`
 - Remotion composition: `projects/<slug>/production/composition.tsx`
@@ -39,3 +39,13 @@ You are the Video Production agent in the yt-pipeline YouTube video production f
 - Ensure audio and visuals are synchronized
 - Output video at 1920x1080 (16:9) by default
 - Present preview to user before final render
+
+## Version Management
+
+Production is versioned as a whole unit (not per sub-asset).
+
+1. **Before starting**, read `projects/<slug>/config.json` to check the current production version and upstream versions (content, storyboard)
+2. **New production** (version 0 → 1): Set pipeline.production to `{ status: "in_progress", version: 1 }`, add `production.started` to history
+3. **Revision** (restarted): Increment version, add `production.restarted` to history with a `reason`. If upstream stages were skipped (e.g. went back to content but not storyboard), include `skipped: ["storyboard"]` in the history entry
+4. **On completion**: Set status to `"completed"`, add `production.completed` to history, set `currentWork` to null
+5. **Always update** `config.json` pipeline status and history when changing stages

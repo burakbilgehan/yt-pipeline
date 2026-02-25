@@ -4,7 +4,7 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { ProjectConfig } from "../types/index.js";
+import type { ProjectConfig, PipelineStageName } from "../types/index.js";
 
 const PROJECTS_DIR = path.resolve("projects");
 
@@ -29,15 +29,25 @@ export function saveProjectConfig(slug: string, config: ProjectConfig): void {
 }
 
 /**
- * List all projects and their current stages
+ * List all projects with their current work and version summary
  */
-export function listProjects(): Array<{ slug: string; title: string; stage: string }> {
+export function listProjects(): Array<{
+  slug: string;
+  title: string;
+  currentWork: string;
+  versions: Record<string, number>;
+}> {
   if (!fs.existsSync(PROJECTS_DIR)) {
     return [];
   }
 
   const entries = fs.readdirSync(PROJECTS_DIR, { withFileTypes: true });
-  const projects: Array<{ slug: string; title: string; stage: string }> = [];
+  const projects: Array<{
+    slug: string;
+    title: string;
+    currentWork: string;
+    versions: Record<string, number>;
+  }> = [];
 
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
@@ -46,17 +56,25 @@ export function listProjects(): Array<{ slug: string; title: string; stage: stri
     if (!fs.existsSync(configPath)) continue;
 
     try {
-      const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+      const config: ProjectConfig = JSON.parse(
+        fs.readFileSync(configPath, "utf-8")
+      );
+      const versions: Record<string, number> = {};
+      for (const [stage, status] of Object.entries(config.pipeline)) {
+        versions[stage] = status.version;
+      }
       projects.push({
         slug: entry.name,
         title: config.title || entry.name,
-        stage: config.stage || "unknown",
+        currentWork: config.currentWork || "idle",
+        versions,
       });
     } catch {
       projects.push({
         slug: entry.name,
         title: entry.name,
-        stage: "error",
+        currentWork: "error",
+        versions: {},
       });
     }
   }
@@ -78,4 +96,48 @@ export function ensureProjectDir(slug: string, subdir: string): string {
   const dir = path.join(PROJECTS_DIR, slug, subdir);
   fs.mkdirSync(dir, { recursive: true });
   return dir;
+}
+
+/**
+ * Get the current version number for a pipeline stage
+ */
+export function getStageVersion(slug: string, stage: PipelineStageName): number {
+  const config = loadProjectConfig(slug);
+  return config.pipeline[stage].version;
+}
+
+/**
+ * Get the latest versioned filename for a stage.
+ * Scans the stage directory for files matching the pattern and returns the highest version.
+ * Returns null if no versioned files exist.
+ *
+ * Example: getLatestVersionedFile("my-video", "content", "script")
+ *   → "content/script-v3.md" (if v1, v2, v3 exist)
+ */
+export function getLatestVersionedFile(
+  slug: string,
+  stageDir: string,
+  baseName: string
+): string | null {
+  const dir = path.join(PROJECTS_DIR, slug, stageDir);
+  if (!fs.existsSync(dir)) return null;
+
+  const files = fs.readdirSync(dir);
+  const versionPattern = new RegExp(`^${baseName}-v(\\d+)\\.[a-z]+$`);
+
+  let maxVersion = 0;
+  let latestFile: string | null = null;
+
+  for (const file of files) {
+    const match = file.match(versionPattern);
+    if (match) {
+      const version = parseInt(match[1], 10);
+      if (version > maxVersion) {
+        maxVersion = version;
+        latestFile = path.join(stageDir, file);
+      }
+    }
+  }
+
+  return latestFile;
 }

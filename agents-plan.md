@@ -45,6 +45,63 @@ projects/<video-slug>/
 
 Basit baslangic - sorunlari markdown dosyasina logla, sonra formalize et.
 
+## Versiyon Yonetim Sistemi
+
+Pipeline dogrusal degildir - kullanici herhangi bir asamaya geri donebilir, asamalari atlayabilir veya dogrudan duzenleme yapabilir. Bu yuzden her asama bagimsiz versiyonlanir.
+
+### Temel Prensipler
+
+1. **`currentWork` alani:** `config.json`'da o an aktif olarak ne uzerinde calisildigini gosterir (ornegin `"content"` veya `null`)
+2. **Asama bazli versiyon:** Her pipeline asamasinin `status` ve `version` numarasi vardir
+3. **Dosya versiyonlama:** `script-v1.md`, `script-v2.md` seklinde - **eski versiyonlar asla silinmez**
+4. **Versiyon basligi:** Her versiyonlu dosyanin basinda metadata bulunur:
+   ```
+   version: 2
+   based_on: research-v3
+   changes_from_prev: Hook bolumu yeniden yazildi, istatistikler guncellendi
+   date: 2026-02-25
+   ```
+5. **Gecmis takibi:** `config.json` icindeki `history` dizisi her durum gecisini kaydeder (timestamp, olay, sebep, atlanan asamalar)
+6. **Produksiyon bir butundur:** Uretim asamasi (ses, gorsel, render) tek bir birim olarak versiyonlanir, alt varliklar ayri ayri degil
+7. **Analitik snapshot bazlidir:** Tarih bazli dosyalar (`analytics-2026-02-25.json`), revizyon bazli degil
+
+### config.json Yapisi
+
+```json
+{
+  "currentWork": "content",
+  "pipeline": {
+    "research": { "status": "completed", "version": 2 },
+    "content": { "status": "in_progress", "version": 3 },
+    "storyboard": { "status": "completed", "version": 1 },
+    "production": { "status": "not_started", "version": 0 },
+    "publishing": { "status": "not_started", "version": 0 },
+    "analytics": { "status": "not_started", "version": 0 }
+  },
+  "history": [
+    {
+      "timestamp": "2026-02-25T10:00:00Z",
+      "event": "research.completed",
+      "details": "Initial research finished",
+      "version": 1
+    },
+    {
+      "timestamp": "2026-02-25T14:00:00Z",
+      "event": "content.reopened",
+      "details": "Hook needs rewrite based on user feedback",
+      "version": 3
+    }
+  ]
+}
+```
+
+### Versiyon Tutarliligi
+
+- Downstream dosyalar `based_on` ile upstream versiyonu referans eder
+- QA agent tutarsizliklari otomatik tespit eder (ornegin storyboard hala script-v1'e dayanirken content v3'te ise)
+- Director agent durum raporlarinda stale bagimliliklar icin uyari verir
+- Dependency zinciri: research → content → storyboard → production → publishing
+
 ---
 
 ## Agent Yapisi (11 Agent)
@@ -255,9 +312,12 @@ yt-pipeline/
 
 1. [x] Mimari kararlar ve agent yapisi finalize
 2. [x] Pipeline diyagrami olustur (Excalidraw)
-3. [ ] Proje yapisini kur (TypeScript, Remotion, dizin yapisi)
-4. [ ] Agent prompt dosyalarini olustur
-5. [ ] Slash command tanimlarini yaz
-6. [ ] Node.js script'leri implement et
-7. [ ] Ilk agent'i implement et (Arastirmaci)
-8. [ ] Ilk test videosu pipeline'dan gecir
+3. [x] Proje yapisini kur (TypeScript, Remotion, dizin yapisi)
+4. [x] Agent prompt dosyalarini olustur (11 agent)
+5. [x] Slash command tanimlarini yaz (13 command)
+6. [x] Node.js script'leri implement et (7 script)
+7. [x] Core TypeScript tipleri ve utility fonksiyonlar
+8. [x] Versiyon yonetim sistemi tasarimi ve implementasyonu
+9. [ ] Remotion template/component'leri kur
+10. [ ] Ilk agent'i test et (Arastirmaci ile gercek konu)
+11. [ ] Ilk test videosu pipeline'dan gecir

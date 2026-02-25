@@ -2,15 +2,13 @@
  * Core types for yt-pipeline
  */
 
-// Pipeline stages in order
-export type PipelineStage =
-  | "idea"
+// Pipeline stage names
+export type PipelineStageName =
   | "research"
   | "content"
   | "storyboard"
   | "production"
   | "publishing"
-  | "published"
   | "analytics";
 
 // Project configuration stored in config.json
@@ -20,7 +18,7 @@ export interface ProjectConfig {
   description: string;
   createdAt: string;
   updatedAt: string;
-  stage: PipelineStage;
+  currentWork: PipelineStageName | null; // what's actively being worked on, null if idle
   tags: string[];
   metadata: {
     targetLength: number; // seconds
@@ -28,14 +26,8 @@ export interface ProjectConfig {
     targetAudience: string;
     language: string;
   };
-  pipeline: {
-    research: StageStatus;
-    content: StageStatus;
-    storyboard: StageStatus;
-    production: StageStatus;
-    publishing: StageStatus;
-    analytics: StageStatus;
-  };
+  pipeline: Record<PipelineStageName, StageStatus>;
+  history: HistoryEntry[];
   youtube?: {
     videoId: string;
     url: string;
@@ -45,14 +37,40 @@ export interface ProjectConfig {
 
 export interface StageStatus {
   status: "pending" | "in_progress" | "review" | "approved" | "completed";
+  version: number; // 0 = not started, 1+ = iteration count
   startedAt?: string;
   completedAt?: string;
   notes?: string;
 }
 
+// History tracks every state transition in the pipeline
+export interface HistoryEntry {
+  action:
+    | `${PipelineStageName}.started`
+    | `${PipelineStageName}.completed`
+    | `${PipelineStageName}.reopened`
+    | `${PipelineStageName}.restarted`;
+  version: number;
+  at: string; // ISO date
+  reason?: string; // why this action happened (especially for reopened/restarted)
+  skipped?: PipelineStageName[]; // stages intentionally skipped during a jump
+}
+
+// Version header embedded at the top of versioned files (research, content, storyboard, etc.)
+export interface VersionHeader {
+  version: number;
+  basedOn: Partial<Record<PipelineStageName, number>>; // which version of upstream stages this was based on
+  changesFromPrev?: string; // description of what changed from the previous version
+  date: string; // ISO date
+}
+
 // Storyboard types
 export interface Storyboard {
   title: string;
+  version: number;
+  basedOn: Partial<Record<PipelineStageName, number>>;
+  changesFromPrev?: string;
+  date: string;
   totalDuration: number; // seconds
   scenes: Scene[];
 }

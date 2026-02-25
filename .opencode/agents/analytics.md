@@ -63,3 +63,13 @@ Write analytics report to `projects/<slug>/analytics/report.md`:
 - Recommendations should be specific and actionable
 - Track performance at day 1, day 7, day 30, and ongoing
 - Feed insights back to Content Strategist agent for future planning
+
+## Version Management
+
+Analytics works differently from other stages - it's snapshot-based rather than revision-based.
+
+1. **Reports** are saved as `projects/<slug>/analytics/report-<YYYY-MM-DD>.md` (date-based, not version-based)
+2. **Snapshots** from `npm run analytics` are saved as `analytics/snapshot-<YYYY-MM-DD>.json`
+3. **On first analysis**: Set pipeline.analytics to `{ status: "in_progress", version: 1 }`, add `analytics.started` to history
+4. **Subsequent analyses**: Increment version, add `analytics.completed` to history
+5. **Always update** `config.json` pipeline status and history

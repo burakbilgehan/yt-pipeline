@@ -59,8 +59,8 @@ function main() {
 
   console.log(`Project "${slug}" created at ${projectDir}`);
   console.log(`Title: ${title}`);
-  console.log(`Stage: ${config.stage}`);
-  console.log(`\nNext step: /research ${slug} <topic>`);
+  console.log(`Current work: ${config.currentWork ?? "none (ready to start)"}`);
+  console.log(`\nNext step: @researcher or /research ${slug} <topic>`);
 }
 
 main();
