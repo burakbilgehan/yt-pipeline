@@ -1,0 +1,23 @@
+{
+  "slug": "",
+  "title": "",
+  "description": "",
+  "createdAt": "",
+  "updatedAt": "",
+  "stage": "research",
+  "tags": [],
+  "metadata": {
+    "targetLength": 300,
+    "tone": "informative",
+    "targetAudience": "",
+    "language": "en"
+  },
+  "pipeline": {
+    "research": { "status": "pending" },
+    "content": { "status": "pending" },
+    "storyboard": { "status": "pending" },
+    "production": { "status": "pending" },
+    "publishing": { "status": "pending" },
+    "analytics": { "status": "pending" }
+  }
+}

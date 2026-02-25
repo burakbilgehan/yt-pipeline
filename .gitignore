@@ -1,0 +1,19 @@
+# yt-pipeline
+
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+
+# Video production outputs
+projects/*/production/output/
+projects/*/production/tmp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
