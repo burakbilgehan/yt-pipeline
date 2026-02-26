@@ -111,8 +111,10 @@ export function getStageVersion(slug: string, stage: PipelineStageName): number 
  * Scans the stage directory for files matching the pattern and returns the highest version.
  * Returns null if no versioned files exist.
  *
+ * Returns just the filename (not the full path or stageDir prefix).
+ *
  * Example: getLatestVersionedFile("my-video", "content", "script")
- *   → "content/script-v3.md" (if v1, v2, v3 exist)
+ *   → "script-v3.md" (if v1, v2, v3 exist)
  */
 export function getLatestVersionedFile(
   slug: string,
@@ -134,10 +136,47 @@ export function getLatestVersionedFile(
       const version = parseInt(match[1], 10);
       if (version > maxVersion) {
         maxVersion = version;
-        latestFile = path.join(stageDir, file);
+        latestFile = file;
       }
     }
   }
 
   return latestFile;
+}
+
+/**
+ * Append an entry to the project's asset log (production/asset-log.md).
+ * Creates the file with headers if it doesn't exist.
+ */
+export function appendAssetLog(
+  slug: string,
+  asset: {
+    type: string;
+    source: string;
+    file: string;
+    license: string;
+    query: string;
+  }
+): void {
+  const logPath = path.join(PROJECTS_DIR, slug, "production", "asset-log.md");
+
+  if (!fs.existsSync(logPath)) {
+    fs.writeFileSync(
+      logPath,
+      "# Asset Log\n\n| # | Type | Source | File | License | Search Query |\n|---|------|--------|------|---------|-------------|\n"
+    );
+  }
+
+  const content = fs.readFileSync(logPath, "utf-8");
+  const rowCount = content
+    .split("\n")
+    .filter(
+      (l) =>
+        l.startsWith("|") &&
+        !l.startsWith("| #") &&
+        !l.startsWith("|--")
+    ).length;
+  const newRow = `| ${rowCount + 1} | ${asset.type} | ${asset.source} | ${asset.file} | ${asset.license} | "${asset.query}" |\n`;
+
+  fs.appendFileSync(logPath, newRow);
 }

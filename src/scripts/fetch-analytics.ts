@@ -8,12 +8,16 @@
  * Writes: projects/<slug>/analytics/snapshot-YYYY-MM-DD.json
  */
 
+import "dotenv/config";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { google } from "googleapis";
 import type { AnalyticsSnapshot } from "../types/index.js";
-
-const PROJECTS_DIR = path.resolve("projects");
+import {
+  getProjectDir,
+  loadProjectConfig,
+  ensureProjectDir,
+} from "../utils/project.js";
 
 async function main() {
   const target = process.argv[2];
@@ -51,15 +55,7 @@ async function fetchVideoAnalytics(
   analytics: ReturnType<typeof google.youtubeAnalytics>,
   slug: string
 ) {
-  const projectDir = path.join(PROJECTS_DIR, slug);
-  const configPath = path.join(projectDir, "config.json");
-
-  if (!fs.existsSync(configPath)) {
-    console.error(`Project not found: ${slug}`);
-    process.exit(1);
-  }
-
-  const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+  const config = loadProjectConfig(slug);
 
   if (!config.youtube?.videoId) {
     console.error(`Video not published yet for project: ${slug}`);
@@ -116,13 +112,8 @@ async function fetchVideoAnalytics(
     }
 
     // Save snapshot
-    const analyticsDir = path.join(projectDir, "analytics");
-    fs.mkdirSync(analyticsDir, { recursive: true });
-
-    const snapshotPath = path.join(
-      analyticsDir,
-      `snapshot-${today}.json`
-    );
+    const analyticsDir = ensureProjectDir(slug, "analytics");
+    const snapshotPath = path.join(analyticsDir, `snapshot-${today}.json`);
     fs.writeFileSync(snapshotPath, JSON.stringify(snapshot, null, 2));
 
     console.log(`\nAnalytics snapshot saved: ${snapshotPath}`);

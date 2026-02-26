@@ -8,10 +8,10 @@
  * Writes: projects/<slug>/production/visuals/
  */
 
+import "dotenv/config";
 import * as fs from "node:fs";
 import * as path from "node:path";
-
-const PROJECTS_DIR = path.resolve("projects");
+import { ensureProjectDir, appendAssetLog } from "../utils/project.js";
 
 async function main() {
   const slug = process.argv[2];
@@ -29,8 +29,7 @@ async function main() {
     process.exit(1);
   }
 
-  const visualsDir = path.join(PROJECTS_DIR, slug, "production", "visuals");
-  fs.mkdirSync(visualsDir, { recursive: true });
+  const visualsDir = ensureProjectDir(slug, "production/visuals");
 
   console.log(`Generating image: "${prompt}"...`);
 
@@ -78,24 +77,14 @@ async function main() {
   console.log(`Image saved: ${filePath}`);
   console.log(`Revised prompt: ${image.revised_prompt}`);
 
-  // Append to asset log
-  const logPath = path.join(PROJECTS_DIR, slug, "production", "asset-log.md");
-
-  if (!fs.existsSync(logPath)) {
-    fs.writeFileSync(
-      logPath,
-      "# Asset Log\n\n| # | Type | Source | File | License | Search Query |\n|---|------|--------|------|---------|-------------|\n"
-    );
-  }
-
-  const content = fs.readFileSync(logPath, "utf-8");
-  const rowCount = content
-    .split("\n")
-    .filter(
-      (l) => l.startsWith("|") && !l.startsWith("| #") && !l.startsWith("|--")
-    ).length;
-  const newRow = `| ${rowCount + 1} | ai-image | DALL-E 3 | visuals/${filename} | Generated | "${prompt}" |\n`;
-  fs.appendFileSync(logPath, newRow);
+  // Append to shared asset log
+  appendAssetLog(slug, {
+    type: "ai-image",
+    source: "DALL-E 3",
+    file: `visuals/${filename}`,
+    license: "Generated",
+    query: prompt,
+  });
 }
 
 main();

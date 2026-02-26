@@ -10,10 +10,10 @@
  * Writes: projects/<slug>/production/visuals/
  */
 
+import "dotenv/config";
 import * as fs from "node:fs";
 import * as path from "node:path";
-
-const PROJECTS_DIR = path.resolve("projects");
+import { ensureProjectDir, appendAssetLog } from "../utils/project.js";
 
 interface PexelsPhoto {
   id: number;
@@ -38,9 +38,7 @@ async function main() {
     process.exit(1);
   }
 
-  const projectDir = path.join(PROJECTS_DIR, slug);
-  const visualsDir = path.join(projectDir, "production", "visuals");
-  fs.mkdirSync(visualsDir, { recursive: true });
+  const visualsDir = ensureProjectDir(slug, "production/visuals");
 
   const pexelsKey = process.env.PEXELS_API_KEY;
 
@@ -100,7 +98,6 @@ async function searchPexelsImages(
 
     console.log(`  [${i + 1}] ${filename} (by ${photo.photographer})`);
 
-    // Append to asset log
     appendAssetLog(slug, {
       type: "stock-image",
       source: `Pexels (${photo.id})`,
@@ -168,26 +165,6 @@ async function searchPexelsVideos(
   }
 
   console.log("\nDone!");
-}
-
-function appendAssetLog(
-  slug: string,
-  asset: { type: string; source: string; file: string; license: string; query: string }
-) {
-  const logPath = path.join(PROJECTS_DIR, slug, "production", "asset-log.md");
-
-  if (!fs.existsSync(logPath)) {
-    fs.writeFileSync(
-      logPath,
-      "# Asset Log\n\n| # | Type | Source | File | License | Search Query |\n|---|------|--------|------|---------|-------------|\n"
-    );
-  }
-
-  const content = fs.readFileSync(logPath, "utf-8");
-  const rowCount = content.split("\n").filter((l) => l.startsWith("|") && !l.startsWith("| #") && !l.startsWith("|--")).length;
-  const newRow = `| ${rowCount + 1} | ${asset.type} | ${asset.source} | ${asset.file} | ${asset.license} | "${asset.query}" |\n`;
-
-  fs.appendFileSync(logPath, newRow);
 }
 
 function sanitize(str: string): string {

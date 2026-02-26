@@ -5,14 +5,20 @@
  *
  * Usage: npm run tts <project-slug>
  *
- * Reads: projects/<slug>/content/script.md
+ * Reads: projects/<slug>/content/script-v<latest>.md
  * Writes: projects/<slug>/production/audio/
  */
 
+import "dotenv/config";
 import * as fs from "node:fs";
 import * as path from "node:path";
-
-const PROJECTS_DIR = path.resolve("projects");
+import {
+  getProjectDir,
+  getLatestVersionedFile,
+  loadProjectConfig,
+  saveProjectConfig,
+  ensureProjectDir,
+} from "../utils/project.js";
 
 async function main() {
   const slug = process.argv[2];
@@ -22,17 +28,23 @@ async function main() {
     process.exit(1);
   }
 
-  const projectDir = path.join(PROJECTS_DIR, slug);
-  const scriptPath = path.join(projectDir, "content", "script.md");
-  const audioDir = path.join(projectDir, "production", "audio");
+  const projectDir = getProjectDir(slug);
+  const config = loadProjectConfig(slug);
 
-  if (!fs.existsSync(scriptPath)) {
-    console.error(`Script not found: ${scriptPath}`);
+  // Find latest versioned script
+  const scriptFile = getLatestVersionedFile(slug, "content", "script");
+
+  if (!scriptFile) {
+    console.error("No versioned script found in content/ directory.");
+    console.error("Expected files like: script-v1.md, script-v2.md, etc.");
     console.error("Run the content-writer agent first.");
     process.exit(1);
   }
 
-  fs.mkdirSync(audioDir, { recursive: true });
+  const scriptPath = path.join(projectDir, "content", scriptFile);
+  console.log(`Using script: ${scriptFile}`);
+
+  const audioDir = ensureProjectDir(slug, "production/audio");
 
   const apiKey = process.env.ELEVENLABS_API_KEY;
   const voiceId = process.env.ELEVENLABS_VOICE_ID;
@@ -87,7 +99,20 @@ async function main() {
     console.log(`  Saved: ${outputPath}`);
   }
 
+  // Update config
+  const version = config.pipeline.production.version || 1;
+  config.pipeline.production.status = "in_progress";
+  config.pipeline.production.startedAt = new Date().toISOString();
+  config.history.push({
+    action: "production.started",
+    version,
+    at: new Date().toISOString(),
+    reason: `Generated TTS audio from ${scriptFile} (${voiceoverBlocks.length} blocks)`,
+  });
+  saveProjectConfig(slug, config);
+
   console.log("\nTTS generation complete!");
+  console.log("Config updated.");
 }
 
 function extractVoiceover(script: string): string[] {

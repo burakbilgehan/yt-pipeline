@@ -40,11 +40,11 @@ async function main() {
   }
 
   // ── Load project config ──
-  const config = await loadProjectConfig(slug);
+  const config = loadProjectConfig(slug);
   console.log(`Rendering video for project: ${config.title || slug}`);
 
   // ── Find latest storyboard JSON ──
-  const storyboardFile = await getLatestVersionedFile(
+  const storyboardFile = getLatestVersionedFile(
     slug,
     "storyboard",
     "storyboard"
@@ -159,7 +159,7 @@ async function main() {
     at: new Date().toISOString(),
     reason: `Rendered ${totalDurationSec}s video (${totalFrames} frames)`,
   });
-  await saveProjectConfig(slug, config);
+  saveProjectConfig(slug, config);
 
   console.log("Config updated.");
 }

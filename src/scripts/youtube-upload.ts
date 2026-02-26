@@ -5,17 +5,22 @@
  *
  * Usage: npm run upload <project-slug>
  *
- * Reads: projects/<slug>/publishing/metadata.json
+ * Reads: projects/<slug>/publishing/metadata-v<latest>.json
  *        projects/<slug>/production/output/final.mp4
  * Writes: projects/<slug>/publishing/upload-log.md
  */
 
+import "dotenv/config";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { google } from "googleapis";
 import type { YouTubeMetadata } from "../types/index.js";
-
-const PROJECTS_DIR = path.resolve("projects");
+import {
+  getProjectDir,
+  getLatestVersionedFile,
+  loadProjectConfig,
+  saveProjectConfig,
+} from "../utils/project.js";
 
 async function main() {
   const slug = process.argv[2];
@@ -25,17 +30,24 @@ async function main() {
     process.exit(1);
   }
 
-  const projectDir = path.join(PROJECTS_DIR, slug);
-  const metadataPath = path.join(projectDir, "publishing", "metadata.json");
-  const videoPath = path.join(projectDir, "production", "output", "final.mp4");
-  const logPath = path.join(projectDir, "publishing", "upload-log.md");
+  const projectDir = getProjectDir(slug);
+  const config = loadProjectConfig(slug);
 
-  // Validate files exist
-  if (!fs.existsSync(metadataPath)) {
-    console.error(`Metadata not found: ${metadataPath}`);
+  // Find latest versioned metadata
+  const metadataFile = getLatestVersionedFile(slug, "publishing", "metadata");
+
+  if (!metadataFile) {
+    console.error("No versioned metadata found in publishing/ directory.");
+    console.error("Expected files like: metadata-v1.json, metadata-v2.json, etc.");
     console.error("Run the publisher agent first.");
     process.exit(1);
   }
+
+  const metadataPath = path.join(projectDir, "publishing", metadataFile);
+  console.log(`Using metadata: ${metadataFile}`);
+
+  const videoPath = path.join(projectDir, "production", "output", "final.mp4");
+  const logPath = path.join(projectDir, "publishing", "upload-log.md");
 
   if (!fs.existsSync(videoPath)) {
     console.error(`Video not found: ${videoPath}`);
@@ -97,24 +109,25 @@ async function main() {
     console.log(`Video ID: ${videoId}`);
     console.log(`URL: ${videoUrl}`);
 
-    // Update project config
-    const configPath = path.join(projectDir, "config.json");
-    const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    // Update project config via shared utils
     config.youtube = {
-      videoId,
+      videoId: videoId!,
       url: videoUrl,
       publishedAt: new Date().toISOString(),
     };
-    config.stage = "published";
-    config.pipeline.publishing = {
-      status: "completed",
-      completedAt: new Date().toISOString(),
-    };
-    config.updatedAt = new Date().toISOString();
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    config.currentWork = null;
+    config.pipeline.publishing.status = "completed";
+    config.pipeline.publishing.completedAt = new Date().toISOString();
+    config.history.push({
+      action: "publishing.completed",
+      version: config.pipeline.publishing.version || 1,
+      at: new Date().toISOString(),
+      reason: `Uploaded to YouTube as ${videoId}`,
+    });
+    saveProjectConfig(slug, config);
 
     // Write upload log
-    const log = `# Upload Log: ${metadata.title}\n\n- **Date:** ${new Date().toISOString()}\n- **Video ID:** ${videoId}\n- **URL:** ${videoUrl}\n- **Visibility:** ${metadata.visibility}\n- **Status:** SUCCESS\n`;
+    const log = `# Upload Log: ${metadata.title}\n\n- **Date:** ${new Date().toISOString()}\n- **Video ID:** ${videoId}\n- **URL:** ${videoUrl}\n- **Visibility:** ${metadata.visibility}\n- **Metadata file:** ${metadataFile}\n- **Status:** SUCCESS\n`;
     fs.writeFileSync(logPath, log);
   } catch (error) {
     console.error("Upload failed:", error);
