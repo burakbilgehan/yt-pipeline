@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #1e1e2e;
+        color: #cdd6f4;
+        padding: 16px;
+      }
+      h2 {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: #cba6f7;
+      }
+      .subtitle {
+        font-size: 12px;
+        color: #6c7086;
+        margin-bottom: 16px;
+      }
+      .instructions {
+        font-size: 12px;
+        color: #a6adc8;
+        margin-bottom: 12px;
+        line-height: 1.5;
+      }
+      textarea {
+        width: 100%;
+        height: 280px;
+        background: #11111b;
+        border: 2px solid #313244;
+        border-radius: 8px;
+        color: #cdd6f4;
+        font-family: 'Fira Code', 'Cascadia Code', monospace;
+        font-size: 11px;
+        padding: 12px;
+        resize: vertical;
+        line-height: 1.4;
+      }
+      textarea:focus {
+        outline: none;
+        border-color: #6c63ff;
+      }
+      textarea::placeholder {
+        color: #45475a;
+      }
+      .buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      button {
+        flex: 1;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      button:hover {
+        opacity: 0.9;
+      }
+      .btn-primary {
+        background: #6c63ff;
+        color: white;
+      }
+      .btn-secondary {
+        background: #313244;
+        color: #cdd6f4;
+      }
+      .status {
+        font-size: 11px;
+        color: #6c7086;
+        margin-top: 8px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>YT Pipeline Storyboard</h2>
+    <p class="subtitle">Sync storyboard scenes to Figma</p>
+
+    <p class="instructions">
+      Paste the contents of your <code>storyboard-v*.json</code> file below,
+      then click <strong>Sync</strong> to create or update scene frames.
+    </p>
+
+    <textarea
+      id="json-input"
+      placeholder='Paste storyboard JSON here...
+
+{
+  "title": "Video Title",
+  "version": 1,
+  "totalDuration": 180,
+  "scenes": [...]
+}'
+    ></textarea>
+
+    <div class="buttons">
+      <button class="btn-primary" id="sync-btn">Sync to Figma</button>
+      <button class="btn-secondary" id="cancel-btn">Close</button>
+    </div>
+
+    <p class="status" id="status"></p>
+
+    <script>
+      const textarea = document.getElementById('json-input');
+      const syncBtn = document.getElementById('sync-btn');
+      const cancelBtn = document.getElementById('cancel-btn');
+      const status = document.getElementById('status');
+
+      syncBtn.addEventListener('click', () => {
+        const value = textarea.value.trim();
+        if (!value) {
+          status.textContent = 'Please paste storyboard JSON first.';
+          status.style.color = '#f38ba8';
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(value);
+          if (!parsed.scenes || !Array.isArray(parsed.scenes)) {
+            status.textContent = 'Invalid format: missing "scenes" array.';
+            status.style.color = '#f38ba8';
+            return;
+          }
+
+          status.textContent = `Syncing ${parsed.scenes.length} scenes...`;
+          status.style.color = '#a6e3a1';
+
+          parent.postMessage(
+            { pluginMessage: { type: 'sync-storyboard', data: value } },
+            '*'
+          );
+        } catch (e) {
+          status.textContent = 'Invalid JSON: ' + e.message;
+          status.style.color = '#f38ba8';
+        }
+      });
+
+      cancelBtn.addEventListener('click', () => {
+        parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+      });
+
+      // Allow Ctrl+Enter to sync
+      textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+          syncBtn.click();
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "studio": "remotion studio src/remotion/index.ts",
+    "figma:build": "esbuild figma-plugin/code.ts --bundle --outfile=figma-plugin/code.js --target=es2020",
     "tts": "tsx src/scripts/tts-generate.ts",
     "render": "tsx src/scripts/remotion-render.ts",
     "upload": "tsx src/scripts/youtube-upload.ts",
@@ -15,16 +17,22 @@
     "new-project": "tsx src/scripts/new-project.ts"
   },
   "dependencies": {
-    "remotion": "^4.0.0",
     "@remotion/cli": "^4.0.0",
     "@remotion/renderer": "^4.0.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "dotenv": "^16.4.0",
     "googleapis": "^144.0.0",
-    "zod": "^3.23.0",
-    "dotenv": "^16.4.0"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "remotion": "^4.0.0",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
-    "typescript": "^5.6.0",
+    "@figma/plugin-typings": "^1.123.0",
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.27.3",
     "tsx": "^4.19.0",
-    "@types/node": "^22.0.0"
+    "typescript": "^5.6.0"
   }
 }
