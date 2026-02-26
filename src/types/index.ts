@@ -161,3 +161,47 @@ export interface RetentionPoint {
   timestamp: number; // seconds
   retentionPercentage: number;
 }
+
+// Channel-level configuration (channel-config.json at repo root)
+export interface ChannelConfig {
+  channel: {
+    name: string;
+    handle: string; // @handle
+    language: string; // e.g. "en"
+    niche: string; // e.g. "educational facts", "science explainers"
+    description: string;
+  };
+  content: {
+    defaultTone: string; // e.g. "informative, slightly dramatic, curiosity-driven"
+    targetAudience: string; // e.g. "18-35, curious learners, English-speaking"
+    defaultLength: number; // seconds, e.g. 180 for 3 minutes
+    avoidTopics: string[]; // topics to never cover
+    brandKeywords: string[]; // words/phrases that define the brand voice
+  };
+  tts: {
+    provider: "elevenlabs"; // currently only ElevenLabs supported
+    voiceId: string; // ElevenLabs voice ID
+    modelId: string; // e.g. "eleven_monolingual_v1"
+    stability: number; // 0-1
+    similarityBoost: number; // 0-1
+    style: number; // 0-1, ElevenLabs style setting
+  };
+  visuals: {
+    defaultTemplate: "voiceover-visuals" | "data-charts";
+    brandColor: string; // hex, e.g. "#6C63FF"
+    accentColor: string; // hex
+    fontFamily: string; // e.g. "Inter, sans-serif"
+    resolution: { width: number; height: number }; // e.g. 1920x1080
+    fps: number; // e.g. 30
+    preferredStockSource: "pexels" | "unsplash";
+    aiImageStyle: string; // DALL-E style guidance, e.g. "photorealistic, cinematic lighting"
+  };
+  youtube: {
+    defaultCategory: string; // e.g. "Education"
+    defaultVisibility: "public" | "unlisted" | "private";
+    defaultLanguage: string; // e.g. "en"
+    channelTrailer: string; // CTA text appended to all descriptions
+    defaultTags: string[]; // tags added to every video
+    endScreenTemplate: string; // description of end screen pattern
+  };
+}

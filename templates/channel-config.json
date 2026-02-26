@@ -1,0 +1,42 @@
+{
+  "channel": {
+    "name": "Your Channel Name",
+    "handle": "@yourchannel",
+    "language": "en",
+    "niche": "educational facts",
+    "description": "A YouTube channel about fascinating facts and data-driven stories."
+  },
+  "content": {
+    "defaultTone": "informative, slightly dramatic, curiosity-driven",
+    "targetAudience": "18-35, curious learners, English-speaking",
+    "defaultLength": 180,
+    "avoidTopics": [],
+    "brandKeywords": []
+  },
+  "tts": {
+    "provider": "elevenlabs",
+    "voiceId": "",
+    "modelId": "eleven_monolingual_v1",
+    "stability": 0.5,
+    "similarityBoost": 0.75,
+    "style": 0
+  },
+  "visuals": {
+    "defaultTemplate": "voiceover-visuals",
+    "brandColor": "#6C63FF",
+    "accentColor": "#FF6584",
+    "fontFamily": "Inter, sans-serif",
+    "resolution": { "width": 1920, "height": 1080 },
+    "fps": 30,
+    "preferredStockSource": "pexels",
+    "aiImageStyle": "photorealistic, cinematic lighting, high detail"
+  },
+  "youtube": {
+    "defaultCategory": "Education",
+    "defaultVisibility": "private",
+    "defaultLanguage": "en",
+    "channelTrailer": "",
+    "defaultTags": [],
+    "endScreenTemplate": "Subscribe button + next video suggestion"
+  }
+}

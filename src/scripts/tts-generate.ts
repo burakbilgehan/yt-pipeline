@@ -18,6 +18,7 @@ import {
   loadProjectConfig,
   saveProjectConfig,
   ensureProjectDir,
+  loadChannelConfig,
 } from "../utils/project.js";
 
 async function main() {
@@ -30,6 +31,7 @@ async function main() {
 
   const projectDir = getProjectDir(slug);
   const config = loadProjectConfig(slug);
+  const channelConfig = loadChannelConfig();
 
   // Find latest versioned script
   const scriptFile = getLatestVersionedFile(slug, "content", "script");
@@ -46,12 +48,20 @@ async function main() {
 
   const audioDir = ensureProjectDir(slug, "production/audio");
 
+  // TTS settings: env vars override channel config
   const apiKey = process.env.ELEVENLABS_API_KEY;
-  const voiceId = process.env.ELEVENLABS_VOICE_ID;
-  const modelId = process.env.ELEVENLABS_MODEL_ID || "eleven_monolingual_v1";
+  const voiceId = process.env.ELEVENLABS_VOICE_ID || channelConfig.tts.voiceId;
+  const modelId = process.env.ELEVENLABS_MODEL_ID || channelConfig.tts.modelId;
+  const stability = channelConfig.tts.stability;
+  const similarityBoost = channelConfig.tts.similarityBoost;
 
-  if (!apiKey || !voiceId) {
-    console.error("Missing ELEVENLABS_API_KEY or ELEVENLABS_VOICE_ID in .env");
+  if (!apiKey) {
+    console.error("Missing ELEVENLABS_API_KEY in .env");
+    process.exit(1);
+  }
+
+  if (!voiceId) {
+    console.error("Missing ELEVENLABS_VOICE_ID in .env or tts.voiceId in channel-config.json");
     process.exit(1);
   }
 
@@ -77,8 +87,8 @@ async function main() {
           text: block,
           model_id: modelId,
           voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
+            stability,
+            similarity_boost: similarityBoost,
           },
         }),
       }

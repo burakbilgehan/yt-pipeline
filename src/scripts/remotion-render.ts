@@ -19,7 +19,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
-import { getLatestVersionedFile, loadProjectConfig, saveProjectConfig } from "../utils/project";
+import { getLatestVersionedFile, loadProjectConfig, saveProjectConfig, loadChannelConfig } from "../utils/project";
 
 const PROJECTS_DIR = path.resolve("projects");
 const REMOTION_ENTRY = path.resolve("src", "remotion", "index.ts");
@@ -84,7 +84,8 @@ async function main() {
 
   const lastScene = scenes[scenes.length - 1];
   const totalDurationSec = lastScene.endTime || storyboard.totalDuration || 60;
-  const fps = 30;
+  const channelConfig = loadChannelConfig();
+  const fps = channelConfig.visuals.fps;
   const totalFrames = Math.ceil(totalDurationSec * fps);
 
   console.log(`Total duration: ${totalDurationSec}s (${totalFrames} frames @ ${fps}fps)`);
@@ -94,15 +95,15 @@ async function main() {
   fs.mkdirSync(outputDir, { recursive: true });
   const outputPath = path.join(outputDir, "final.mp4");
 
-  // ── Composition input props ──
+  // ── Composition input props (from channel config) ──
   const inputProps = {
     title: config.title || slug,
     scenes,
     audioFiles,
     showSubtitles: true,
     showProgressBar: true,
-    brandColor: "#6C63FF",
-    fontFamily: "Inter, sans-serif",
+    brandColor: channelConfig.visuals.brandColor,
+    fontFamily: channelConfig.visuals.fontFamily,
   };
 
   console.log("\nBundling Remotion project...");

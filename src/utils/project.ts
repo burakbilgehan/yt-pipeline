@@ -4,9 +4,11 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { ProjectConfig, PipelineStageName } from "../types/index.js";
+import type { ProjectConfig, PipelineStageName, ChannelConfig } from "../types/index.js";
 
 const PROJECTS_DIR = path.resolve("projects");
+const CHANNEL_CONFIG_PATH = path.resolve("channel-config.json");
+const CHANNEL_CONFIG_TEMPLATE = path.resolve("templates/channel-config.json");
 
 /**
  * Load a project's config.json
@@ -26,6 +28,22 @@ export function saveProjectConfig(slug: string, config: ProjectConfig): void {
   const configPath = path.join(PROJECTS_DIR, slug, "config.json");
   config.updatedAt = new Date().toISOString();
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+}
+
+/**
+ * Load the channel-level configuration (channel-config.json at repo root).
+ * Falls back to the template if no channel-config.json exists.
+ */
+export function loadChannelConfig(): ChannelConfig {
+  if (fs.existsSync(CHANNEL_CONFIG_PATH)) {
+    return JSON.parse(fs.readFileSync(CHANNEL_CONFIG_PATH, "utf-8"));
+  }
+  if (fs.existsSync(CHANNEL_CONFIG_TEMPLATE)) {
+    return JSON.parse(fs.readFileSync(CHANNEL_CONFIG_TEMPLATE, "utf-8"));
+  }
+  throw new Error(
+    "No channel-config.json found. Copy templates/channel-config.json to the repo root and customize it."
+  );
 }
 
 /**
