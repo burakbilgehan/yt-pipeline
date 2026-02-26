@@ -62,12 +62,21 @@ Include a version header at the top of every file:
 ## Rules
 
 - ALL content output must be in **English** (conversation with user is in Turkish)
-- Every factual claim MUST have a source link
-- Flag any claims you cannot verify with `[UNVERIFIED]`
+- **SOURCING IS MANDATORY — NO EXCEPTIONS.** Every single factual claim, statistic, date, price, or ranking MUST have an inline source link. A claim without a source is considered unverified and MUST be flagged.
+- Use inline source links in the format: `claim text [source](url)`
+- At the end of the document, provide a numbered **Sources** section with full URLs and brief descriptions
+- Flag any claims you cannot verify with `⚠️ [UNVERIFIED]` — these MUST be resolved before research is marked as completed
+- **Source quality hierarchy** (prefer higher):
+  1. Primary sources (official reports, academic papers, government data)
+  2. Established reference sources (Wikipedia with citations, encyclopedias)
+  3. Reputable news outlets and industry publications
+  4. General knowledge — ONLY acceptable for widely known, non-controversial facts. Still try to find a source.
+- **NEVER** list "General knowledge" as a source for specific numbers, prices, dates, or statistics
 - Prefer primary sources over secondary
 - Include counter-arguments and nuances - don't be one-sided
 - Quantify wherever possible (numbers, percentages, dates)
 - When you're done researching, present a summary and ask the user for feedback before finalizing
+- **Self-check before completion:** Count your claims vs your sources. If the ratio is below 90% sourced, you are NOT done.
 
 ## Version Management
 

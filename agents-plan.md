@@ -45,6 +45,55 @@ projects/<video-slug>/
 
 Basit baslangic - sorunlari markdown dosyasina logla, sonra formalize et.
 
+---
+
+## Temel Ayrim: Pipeline vs Icerik
+
+Bu framework'te iki farkli katman vardir ve bunlar KESINLIKLE birbirinden ayri tutulur:
+
+### Pipeline (Git'te yasar)
+Framework'un kendisi — agent prompt'lari, slash command'ler, TypeScript tipleri, utility fonksiyonlar, Remotion template'leri, Node.js script'leri, template dosyalari. Bunlar **jenerik** ve **kanal-bagimsizdir**. Herhangi bir kanal bu framework'u fork edip kullanabilir.
+
+- `src/`, `.opencode/`, `templates/`, `agents-plan.md`, `package.json`, vb.
+- Git'e commit edilir, PR ile gelisir, surekli iyilestirilir
+
+### Icerik (Git'te YASAMAZ)
+Video projeleri, arastirma dosyalari, senaryolar, storyboard'lar, renderlar, yayin metadata'si, analitik verileri. Bunlar **kanal-spesifiktir**.
+
+- `projects/`, `channel-config.json`
+- `.gitignore` ile git'ten haric tutulur
+- Yerel dosya sisteminde kalir, gerekirse ayri backup stratejisi uygulanir
+
+### Neden?
+1. Pipeline kodu jenerik kalmali — herhangi bir kanal tipi icin calisabilmeli
+2. Icerik pipeline'i kirletmemeli — bir kanalin "expensive liquids" arastirmasi baska bir kanalin kod tabanini etkilememeli
+3. Commit gecmisi temiz kalmali — sadece gercek framework iyilestirmeleri gorulmeli
+4. Farkli makinelerde/ortamlarda farkli kanallar ayni pipeline uzerinde calisabilmeli
+
+---
+
+## Kanal Olgunlasma Modeli
+
+Kanallar zaman icinde olgunlasir. Bu olgunluk seviyesi `channel-config.json` icindeki `maturity` alaniyla takip edilir ve agent'larin davranisini etkiler.
+
+### Seviyeler
+
+| Seviye | Aciklama | Agent Davranisi |
+|--------|----------|-----------------|
+| `seed` | Yeni kanal, henuz icerik yok | Agent'lar jenerik best practice'lere gore calisir, deneysel yaklasim |
+| `growing` | 5-20 video, ilk veriler geliyor | Agent'lar erken analitik verilere gore adapte olmaya baslar |
+| `established` | 20+ video, tutarli performans verisi | Agent'lar kanal verisine dayanarak optimizasyon yapar, ton/stil tutarliligi saglar |
+| `mature` | 50+ video, net kimlik | Agent'lar kanalin kimligine tam uyumlu icerik uretir, sadece stratejik degisiklikler |
+
+### Olgunlasma Etkileri
+- **Researcher:** Established+ kanallarda, onceki basarili videolarin konularini ve formatlarini referans alir
+- **Content Writer:** Growing+ kanallarda, kanal tonunu ve basarili hook pattern'lerini ogrenip uygular
+- **YouTube Expert:** Growing+ kanallarda, gercek kanal analitik verileriyle optimizasyon yapar
+- **Content Strategist:** Established+ kanallarda, kanal verisine dayali icerik takvimi olusturur
+- **Director:** Tum seviyelerde, olgunluk seviyesine gore strateji belirler
+
+> **NOT:** Agent'lar kanalin olgunluk seviyesine gore davranislarini adapte eder, ama urettikleri icerik ASLA pipeline git reposuna dahil edilmez. Olgunlasma sadece agent'larin "nasil" calistigini etkiler, urettikleri ciktilar yine `projects/` altinda yerel kalir.
+
 ## Versiyon Yonetim Sistemi
 
 Pipeline dogrusal degildir - kullanici herhangi bir asamaya geri donebilir, asamalari atlayabilir veya dogrudan duzenleme yapabilir. Bu yuzden her asama bagimsiz versiyonlanir.

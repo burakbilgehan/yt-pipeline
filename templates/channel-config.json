@@ -4,7 +4,10 @@
     "handle": "@yourchannel",
     "language": "en",
     "niche": "educational facts",
-    "description": "A YouTube channel about fascinating facts and data-driven stories."
+    "description": "A YouTube channel about fascinating facts and data-driven stories.",
+    "maturity": "seed",
+    "videoCount": 0,
+    "launchDate": null
   },
   "content": {
     "defaultTone": "informative, slightly dramatic, curiosity-driven",

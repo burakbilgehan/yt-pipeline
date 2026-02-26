@@ -162,6 +162,9 @@ export interface RetentionPoint {
   retentionPercentage: number;
 }
 
+// Channel maturity levels - affects how agents behave
+export type ChannelMaturity = "seed" | "growing" | "established" | "mature";
+
 // Channel-level configuration (channel-config.json at repo root)
 export interface ChannelConfig {
   channel: {
@@ -170,6 +173,9 @@ export interface ChannelConfig {
     language: string; // e.g. "en"
     niche: string; // e.g. "educational facts", "science explainers"
     description: string;
+    maturity: ChannelMaturity; // seed → growing → established → mature
+    videoCount: number; // total published videos
+    launchDate: string | null; // ISO date of first published video, null if not launched
   };
   content: {
     defaultTone: string; // e.g. "informative, slightly dramatic, curiosity-driven"
