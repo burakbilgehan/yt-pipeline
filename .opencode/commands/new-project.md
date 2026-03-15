@@ -1,13 +1,16 @@
 ---
 description: Create a new video project
-agent: build
+agent: director
 ---
+<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
-Create a new video project with slug: $1
+Create a new video project from the arguments: $ARGUMENTS
+
+Parse the first word as the slug and the rest as the optional title.
 
 1. Create the project directory structure:
    ```
-   projects/$1/
+   projects/<slug>/
      config.json
      research/
      content/
@@ -21,9 +24,11 @@ Create a new video project with slug: $1
    ```
 
 2. Initialize `config.json` from the template at `templates/default-config.json`, setting:
-   - `slug` to "$1"
-   - `title` to "$2" (if provided, otherwise use slug)
+   - `slug` to the provided slug
+   - `title` to the provided title (if given, otherwise use the slug)
    - `createdAt` to current date
-   - `stage` to "research"
+   - All pipeline stages to `{ status: "not_started", version: 0 }`
+   - `currentWork` to null
+   - `history` to empty array
 
-3. Confirm the project was created and what the next step is.
+3. Confirm the project was created and suggest the next step: `/research <slug> <topic>`.

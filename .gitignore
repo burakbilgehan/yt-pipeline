@@ -25,3 +25,7 @@ Thumbs.db
 
 # Figma plugin build output
 figma-plugin/code.js
+
+# Test/temp files
+test_voice.mp3
+nul

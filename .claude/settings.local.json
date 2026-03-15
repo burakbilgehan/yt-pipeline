@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:anthropic.skilljar.com)",
+      "WebSearch",
+      "Bash(ls:*)",
+      "Bash(npx tsx:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q '\\.ai/'; then npx tsx .ai/sync.ts; fi",
+            "statusMessage": "Syncing .ai/ configs..."
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q '\\.ai/'; then npx tsx .ai/sync.ts; fi",
+            "statusMessage": "Syncing .ai/ configs..."
+          }
+        ]
+      }
+    ]
+  }
+}

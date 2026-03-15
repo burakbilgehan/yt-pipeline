@@ -1,10 +1,11 @@
 ---
-description: Create a storyboard from an approved script
+description: Create a scene-by-scene storyboard from approved script
 agent: storyboard
 ---
+<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
 Create a storyboard for the project: $ARGUMENTS
 
-Read the approved script from `projects/$1/content/script.md` and create a detailed scene-by-scene visual plan.
+Read the latest approved script and break it down into scenes with visual descriptions, timing, and transition types.
 
-Output both the JSON storyboard and a human-readable summary.
+Output both `storyboard-v<N>.json` (machine-readable) and `storyboard-summary-v<N>.md` (human-readable) to the project's `storyboard/` folder.

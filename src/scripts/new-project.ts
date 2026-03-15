@@ -7,11 +7,27 @@ const PROJECTS_DIR = path.resolve("projects");
 const TEMPLATE_PATH = path.resolve("templates/default-config.json");
 
 function main() {
-  const slug = process.argv[2];
-  const title = process.argv[3] || slug;
+  const args = process.argv.slice(2);
+
+  // Parse --format flag
+  const formatFlagIndex = args.indexOf("--format");
+  let format: "long" | "short" = "long";
+  if (formatFlagIndex !== -1 && args[formatFlagIndex + 1]) {
+    format = args[formatFlagIndex + 1] as "long" | "short";
+    args.splice(formatFlagIndex, 2);
+  }
+  // Also support --short shorthand
+  const shortFlagIndex = args.indexOf("--short");
+  if (shortFlagIndex !== -1) {
+    format = "short";
+    args.splice(shortFlagIndex, 1);
+  }
+
+  const slug = args[0];
+  const title = args[1] || slug;
 
   if (!slug) {
-    console.error("Usage: npm run new-project <slug> [title]");
+    console.error("Usage: npm run new-project <slug> [title] [--format short|long] [--short]");
     process.exit(1);
   }
 
@@ -65,6 +81,17 @@ function main() {
     fs.readFileSync(TEMPLATE_PATH, "utf-8")
   ) as ProjectConfig;
 
+  // Determine target length based on format
+  let targetLength = channelDefaults.targetLength || template.metadata.targetLength;
+  if (format === "short") {
+    try {
+      const channelConfig = loadChannelConfig();
+      targetLength = (channelConfig as any).shorts?.defaultLength || 45;
+    } catch {
+      targetLength = 45;
+    }
+  }
+
   const config: ProjectConfig = {
     ...template,
     slug,
@@ -76,7 +103,8 @@ function main() {
       tone: channelDefaults.tone || template.metadata.tone,
       targetAudience: channelDefaults.targetAudience || template.metadata.targetAudience,
       language: channelDefaults.language || template.metadata.language,
-      targetLength: channelDefaults.targetLength || template.metadata.targetLength,
+      targetLength,
+      format,
     },
   };
 
@@ -91,6 +119,7 @@ function main() {
   console.log(`Audience: ${config.metadata.targetAudience}`);
   console.log(`Language: ${config.metadata.language}`);
   console.log(`Target length: ${config.metadata.targetLength}s`);
+  console.log(`Format: ${config.metadata.format}`);
   console.log(`Current work: ${config.currentWork ?? "none (ready to start)"}`);
   console.log(`\nNext step: @researcher or /research ${slug} <topic>`);
 }

@@ -32,7 +32,17 @@
     "resolution": { "width": 1920, "height": 1080 },
     "fps": 30,
     "preferredStockSource": "pexels",
-    "aiImageStyle": "photorealistic, cinematic lighting, high detail"
+    "imageProvider": "gemini",
+    "aiImageStyle": "photorealistic, cinematic lighting, high detail",
+    "aiImageStyleOverrides": {
+      "gemini": "photorealistic, ultra detailed, 8K quality, cinematic lighting",
+      "dalle": "photorealistic, cinematic lighting, high detail"
+    }
+  },
+  "shorts": {
+    "defaultLength": 45,
+    "resolution": { "width": 1080, "height": 1920 },
+    "fps": 30
   },
   "youtube": {
     "defaultCategory": "Education",

@@ -10,7 +10,8 @@
     "targetLength": 300,
     "tone": "informative",
     "targetAudience": "",
-    "language": "en"
+    "language": "en",
+    "format": "long"
   },
   "pipeline": {
     "research": { "status": "pending", "version": 0 },

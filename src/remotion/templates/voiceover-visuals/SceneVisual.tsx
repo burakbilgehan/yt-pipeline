@@ -1,125 +1,287 @@
 import React from "react";
-import { AbsoluteFill, Img, staticFile } from "remotion";
+import {
+  AbsoluteFill,
+  Img,
+  staticFile,
+  useCurrentFrame,
+  useVideoConfig,
+  interpolate,
+  spring,
+} from "remotion";
 import type { SceneVisualInput } from "../../schemas";
 
 interface SceneVisualProps {
   visual: SceneVisualInput;
   brandColor: string;
   fontFamily: string;
+  /** Fallback image to show when no assetPath is available (continuity from previous scene) */
+  fallbackImage?: string;
 }
 
 /**
- * Renders the background visual for a scene.
- * Handles: stock images, AI images, text-only overlays, and placeholder cards.
- * Stock videos are rendered as static images (Remotion handles video separately).
+ * Full-screen scene visual with Ken Burns effect (slow zoom + pan).
+ * Shows stock/AI images as backgrounds. Composite scenes get a ranking badge + price tag.
+ * Text-overlay scenes get a cinematic title card.
+ * No placeholder cards — if no image, show a dark cinematic gradient.
  */
 export const SceneVisual: React.FC<SceneVisualProps> = ({
   visual,
   brandColor,
   fontFamily,
+  fallbackImage,
 }) => {
-  // If we have a resolved asset path, show the image
-  if (visual.assetPath && (visual.type === "stock-image" || visual.type === "ai-image" || visual.type === "stock-video")) {
+  const frame = useCurrentFrame();
+  const { fps, durationInFrames } = useVideoConfig();
+
+  const hasImage = !!visual.assetPath;
+  const hasFallback = !!fallbackImage;
+  const isTextOnly = visual.type === "text-overlay";
+
+  // ── Text-only scene (title cards, CTAs) ──
+  if (isTextOnly) {
     return (
       <AbsoluteFill>
-        <Img
-          src={staticFile(visual.assetPath)}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
+        <CinematicGradient brandColor={brandColor} />
+        {visual.textOverlay && (
+          <TitleCard
+            text={visual.textOverlay}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+            frame={frame}
+            fps={fps}
+          />
+        )}
+      </AbsoluteFill>
+    );
+  }
+
+  // ── Visual scene (stock image / composite / ai-image) ──
+  return (
+    <AbsoluteFill>
+      {hasImage ? (
+        <KenBurnsImage src={staticFile(visual.assetPath!)} frame={frame} sceneDurationInFrames={durationInFrames} />
+      ) : hasFallback ? (
+        <KenBurnsImage src={staticFile(fallbackImage!)} frame={frame} sceneDurationInFrames={durationInFrames} />
+      ) : (
+        <CinematicGradient brandColor={brandColor} />
+      )}
+
+      {/* Dark vignette overlay for readability */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%)",
+        }}
+      />
+
+      {/* Bottom gradient for text area */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "40%",
+          background:
+            "linear-gradient(transparent, rgba(0,0,0,0.7))",
+        }}
+      />
+
+      {/* Ranking badge + price tag from textOverlay */}
+      {visual.textOverlay && (
+        <RankingOverlay
+          text={visual.textOverlay}
+          brandColor={brandColor}
+          fontFamily={fontFamily}
+          frame={frame}
+          fps={fps}
         />
-        {/* Darkening overlay for text readability */}
+      )}
+    </AbsoluteFill>
+  );
+};
+
+// ─── Ken Burns Effect ────────────────────────────────────────
+
+interface KenBurnsImageProps {
+  src: string;
+  frame: number;
+  sceneDurationInFrames: number;
+}
+
+const KenBurnsImage: React.FC<KenBurnsImageProps> = ({ src, frame, sceneDurationInFrames }) => {
+  // Slow zoom from 100% to 110% over the actual scene duration
+  // Also slight pan (translateX shifts slightly)
+  const duration = Math.max(sceneDurationInFrames, 1);
+  const scale = interpolate(frame, [0, duration], [1.0, 1.12], {
+    extrapolateRight: "clamp",
+  });
+  const translateX = interpolate(frame, [0, duration], [0, -15], {
+    extrapolateRight: "clamp",
+  });
+  const translateY = interpolate(frame, [0, duration], [0, -8], {
+    extrapolateRight: "clamp",
+  });
+
+  return (
+    <AbsoluteFill>
+      <Img
+        src={src}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
+        }}
+      />
+    </AbsoluteFill>
+  );
+};
+
+// ─── Cinematic Gradient (fallback for no-image scenes) ──────
+
+const CinematicGradient: React.FC<{ brandColor: string }> = ({
+  brandColor,
+}) => (
+  <AbsoluteFill
+    style={{
+      background: `linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 40%, ${brandColor}22 100%)`,
+    }}
+  />
+);
+
+// ─── Ranking Overlay (badge + price) ────────────────────────
+
+interface RankingOverlayProps {
+  text: string;
+  brandColor: string;
+  fontFamily: string;
+  frame: number;
+  fps: number;
+}
+
+const RankingOverlay: React.FC<RankingOverlayProps> = ({
+  text,
+  brandColor,
+  fontFamily,
+  frame,
+  fps,
+}) => {
+  // Parse the textOverlay to extract ranking number and price
+  // Format: "#10 — Human Blood\n$1,500/gallon" or just plain text
+  const lines = text.split("\n");
+  const titleLine = lines[0] || "";
+  const priceLine = lines[1] || "";
+
+  // Extract ranking number (e.g., "#10", "#1")
+  const rankMatch = titleLine.match(/#(\d+)/);
+  const rankNumber = rankMatch ? rankMatch[1] : null;
+
+  // Extract item name (after "— " or after "#N ")
+  const nameMatch = titleLine.match(/[—–-]\s*(.+)/);
+  const itemName = nameMatch ? nameMatch[1].trim() : titleLine.replace(/#\d+\s*/, "").trim();
+
+  // Entrance animation
+  const enterSpring = spring({
+    fps,
+    frame,
+    config: { damping: 18, stiffness: 80 },
+  });
+
+  const priceSpring = spring({
+    fps,
+    frame: frame - 8, // Staggered entrance
+    config: { damping: 18, stiffness: 80 },
+  });
+
+  return (
+    <AbsoluteFill style={{ pointerEvents: "none" }}>
+      {/* Ranking badge (top-left corner) */}
+      {rankNumber && (
         <div
           style={{
             position: "absolute",
-            inset: 0,
-            background: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)",
-          }}
-        />
-        {/* Text overlay on top of image */}
-        {visual.textOverlay && (
-          <TextOverlayCard
-            text={visual.textOverlay}
-            brandColor={brandColor}
-            fontFamily={fontFamily}
-          />
-        )}
-      </AbsoluteFill>
-    );
-  }
-
-  // Text-only overlay scene (no background image)
-  if (visual.type === "text-overlay") {
-    return (
-      <AbsoluteFill
-        style={{
-          background: `linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {visual.textOverlay && (
-          <TextOverlayCard
-            text={visual.textOverlay}
-            brandColor={brandColor}
-            fontFamily={fontFamily}
-            large
-          />
-        )}
-      </AbsoluteFill>
-    );
-  }
-
-  // Placeholder for unresolved assets - shows description
-  return (
-    <AbsoluteFill
-      style={{
-        background: `linear-gradient(135deg, #2d1b69 0%, #11998e 100%)`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 80,
-      }}
-    >
-      <div
-        style={{
-          textAlign: "center",
-          color: "#FFFFFF",
-          fontFamily,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 18,
-            opacity: 0.6,
-            marginBottom: 16,
-            textTransform: "uppercase",
-            letterSpacing: 2,
+            top: 50,
+            left: 50,
+            opacity: enterSpring,
+            transform: `scale(${enterSpring})`,
           }}
         >
-          {visual.type.replace("-", " ")}
-        </div>
-        <div
-          style={{
-            fontSize: 32,
-            fontWeight: 600,
-            lineHeight: 1.4,
-          }}
-        >
-          {visual.description}
-        </div>
-        {visual.searchQuery && (
           <div
             style={{
-              fontSize: 16,
-              opacity: 0.5,
-              marginTop: 12,
+              backgroundColor: brandColor,
+              color: "#FFFFFF",
+              fontSize: 56,
+              fontFamily,
+              fontWeight: 900,
+              width: 100,
+              height: 100,
+              borderRadius: 16,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
             }}
           >
-            Search: {visual.searchQuery}
+            {rankNumber}
+          </div>
+        </div>
+      )}
+
+      {/* Item name + price (bottom-left, above subtitle area) */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 120,
+          left: 60,
+          right: 200,
+        }}
+      >
+        {/* Item name */}
+        {itemName && (
+          <div
+            style={{
+              color: "#FFFFFF",
+              fontSize: 46,
+              fontFamily,
+              fontWeight: 700,
+              textShadow: "0 2px 16px rgba(0,0,0,0.8)",
+              opacity: enterSpring,
+              transform: `translateX(${interpolate(enterSpring, [0, 1], [-40, 0])}px)`,
+              marginBottom: 8,
+            }}
+          >
+            {itemName}
+          </div>
+        )}
+
+        {/* Price tag */}
+        {priceLine && (
+          <div
+            style={{
+              display: "inline-flex",
+              backgroundColor: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(8px)",
+              borderRadius: 8,
+              padding: "8px 20px",
+              borderLeft: `4px solid ${brandColor}`,
+              opacity: priceSpring,
+              transform: `translateX(${interpolate(priceSpring, [0, 1], [-30, 0])}px)`,
+            }}
+          >
+            <span
+              style={{
+                color: "#FFFFFF",
+                fontSize: 30,
+                fontFamily,
+                fontWeight: 600,
+                letterSpacing: 1,
+              }}
+            >
+              {priceLine}
+            </span>
           </div>
         )}
       </div>
@@ -127,47 +289,67 @@ export const SceneVisual: React.FC<SceneVisualProps> = ({
   );
 };
 
-// ─── Internal: Text overlay card ──────────────────────────────
+// ─── Title Card (for text-overlay scenes) ───────────────────
 
-interface TextOverlayCardProps {
+interface TitleCardProps {
   text: string;
   brandColor: string;
   fontFamily: string;
-  large?: boolean;
+  frame: number;
+  fps: number;
 }
 
-const TextOverlayCard: React.FC<TextOverlayCardProps> = ({
+const TitleCard: React.FC<TitleCardProps> = ({
   text,
   brandColor,
   fontFamily,
-  large,
+  frame,
+  fps,
 }) => {
+  const enterSpring = spring({
+    fps,
+    frame,
+    config: { damping: 15, stiffness: 60 },
+  });
+
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        inset: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: large ? 100 : 60,
+        padding: 120,
       }}
     >
-      <h1
+      <div
         style={{
-          color: "#FFFFFF",
-          fontSize: large ? 72 : 48,
-          fontFamily,
-          fontWeight: 800,
+          opacity: enterSpring,
+          transform: `scale(${interpolate(enterSpring, [0, 1], [0.9, 1])})`,
           textAlign: "center",
-          lineHeight: 1.2,
-          textShadow: "0 4px 20px rgba(0,0,0,0.6)",
-          borderLeft: `6px solid ${brandColor}`,
-          paddingLeft: 30,
         }}
       >
-        {text}
-      </h1>
-    </div>
+        <h1
+          style={{
+            color: "#FFFFFF",
+            fontSize: 64,
+            fontFamily,
+            fontWeight: 800,
+            lineHeight: 1.2,
+            textShadow: "0 4px 30px rgba(0,0,0,0.5)",
+          }}
+        >
+          {text}
+        </h1>
+        <div
+          style={{
+            width: 120,
+            height: 4,
+            backgroundColor: brandColor,
+            margin: "24px auto 0",
+            borderRadius: 2,
+          }}
+        />
+      </div>
+    </AbsoluteFill>
   );
 };

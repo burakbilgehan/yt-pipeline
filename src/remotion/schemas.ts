@@ -29,12 +29,23 @@ export const sceneInputSchema = z.object({
   notes: z.string().optional(),
 });
 
+// ─── Audio segment schema ────────────────────────────────────
+
+export const audioSegmentSchema = z.object({
+  /** Path to the audio file (relative to publicDir) */
+  src: z.string(),
+  /** Start time in seconds (when this audio should begin playing) */
+  startTime: z.number(),
+});
+
 // ─── Main video composition schema ───────────────────────────
 
 export const videoCompositionSchema = z.object({
   title: z.string(),
   scenes: z.array(sceneInputSchema),
   audioFiles: z.array(z.string()),
+  /** Audio segments with precise timing (preferred over audioFiles) */
+  audioSegments: z.array(audioSegmentSchema).optional(),
   showSubtitles: z.boolean(),
   showProgressBar: z.boolean(),
   brandColor: z.string(),
@@ -53,7 +64,7 @@ export const dataChartItemSchema = z.object({
 });
 
 export const dataChartInputSchema = z.object({
-  type: z.enum(["bar-chart", "line-chart", "pie-chart", "counter", "comparison"]),
+  type: z.enum(["bar-chart", "line-chart", "pie-chart", "counter", "comparison", "timeline", "progress", "scale-comparison"]),
   title: z.string().optional(),
   items: z.array(dataChartItemSchema).optional(),
   counterValue: z.number().optional(),
@@ -75,3 +86,17 @@ export type DataChartInput = z.infer<typeof dataChartInputSchema>;
 export type DataChartItem = z.infer<typeof dataChartItemSchema>;
 export type SceneInput = z.infer<typeof sceneInputSchema>;
 export type SceneVisualInput = z.infer<typeof sceneVisualInputSchema>;
+
+// ─── Shorts composition schema ──────────────────────────────
+
+export const shortsCompositionSchema = z.object({
+  title: z.string(),
+  scenes: z.array(sceneInputSchema),
+  audioFiles: z.array(z.string()),
+  audioSegments: z.array(audioSegmentSchema).optional(),
+  showSubtitles: z.boolean(),
+  brandColor: z.string(),
+  fontFamily: z.string(),
+});
+
+export type ShortsCompositionProps = z.infer<typeof shortsCompositionSchema>;

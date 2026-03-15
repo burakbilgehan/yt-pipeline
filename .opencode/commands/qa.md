@@ -1,9 +1,16 @@
 ---
-description: Run quality checks on a project
+description: Run quality checks on a project's pipeline outputs
 agent: qa
 ---
+<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
-Run QA checks on project: $ARGUMENTS
+Quality check the project: $ARGUMENTS
 
-Review all outputs in `projects/$1/` and check against the quality checklist.
-Report any issues found with severity ratings and suggested fixes.
+Run through the quality checklist for each completed pipeline stage:
+1. Check research for source quality and verified claims
+2. Check script for factual accuracy and engagement structure
+3. Check storyboard for timing and visual coverage
+4. **Always run version consistency checks** — detect stale `based_on` references across stages
+5. Summarize issues by severity (Critical / High / Medium / Low)
+
+Write the report to `projects/<slug>/qa-report.md`.

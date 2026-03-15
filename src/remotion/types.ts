@@ -23,7 +23,10 @@ export type ChartType =
   | "line-chart"
   | "pie-chart"
   | "counter"
-  | "comparison";
+  | "comparison"
+  | "timeline"
+  | "progress"
+  | "scale-comparison";
 
 // ─── Scene Input ──────────────────────────────────────────────
 
@@ -107,11 +110,37 @@ export interface VideoCompositionProps {
   fontFamily: string;
 }
 
+/** Audio segment with precise timing */
+export interface AudioSegment {
+  /** Path to the audio file (relative to publicDir) */
+  src: string;
+  /** Start time in seconds (when this audio should begin playing) */
+  startTime: number;
+}
+
 /** Props for a standalone data chart composition (for previewing) */
 export interface DataChartCompositionProps {
   chart: DataChartInput;
   /** Duration in frames */
   durationInFrames: number;
   brandColor: string;
+  fontFamily: string;
+}
+
+/** Props for the shorts video composition (9:16) */
+export interface ShortsCompositionProps {
+  /** Video title */
+  title: string;
+  /** All scenes in order */
+  scenes: SceneInput[];
+  /** Audio file paths (ordered voiceover segments) */
+  audioFiles: string[];
+  /** Audio segments with precise timing */
+  audioSegments?: AudioSegment[];
+  /** Whether to show subtitles (always true for shorts, bigger font) */
+  showSubtitles: boolean;
+  /** Brand color for UI elements */
+  brandColor: string;
+  /** Font family for text */
   fontFamily: string;
 }

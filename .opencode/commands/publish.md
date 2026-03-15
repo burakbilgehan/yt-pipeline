@@ -1,12 +1,15 @@
 ---
-description: Plan and execute video publishing
+description: Prepare YouTube metadata and upload a video
 agent: publisher
 ---
+<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
-Publish the video for project: $ARGUMENTS
+Prepare and publish the video for project: $ARGUMENTS
 
-Review the produced video and:
-1. Plan optimal publishing time
-2. Prepare YouTube metadata (title, description, tags)
-3. Get user approval
-4. Upload to YouTube
+Steps:
+1. Analyze the video content and target audience
+2. Plan optimal publishing time
+3. Prepare optimized YouTube metadata (title, description, tags)
+4. Consult @youtube-expert for SEO optimization
+5. Present publish plan for user approval
+6. Upload via `npm run upload <slug>` only after approval

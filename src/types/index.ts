@@ -25,6 +25,7 @@ export interface ProjectConfig {
     tone: string;
     targetAudience: string;
     language: string;
+    format: "long" | "short";
   };
   pipeline: Record<PipelineStageName, StageStatus>;
   history: HistoryEntry[];
@@ -103,7 +104,7 @@ export interface SceneVisual {
 }
 
 export interface DataVisualization {
-  type: "bar-chart" | "line-chart" | "pie-chart" | "map" | "counter" | "comparison";
+  type: "bar-chart" | "line-chart" | "pie-chart" | "map" | "counter" | "comparison" | "timeline" | "scale-comparison" | "progress-bar";
   title?: string;
   data: Record<string, unknown>;
 }
@@ -200,7 +201,14 @@ export interface ChannelConfig {
     resolution: { width: number; height: number }; // e.g. 1920x1080
     fps: number; // e.g. 30
     preferredStockSource: "pexels" | "unsplash";
-    aiImageStyle: string; // DALL-E style guidance, e.g. "photorealistic, cinematic lighting"
+    imageProvider: "gemini" | "dalle" | "pexels";
+    aiImageStyle: string; // default style guidance
+    aiImageStyleOverrides?: Partial<Record<"gemini" | "dalle", string>>; // per-provider style overrides
+  };
+  shorts: {
+    defaultLength: number; // 30-60
+    resolution: { width: 1080; height: 1920 };
+    fps: number;
   };
   youtube: {
     defaultCategory: string; // e.g. "Education"

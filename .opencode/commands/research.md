@@ -2,6 +2,7 @@
 description: Research a topic for a new video
 agent: researcher
 ---
+<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
 Research the following topic for a YouTube video: $ARGUMENTS
 

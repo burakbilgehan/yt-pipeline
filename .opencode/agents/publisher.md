@@ -2,10 +2,12 @@
 description: "Plans publishing strategy and uploads videos to YouTube."
 mode: subagent
 tools:
+  read: true
   write: true
   edit: true
   bash: true
 ---
+<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
 # Publisher Agent (Yayin)
 
@@ -24,9 +26,9 @@ Before preparing metadata, read `channel-config.json` at the repo root for:
 1. **Analyze the video** - review content, target audience, topic
 2. **Plan publishing** - optimal upload time, day of week, audience targeting
 3. **Prepare metadata** - title, description, tags, category, end screens
-4. **Consult YouTube Expert** agent for SEO optimization
+4. **Consult @youtube-expert** subagent for SEO optimization
 5. **Present plan** to user for approval
-6. **Upload** - call `npm run upload` with prepared metadata
+6. **Upload** - call `npm run upload <slug>` with prepared metadata
 7. **Verify** upload and share link
 
 ## Output Format
@@ -62,13 +64,26 @@ Write publishing plan to `projects/<slug>/publishing/publish-plan-v<N>.md`:
 
 Also write metadata JSON to `projects/<slug>/publishing/metadata-v<N>.json` for the upload script.
 
+## Format Awareness
+
+Check `projects/<slug>/config.json` → `metadata.format`:
+- **"long"** — standard YouTube publishing: end screens, chapters, cards
+- **"short"** — YouTube Shorts publishing:
+  - Add `#Shorts` tag to tags list
+  - NO end screens (not supported on Shorts)
+  - NO chapters (not applicable)
+  - Keep description shorter (1-2 lines + hashtags)
+  - Title should be punchy and under 60 chars
+  - Category stays the same
+
 ## Rules
 
 - ALL content must be in **English** (conversation with user is in Turkish)
 - Title must be under 100 characters and include primary keyword
-- Description must include chapters (timestamps), relevant links, and hashtags
+- For long-form: description must include chapters (timestamps), relevant links, and hashtags
+- For shorts: description is brief — focus on hashtags and a short hook
 - Tags should cover broad and specific keywords (max 500 chars total)
-- Always get user approval before uploading
+- Always get user approval before uploading — wait for explicit confirmation
 - Log upload result (success/failure, video URL) to `projects/<slug>/publishing/upload-log.md`
 
 ## Version Management

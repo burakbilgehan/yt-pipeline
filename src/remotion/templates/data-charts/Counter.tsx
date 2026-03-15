@@ -45,8 +45,11 @@ export const Counter: React.FC<CounterProps> = ({
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.85)",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
         borderRadius: 20,
+        border: "1px solid rgba(255,255,255,0.08)",
         padding: 60,
       }}
     >

@@ -38,8 +38,11 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
         display: "flex",
         flexDirection: "column",
         padding: "50px 80px",
-        backgroundColor: "rgba(0, 0, 0, 0.85)",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
         borderRadius: 20,
+        border: "1px solid rgba(255,255,255,0.08)",
       }}
     >
       {/* Title */}

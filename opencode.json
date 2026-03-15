@@ -3,36 +3,11 @@
   "agent": {
     "build": {
       "mode": "primary",
-      "prompt": "You are part of the yt-pipeline YouTube channel factory framework. You help build and implement the video production pipeline. All conversation is in Turkish, but YouTube content is in English. Use TypeScript everywhere. Follow the architecture defined in agents-plan.md."
+      "prompt": "You are part of the yt-pipeline YouTube channel factory framework. You help build and implement the video production pipeline. All conversation is in Turkish, but YouTube content is in English. Use TypeScript everywhere. Follow the architecture defined in agents-plan.md.\n\nCRITICAL: After editing any file under .ai/agents/ or .ai/commands/, you MUST run \"npx tsx .ai/sync.ts\" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly — they are auto-generated and will be overwritten."
     },
     "plan": {
       "mode": "primary",
-      "prompt": "You are part of the yt-pipeline YouTube channel factory framework. Analyze, plan, and suggest without making changes. All conversation is in Turkish. Follow the architecture defined in agents-plan.md."
-    },
-    "researcher": {
-      "description": "Researches topics for video content. Gathers data, sources, and facts. Performs fact-checking.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/researcher.md}"
-    },
-    "content-writer": {
-      "description": "Writes video scripts and voiceover text from research output.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/content-writer.md}"
-    },
-    "storyboard": {
-      "description": "Creates scene-by-scene visual plans from approved content.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/storyboard.md}"
-    },
-    "video-production": {
-      "description": "Produces video using Remotion, TTS, and collected visuals.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/video-production.md}"
-    },
-    "publisher": {
-      "description": "Plans publishing strategy and uploads videos to YouTube.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/publisher.md}"
+      "prompt": "You are part of the yt-pipeline YouTube channel factory framework. Analyze, plan, and suggest without making changes. All conversation is in Turkish. Follow the architecture defined in agents-plan.md.\n\nCRITICAL: After editing any file under .ai/agents/ or .ai/commands/, you MUST run \"npx tsx .ai/sync.ts\" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly — they are auto-generated and will be overwritten."
     },
     "analytics": {
       "description": "Tracks post-publish performance and provides insights.",
@@ -44,25 +19,50 @@
       "mode": "subagent",
       "prompt": "{file:.opencode/agents/collector.md}"
     },
-    "youtube-expert": {
-      "description": "YouTube SEO, algorithm best practices, tag/description optimization, channel analytics.",
+    "content-strategist": {
+      "description": "Tracks trends, manages content calendar, plans follow-ups and new topics.",
       "mode": "subagent",
-      "prompt": "{file:.opencode/agents/youtube-expert.md}"
+      "prompt": "{file:.opencode/agents/content-strategist.md}"
+    },
+    "content-writer": {
+      "description": "Writes video scripts and voiceover text from research output.",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/content-writer.md}"
+    },
+    "director": {
+      "description": "Oversees all agents, coordinates pipeline, advises on channel strategy and direction.",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/director.md}"
+    },
+    "publisher": {
+      "description": "Plans publishing strategy and uploads videos to YouTube.",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/publisher.md}"
     },
     "qa": {
       "description": "Quality assurance - reports pipeline issues, performs quality checks, suggests improvements.",
       "mode": "subagent",
       "prompt": "{file:.opencode/agents/qa.md}"
     },
-    "content-strategist": {
-      "description": "Tracks trends, manages content calendar, plans follow-ups and new topics.",
+    "researcher": {
+      "description": "Researches topics for video content. Gathers data, sources, and facts. Performs fact-checking.",
       "mode": "subagent",
-      "prompt": "{file:.opencode/agents/content-strategist.md}"
+      "prompt": "{file:.opencode/agents/researcher.md}"
     },
-    "director": {
-      "description": "Oversees all agents, coordinates pipeline, advises on channel strategy and direction.",
+    "storyboard": {
+      "description": "Creates scene-by-scene visual plans from approved content.",
       "mode": "subagent",
-      "prompt": "{file:.opencode/agents/director.md}"
+      "prompt": "{file:.opencode/agents/storyboard.md}"
+    },
+    "video-production": {
+      "description": "Produces video using Remotion, TTS, and collected visuals.",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/video-production.md}"
+    },
+    "youtube-expert": {
+      "description": "YouTube SEO, algorithm best practices, tag/description optimization, channel analytics.",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/youtube-expert.md}"
     }
   }
 }

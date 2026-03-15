@@ -1,4 +1,9 @@
 export { BarChart } from "./BarChart";
 export { Counter } from "./Counter";
 export { ComparisonTable } from "./ComparisonTable";
+export { PieChart } from "./PieChart";
+export { LineChart } from "./LineChart";
+export { TimelineChart } from "./TimelineChart";
+export { ScaleComparison } from "./ScaleComparison";
+export { ProgressRing } from "./ProgressRing";
 export { DataChartScene } from "./DataChartScene";

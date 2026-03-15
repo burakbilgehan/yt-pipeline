@@ -1,5 +1,5 @@
 import React from "react";
-import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { interpolate } from "remotion";
 
 interface ProgressBarProps {
   /** Current scene index (0-based) */
@@ -12,11 +12,15 @@ interface ProgressBarProps {
   totalFrames: number;
   /** Brand color */
   color: string;
+  /** Optional: unique section count for chapter markers */
+  sectionCount?: number;
 }
 
 /**
- * Bottom progress bar showing video playback position.
- * Shows both continuous progress and scene markers.
+ * Minimal YouTube-style progress bar.
+ * Thin line at the very bottom with continuous fill.
+ * Only shows section-level chapter markers (not per-scene).
+ * Appears subtly — doesn't distract from the video.
  */
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   currentScene,
@@ -24,11 +28,16 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   globalFrame,
   totalFrames,
   color,
+  sectionCount,
 }) => {
   const progress = interpolate(globalFrame, [0, totalFrames], [0, 100], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
+
+  // Use sectionCount for markers if provided, otherwise show NO markers
+  // (30 scene markers look awful — only show a few chapter dividers)
+  const markerCount = sectionCount ?? 0;
 
   return (
     <div
@@ -37,39 +46,39 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         bottom: 0,
         left: 0,
         right: 0,
-        height: 6,
-        backgroundColor: "rgba(255,255,255,0.15)",
+        height: 4,
+        backgroundColor: "rgba(255,255,255,0.1)",
         zIndex: 100,
       }}
     >
-      {/* Continuous progress */}
+      {/* Continuous progress fill */}
       <div
         style={{
           height: "100%",
           width: `${progress}%`,
           backgroundColor: color,
-          borderRadius: "0 3px 3px 0",
-          transition: "width 0.1s linear",
+          borderRadius: "0 2px 2px 0",
         }}
       />
 
-      {/* Scene markers */}
-      {Array.from({ length: totalScenes - 1 }).map((_, i) => {
-        const markerPosition = ((i + 1) / totalScenes) * 100;
-        return (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: `${markerPosition}%`,
-              width: 2,
-              height: "100%",
-              backgroundColor: "rgba(255,255,255,0.4)",
-            }}
-          />
-        );
-      })}
+      {/* Section chapter markers (only a few, subtle) */}
+      {markerCount > 1 &&
+        Array.from({ length: markerCount - 1 }).map((_, i) => {
+          const markerPosition = ((i + 1) / markerCount) * 100;
+          return (
+            <div
+              key={i}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: `${markerPosition}%`,
+                width: 2,
+                height: "100%",
+                backgroundColor: "rgba(255,255,255,0.25)",
+              }}
+            />
+          );
+        })}
     </div>
   );
 };

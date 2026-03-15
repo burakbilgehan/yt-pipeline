@@ -18,19 +18,25 @@ import { DataChartScene } from "../templates/data-charts";
  * Takes storyboard scenes + audio files as input, renders the full video:
  * - Each scene is a Remotion <Sequence> positioned at the correct frame
  * - Scenes contain visuals (stock images, text overlays, or data charts)
- * - Audio tracks are layered on top
- * - Subtitles and progress bar are shown as overlays
+ * - Data-chart scenes ALWAYS have a stock image background with the chart overlaid
+ * - Audio segments are placed at their correct timeline positions
+ * - Subtitles progress sentence-by-sentence
+ * - Progress bar shows minimal YouTube-style chapter markers
  */
 const MainComposition: React.FC<VideoCompositionProps> = ({
   title,
   scenes,
   audioFiles,
+  audioSegments,
   showSubtitles,
   showProgressBar,
   brandColor,
   fontFamily,
 }) => {
   const { fps, durationInFrames } = useVideoConfig();
+
+  // Compute unique section count for the progress bar chapter markers
+  const uniqueSections = new Set(scenes.map((s) => s.section)).size;
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#000000" }}>
@@ -41,6 +47,9 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
         const sceneDuration = endFrame - startFrame;
 
         if (sceneDuration <= 0) return null;
+
+        const isDataChart =
+          scene.visual.type === "data-chart" && scene.visual.dataChart;
 
         return (
           <Sequence
@@ -53,29 +62,36 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
               type={scene.transition}
               sceneDurationInFrames={sceneDuration}
             >
-              {/* Background visual or data chart */}
-              {scene.visual.type === "data-chart" && scene.visual.dataChart ? (
+              {/* Layer 1: Always show SceneVisual as background
+                  (provides Ken Burns image or cinematic gradient)
+                  Fallback: use previous scene's image for continuity */}
+              <SceneVisual
+                visual={scene.visual}
+                brandColor={brandColor}
+                fontFamily={fontFamily}
+                fallbackImage={
+                  !scene.visual.assetPath && scene.visual.type !== "text-overlay"
+                    ? findPreviousAsset(scenes, index)
+                    : undefined
+                }
+              />
+
+              {/* Layer 2: Data chart overlay (semi-transparent, on top of image) */}
+              {isDataChart && (
                 <AbsoluteFill
                   style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: 60,
-                    backgroundColor: "#0a0a0a",
+                    padding: 40,
                   }}
                 >
                   <DataChartScene
-                    chart={scene.visual.dataChart}
+                    chart={scene.visual.dataChart!}
                     brandColor={brandColor}
                     fontFamily={fontFamily}
                   />
                 </AbsoluteFill>
-              ) : (
-                <SceneVisual
-                  visual={scene.visual}
-                  brandColor={brandColor}
-                  fontFamily={fontFamily}
-                />
               )}
 
               {/* Section title (appears briefly at scene start) */}
@@ -99,22 +115,34 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
       })}
 
       {/* ── Audio tracks ── */}
-      {audioFiles.map((audioPath, index) => {
-        const scene = scenes[index];
-        if (!scene || !audioPath) return null;
-
-        const startFrame = Math.round(scene.startTime * fps);
-
-        return (
-          <Sequence
-            key={`audio-${index}`}
-            from={startFrame}
-            name={`Audio: ${scene.section}`}
-          >
-            <Audio src={staticFile(audioPath)} />
-          </Sequence>
-        );
-      })}
+      {/* Prefer audioSegments (with precise timing) over legacy audioFiles */}
+      {audioSegments && audioSegments.length > 0
+        ? audioSegments.map((segment, index) => {
+            const startFrame = Math.round(segment.startTime * fps);
+            return (
+              <Sequence
+                key={`audio-seg-${index}`}
+                from={startFrame}
+                name={`Audio Segment ${index + 1}`}
+              >
+                <Audio src={staticFile(segment.src)} />
+              </Sequence>
+            );
+          })
+        : audioFiles.map((audioPath, index) => {
+            const scene = scenes[index];
+            if (!scene || !audioPath) return null;
+            const startFrame = Math.round(scene.startTime * fps);
+            return (
+              <Sequence
+                key={`audio-${index}`}
+                from={startFrame}
+                name={`Audio: ${scene.section}`}
+              >
+                <Audio src={staticFile(audioPath)} />
+              </Sequence>
+            );
+          })}
 
       {/* ── Progress bar overlay ── */}
       {showProgressBar && scenes.length > 0 && (
@@ -123,6 +151,7 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
           fps={fps}
           totalFrames={durationInFrames}
           color={brandColor}
+          sectionCount={uniqueSections}
         />
       )}
     </AbsoluteFill>
@@ -131,6 +160,17 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
 
 export default MainComposition;
 
+// ─── Internal: Find previous scene's asset for fallback ───────
+
+function findPreviousAsset(scenes: SceneInput[], currentIndex: number): string | undefined {
+  for (let i = currentIndex - 1; i >= 0; i--) {
+    if (scenes[i].visual.assetPath) {
+      return scenes[i].visual.assetPath;
+    }
+  }
+  return undefined;
+}
+
 // ─── Internal: Progress bar that tracks current scene ─────────
 
 interface ProgressBarOverlayProps {
@@ -138,6 +178,7 @@ interface ProgressBarOverlayProps {
   fps: number;
   totalFrames: number;
   color: string;
+  sectionCount: number;
 }
 
 const ProgressBarOverlay: React.FC<ProgressBarOverlayProps> = ({
@@ -145,6 +186,7 @@ const ProgressBarOverlay: React.FC<ProgressBarOverlayProps> = ({
   fps,
   totalFrames,
   color,
+  sectionCount,
 }) => {
   const frame = useCurrentFrame();
 
@@ -166,6 +208,7 @@ const ProgressBarOverlay: React.FC<ProgressBarOverlayProps> = ({
         globalFrame={frame}
         totalFrames={totalFrames}
         color={color}
+        sectionCount={sectionCount}
       />
     </AbsoluteFill>
   );

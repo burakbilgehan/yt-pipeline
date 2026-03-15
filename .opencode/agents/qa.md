@@ -2,10 +2,11 @@
 description: "Quality assurance - reports pipeline issues, performs quality checks, suggests improvements."
 mode: subagent
 tools:
+  read: true
   write: true
   edit: true
-  bash: true
 ---
+<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
 # QA Agent
 
@@ -59,10 +60,10 @@ Write issue reports to `projects/<slug>/qa-report.md` and pipeline-level improve
 A core QA responsibility is detecting **version mismatches** across the pipeline. When running a quality check:
 
 1. **Read `projects/<slug>/config.json`** to get the current version numbers for each stage
-2. **Read version headers** in each versioned file (`research-vX.md`, `script-vX.md`, `storyboard-vX.md`, etc.)
+2. **Read version headers** in each versioned file (`research-vX.md`, `script-vX.md`, `storyboard-vX.json`, etc.)
 3. **Check `based_on` references** - every downstream file should reference the latest upstream version:
    - `script-vX.md` must have `based_on: research-v<latest>`
-   - `storyboard-vX.md` must have `based_on: script-v<latest>`
+   - `storyboard-vX.json` must have `basedOn.content: <latest>`
    - Production assets should reference `based_on: storyboard-v<latest>`
 4. **Flag stale dependencies** - if content is at v3 but storyboard still references `based_on: script-v1`, that's a **Critical** issue
 5. **Check config.json consistency** - version numbers in config should match the highest versioned file that actually exists
@@ -77,7 +78,7 @@ A core QA responsibility is detecting **version mismatches** across the pipeline
 |-------|---------------|-------------|--------|
 | research | v2 | research-v2.md | ✅ OK |
 | content | v3 | script-v3.md | ✅ OK |
-| storyboard | v1 | storyboard-v1.md | ⚠️ STALE (based_on: script-v1, current: script-v3) |
+| storyboard | v1 | storyboard-v1.json | ⚠️ STALE (based_on: script-v1, current: script-v3) |
 
 ### Issues Found
 1. **[Critical]** Storyboard is based on outdated script version...

@@ -14,7 +14,10 @@
     "analytics": "tsx src/scripts/fetch-analytics.ts",
     "collect": "tsx src/scripts/collect-stock.ts",
     "generate-image": "tsx src/scripts/generate-image.ts",
-    "new-project": "tsx src/scripts/new-project.ts"
+    "generate-image:gemini": "tsx src/scripts/generate-image.ts --provider gemini",
+    "generate-image:dalle": "tsx src/scripts/generate-image.ts --provider dalle",
+    "new-project": "tsx src/scripts/new-project.ts",
+    "sync-ai": "tsx .ai/sync.ts"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.0",

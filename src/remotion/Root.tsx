@@ -1,6 +1,6 @@
 import React from "react";
 import { Composition } from "remotion";
-import { videoCompositionSchema, dataChartCompositionSchema } from "./schemas";
+import { videoCompositionSchema, dataChartCompositionSchema, shortsCompositionSchema } from "./schemas";
 
 const FPS = 30;
 const WIDTH = 1920;
@@ -39,6 +39,7 @@ export const RemotionRoot: React.FC = () => {
             },
           ],
           audioFiles: [],
+          audioSegments: [],
           showSubtitles: true,
           showProgressBar: true,
           brandColor: "#6C63FF",
@@ -67,6 +68,39 @@ export const RemotionRoot: React.FC = () => {
             unit: "units",
           },
           durationInFrames: 90,
+          brandColor: "#6C63FF",
+          fontFamily: "Inter, sans-serif",
+        }}
+      />
+      {/* Shorts video composition - 9:16 vertical format */}
+      <Composition
+        id="ShortsVideo"
+        lazyComponent={() => import("./compositions/ShortsComposition")}
+        schema={shortsCompositionSchema}
+        durationInFrames={FPS * 60}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{
+          title: "Sample Short",
+          scenes: [
+            {
+              id: "scene-1",
+              section: "Hook",
+              startTime: 0,
+              endTime: 5,
+              voiceover: "Did you know?",
+              visual: {
+                type: "text-overlay" as const,
+                description: "Title card",
+                textOverlay: "Sample Short",
+              },
+              transition: "cut" as const,
+            },
+          ],
+          audioFiles: [],
+          audioSegments: [],
+          showSubtitles: true,
           brandColor: "#6C63FF",
           fontFamily: "Inter, sans-serif",
         }}

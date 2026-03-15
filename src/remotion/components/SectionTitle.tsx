@@ -2,17 +2,17 @@ import React from "react";
 import { spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 
 interface SectionTitleProps {
-  /** Section/scene title */
   title: string;
-  /** Brand color for accent */
   brandColor: string;
-  /** Font family */
   fontFamily: string;
 }
 
 /**
- * Animated section title that appears at the start of each scene.
- * Slides in from left with a spring animation, stays for ~2s, then fades out.
+ * Section title — only shows for major section transitions.
+ * Filters out per-scene labels (e.g., "#8 Printer Ink — Intro")
+ * and only displays clean section names (e.g., "The Big Leagues").
+ *
+ * Shows as a quick cinematic text flash — appears, holds briefly, fades.
  */
 export const SectionTitle: React.FC<SectionTitleProps> = ({
   title,
@@ -22,62 +22,92 @@ export const SectionTitle: React.FC<SectionTitleProps> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Appear with spring
+  // Only show for "meta" section transitions, not individual items.
+  // Skip titles that look like ranking items (#N ...) or sub-scenes (... — Data/Intro/etc.)
+  const isRankingItem = /^#\d+/.test(title);
+  const isSubScene = /[—–-]\s*(Visual|Data|Intro|Brain|Danger|Market|Business|Extraction|Dose|Ancient|Medical|Dramatic|Price|Why|Sales|Recap)/i.test(title);
+
+  if (isRankingItem || isSubScene) {
+    return null;
+  }
+
+  // Also skip generic labels
+  const skipLabels = ["CTA", "Subscribe", "Full Rankings"];
+  if (skipLabels.some((s) => title.includes(s))) {
+    return null;
+  }
+
+  // Entrance spring
   const enterSpring = spring({
     fps,
     frame,
-    config: { damping: 15, stiffness: 80 },
+    config: { damping: 14, stiffness: 70 },
   });
 
-  // Fade out after 2 seconds (60 frames at 30fps)
-  const fadeOut = interpolate(frame, [50, 65], [1, 0], {
+  // Fade out after ~1.5s
+  const fadeOut = interpolate(frame, [40, 55], [1, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   const opacity = Math.min(enterSpring, fadeOut);
-  const translateX = interpolate(enterSpring, [0, 1], [-80, 0]);
 
-  if (opacity <= 0) return null;
+  if (opacity <= 0.01) return null;
+
+  // Clean up the title for display
+  const displayTitle = title
+    .replace(/^Hook\s*[—–-]\s*/i, "")
+    .replace(/^Section \d+\s*[—–-]?\s*/i, "")
+    .replace(/Recap.*$/i, "")
+    .trim();
+
+  if (!displayTitle) return null;
 
   return (
     <div
       style={{
         position: "absolute",
-        top: 60,
-        left: 60,
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         zIndex: 40,
         opacity,
-        transform: `translateX(${translateX}px)`,
+        pointerEvents: "none",
       }}
     >
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
+          textAlign: "center",
+          transform: `translateY(${interpolate(enterSpring, [0, 1], [30, 0])}px)`,
         }}
       >
-        {/* Accent bar */}
         <div
           style={{
-            width: 6,
-            height: 40,
-            backgroundColor: brandColor,
-            borderRadius: 3,
+            color: brandColor,
+            fontSize: 20,
+            fontFamily,
+            fontWeight: 600,
+            letterSpacing: 6,
+            textTransform: "uppercase",
+            marginBottom: 12,
           }}
-        />
+        >
+          ▬▬▬
+        </div>
         <h2
           style={{
             color: "#FFFFFF",
-            fontSize: 36,
+            fontSize: 52,
             fontFamily,
-            fontWeight: 700,
+            fontWeight: 800,
             margin: 0,
-            textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+            textShadow: "0 4px 24px rgba(0,0,0,0.8)",
+            letterSpacing: 2,
+            textTransform: "uppercase",
           }}
         >
-          {title}
+          {displayTitle}
         </h2>
       </div>
     </div>

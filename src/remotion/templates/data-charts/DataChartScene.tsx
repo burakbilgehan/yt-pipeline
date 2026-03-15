@@ -3,6 +3,11 @@ import type { DataChartInput } from "../../schemas";
 import { BarChart } from "./BarChart";
 import { Counter } from "./Counter";
 import { ComparisonTable } from "./ComparisonTable";
+import { PieChart } from "./PieChart";
+import { LineChart } from "./LineChart";
+import { TimelineChart } from "./TimelineChart";
+import { ScaleComparison } from "./ScaleComparison";
+import { ProgressRing } from "./ProgressRing";
 
 interface DataChartSceneProps {
   chart: DataChartInput;
@@ -38,26 +43,29 @@ export const DataChartScene: React.FC<DataChartSceneProps> = ({
         />
       );
 
-    case "line-chart":
     case "pie-chart":
-      // Not yet implemented - show placeholder
       return (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "rgba(0,0,0,0.85)",
-            borderRadius: 20,
-            color: "#FFFFFF",
-            fontFamily,
-            fontSize: 28,
-          }}
-        >
-          {chart.type} coming soon
-        </div>
+        <PieChart chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "line-chart":
+      return (
+        <LineChart chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "timeline":
+      return (
+        <TimelineChart chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "scale-comparison":
+      return (
+        <ScaleComparison chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "progress":
+      return (
+        <ProgressRing chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
       );
 
     default:

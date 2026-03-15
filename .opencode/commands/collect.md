@@ -1,13 +1,15 @@
 ---
-description: Collect resources (images, video, data)
+description: Collect stock media or generate AI images for a project
 agent: collector
 ---
+<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
-Collect resources: $ARGUMENTS
+Collect assets: $ARGUMENTS
 
-Usage:
-- `/collect stock "search query"` - Find stock images/video
-- `/collect ai "image description"` - Generate AI image
-- `/collect info "what to find"` - Gather information
+Usage examples:
+- `/collect my-project image "expensive perfume bottle"` — search Pexels for images
+- `/collect my-project video "golden liquid pouring"` — search Pexels for video
+- `/collect my-project ai "cinematic golden liquid in glass"` — generate with AI (Gemini default, or `--provider dalle`)
+- `/collect my-project info "what to find"` — gather information from the web
 
-Find and download the requested resources, logging them to the asset log.
+All assets are saved to `projects/<slug>/production/visuals/` and logged in `asset-log.md`.
