@@ -27,32 +27,74 @@ The project has two distinct layers:
 Framework code — agent prompts, slash commands, TypeScript types, Remotion templates, Node.js scripts, template files. These are **generic** and **channel-agnostic**.
 
 ### Content (does NOT live in git)
-Video projects, research files, scripts, storyboards, renders, publishing metadata, analytics. These are **channel-specific** and live in `projects/` locally.
+Video projects, research files, scripts, storyboards, renders, publishing metadata, analytics. These are **channel-specific** and live in `channels/` locally.
+
+## Directory Structure
+
+```
+yt-pipeline/                          ← git repo (infrastructure only)
+├── src/                              # Remotion, scripts, types, utils
+├── .ai/                              # Agent & command definitions (source of truth)
+├── templates/
+│   ├── channel-config.json           # Channel config template
+│   ├── default-config.json           # Video config template
+│   └── project/                      # Full video project folder template
+├── public/<video-slug>/              # Remotion assets (gitignored, populated at render time)
+├── .env.example
+└── package.json
+
+channels/                             ← local only, NOT in git
+└── <channel-slug>/
+    ├── channel-config.json           # This channel's config
+    ├── channel-assets/               # Profile photo, banner, etc.
+    └── videos/
+        └── <video-slug>/
+            ├── config.json           # Pipeline state & version history
+            ├── research/
+            ├── content/
+            ├── storyboard/
+            ├── production/
+            │   ├── audio/
+            │   ├── visuals/
+            │   └── output/           # Rendered videos
+            ├── publishing/
+            └── analytics/
+```
 
 ## Key Files & Directories
 
 | Path | Purpose |
 |------|---------|
-| `channel-config.json` | Channel identity, tone, visuals, YouTube defaults |
+| `channels/<channel>/channel-config.json` | Channel identity, tone, visuals, YouTube defaults |
+| `channels/<channel>/videos/<slug>/config.json` | Per-video pipeline state and version history |
+| `templates/channel-config.json` | Starter template for new channels |
+| `templates/project/` | Starter template for new video projects |
 | `agents-plan.md` | Full architecture decisions and agent definitions |
-| `projects/<slug>/config.json` | Per-project pipeline state and version history |
 | `src/remotion/` | Video rendering engine (Remotion + TypeScript) |
 | `src/scripts/` | Node.js scripts: TTS, render, upload, analytics, collect |
-| `templates/` | Starter templates for new projects |
+| `public/<slug>/` | Remotion render assets (gitignored) |
 
 ## NPM Scripts (for heavy tasks)
 
 ```bash
-npm run new-project <slug> [title]   # Create new project
-npm run tts <slug>                   # ElevenLabs TTS voiceover
-npm run render <slug>                # Remotion video render
-npm run upload <slug>                # YouTube upload
-npm run analytics [slug|channel]     # Fetch YouTube analytics
-npm run collect <slug> <type> <query># Pexels stock download
-npm run generate-image <slug> <prompt># AI image generation
-npm run studio                       # Open Remotion Studio
-npm run sync-ai                      # Sync .ai/ → .claude/ + .opencode/
+npm run new-channel <slug> [name]              # Create new channel
+npm run new-video <slug> [title] [--channel <slug>]  # Create new video project
+npm run tts <slug>                             # ElevenLabs TTS voiceover
+npm run render <slug>                          # Remotion video render
+npm run upload <slug>                          # YouTube upload
+npm run analytics [slug|channel]               # Fetch YouTube analytics
+npm run collect <slug> <type> <query>          # Pexels stock download
+npm run generate-image <slug> <prompt>         # AI image generation
+npm run studio                                 # Open Remotion Studio
+npm run sync-ai                                # Sync .ai/ → .claude/ + .opencode/
 ```
+
+## Channel Config Location
+
+Agents must look for `channel-config.json` at:
+1. `channels/<channel-slug>/channel-config.json` (primary)
+2. Auto-detect: first directory found under `channels/`
+3. Legacy fallback: `channel-config.json` at repo root (deprecated)
 
 ## Version Management
 

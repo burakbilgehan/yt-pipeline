@@ -1,6 +1,6 @@
 import React from "react";
 import { Composition, staticFile } from "remotion";
-import { videoCompositionSchema, dataChartCompositionSchema, shortsCompositionSchema, horseRaceCompositionSchema } from "./schemas";
+import { videoCompositionSchema, dataChartCompositionSchema, shortsCompositionSchema, horseRaceCompositionSchema, thumbnailCompositionSchema } from "./schemas";
 import { customVideoCompositionSchema } from "./compositions/CustomVideoComposition";
 import type { z } from "zod";
 
@@ -168,6 +168,26 @@ export const RemotionRoot: React.FC = () => {
             return { durationInFrames: Math.ceil(duration * FPS) };
           }
           return {};
+        }}
+      />
+
+      {/* Thumbnail — 1280x720 static image for YouTube thumbnails */}
+      <Composition
+        id="Thumbnail"
+        lazyComponent={() => import("./compositions/ThumbnailComposition")}
+        schema={thumbnailCompositionSchema}
+        durationInFrames={1}
+        fps={FPS}
+        width={1280}
+        height={720}
+        defaultProps={{
+          variant: "A" as const,
+          beforeNumber: "26,000%",
+          afterNumber: "132%",
+          topLabel: "THE DOW",
+          bottomLabel: "PRICED IN GOLD",
+          cornerLabel: "100 YEARS OF DATA",
+          cornerPosition: "bottom-left" as const,
         }}
       />
     </>

@@ -12,4 +12,4 @@ Usage examples:
 - `/collect my-project ai "cinematic golden liquid in glass"` — generate with AI (Gemini default, or `--provider dalle`)
 - `/collect my-project info "what to find"` — gather information from the web
 
-All assets are saved to `projects/<slug>/production/visuals/` and logged in `asset-log.md`.
+All assets are saved to `channels/<channel>/videos/<slug>/production/visuals/` and logged in `asset-log.md`.

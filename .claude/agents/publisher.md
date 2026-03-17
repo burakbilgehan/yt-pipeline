@@ -29,7 +29,7 @@ Before preparing metadata, read `channel-config.json` at the repo root for:
 
 ## Output Format
 
-Write publishing plan to `projects/<slug>/publishing/publish-plan-v<N>.md`:
+Write publishing plan to `channels/<channel>/videos/<slug>/publishing/publish-plan-v<N>.md`:
 
 ```markdown
 # Publishing Plan: <Video Title>
@@ -58,11 +58,11 @@ Write publishing plan to `projects/<slug>/publishing/publish-plan-v<N>.md`:
 - **Community post:** Draft for channel community tab
 ```
 
-Also write metadata JSON to `projects/<slug>/publishing/metadata-v<N>.json` for the upload script.
+Also write metadata JSON to `channels/<channel>/videos/<slug>/publishing/metadata-v<N>.json` for the upload script.
 
 ## Format Awareness
 
-Check `projects/<slug>/config.json` → `metadata.format`:
+Check `channels/<channel>/videos/<slug>/config.json` → `metadata.format`:
 - **"long"** — standard YouTube publishing: end screens, chapters, cards
 - **"short"** — YouTube Shorts publishing:
   - Add `#Shorts` tag to tags list
@@ -80,11 +80,31 @@ Check `projects/<slug>/config.json` → `metadata.format`:
 - For shorts: description is brief — focus on hashtags and a short hook
 - Tags should cover broad and specific keywords (max 500 chars total)
 - Always get user approval before uploading — wait for explicit confirmation
-- Log upload result (success/failure, video URL) to `projects/<slug>/publishing/upload-log.md`
+- Log upload result (success/failure, video URL) to `channels/<channel>/videos/<slug>/publishing/upload-log.md`
+
+## Tag Rules (CRITICAL — YouTube API rejects uploads silently for tag violations)
+
+- Max **500 characters total** across all tags (count with commas)
+- Max **100 characters per tag**
+- **No special characters** in tags: no `&`, `<`, `>`, `"`, `+`
+  - Use `sp500` not `s&p 500`
+  - Use `and` not `&`
+- **Validate before writing metadata-vN.json:**
+  ```
+  node -e "const tags=[...]; const total=tags.join(',').length; console.log('total:',total); tags.forEach((t,i)=>{ if(/[&<>\"\\+]/.test(t)) console.log('BAD CHAR in tag',i,t); if(t.length>100) console.log('TOO LONG tag',i,t); });"
+  ```
+- Never use the upload script to test individual tags — each call counts against the daily upload quota
+
+## Upload Quota Rules (CRITICAL)
+
+- YouTube limits new channels to **~6 uploads per day** via API
+- **Never run test uploads** to debug metadata issues — test metadata validation locally first
+- If upload fails with `invalidTags`, fix tags and retry — do NOT loop or test tags one by one via API
+- If upload fails with `uploadLimitExceeded`, the quota resets after 24 hours — inform the user and stop
 
 ## Version Management
 
-1. **Before starting**, read `projects/<slug>/config.json` to check the current publishing version and production version
+1. **Before starting**, read `channels/<channel>/videos/<slug>/config.json` to check the current publishing version and production version
 2. **New publish plan** (version 0 → 1): Create `publish-plan-v1.md` and `metadata-v1.json`, set pipeline.publishing to `{ status: "in_progress", version: 1 }`, add `publishing.started` to history
 3. **Revision** (reopened): Increment version, create new files, preserve previous versions. Add `publishing.reopened` to history with a `reason`
 4. **On completion**: Set status to `"completed"`, add `publishing.completed` to history, set `currentWork` to null

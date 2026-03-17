@@ -50,11 +50,19 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const isDarkBg = backgroundColor.startsWith("#0") || backgroundColor.startsWith("#1");
-  const textPrimary = isDarkBg ? "#FFFFFF" : "#1a1a1a";
-  const textMuted = isDarkBg ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.25)";
-  const textSubtle = isDarkBg ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.18)";
-  const barTrackBg = isDarkBg ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)";
+  const isDarkBg = (() => {
+    if (backgroundColor.startsWith("#") && backgroundColor.length >= 7) {
+      const r = parseInt(backgroundColor.slice(1, 3), 16);
+      const g = parseInt(backgroundColor.slice(3, 5), 16);
+      const b = parseInt(backgroundColor.slice(5, 7), 16);
+      return (r * 299 + g * 587 + b * 114) / 1000 < 128;
+    }
+    return backgroundColor.startsWith("#0") || backgroundColor.startsWith("#1") || backgroundColor.startsWith("#2") || backgroundColor.startsWith("#3");
+  })();
+  const textPrimary = isDarkBg ? "#E8E0D4" : "#1a1a1a";
+  const textMuted = isDarkBg ? "rgba(232,224,212,0.5)" : "rgba(0,0,0,0.25)";
+  const textSubtle = isDarkBg ? "rgba(232,224,212,0.4)" : "rgba(0,0,0,0.18)";
+  const barTrackBg = isDarkBg ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)";
 
   const maxAbsValue = Math.max(...items.map((item) => Math.abs(item.value)));
   const staggerDelay = fps * 0.15;

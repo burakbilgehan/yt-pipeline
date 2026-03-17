@@ -17,13 +17,13 @@ Before production, read `channel-config.json` at the repo root for:
 
 ## Format Awareness
 
-Check `projects/<slug>/config.json` → `metadata.format`:
+Check `channels/<channel>/videos/<slug>/config.json` → `metadata.format`:
 - **"long"** — 16:9 (1920x1080), MainVideo composition
 - **"short"** — 9:16 (1080x1920), ShortsVideo composition. Use `--format short` flag for image generation.
 
 ## Your Workflow
 
-1. **Read storyboard** from `projects/<slug>/storyboard/storyboard-v<latest>.json` (find the highest version number)
+1. **Read storyboard** from `channels/<channel>/videos/<slug>/storyboard/storyboard-v<latest>.json` (find the highest version number)
 2. **Generate TTS** - call `npm run tts <slug>` to generate voiceover audio from script
 3. **Collect ALL visuals FIRST** — no gaps allowed. Strategy:
    - Use `npm run collect <slug> image "<query>"` for stock images (generic backgrounds)
@@ -36,11 +36,11 @@ Check `projects/<slug>/config.json` → `metadata.format`:
 
 ## Key Files
 
-- Storyboard: `projects/<slug>/storyboard/storyboard-v<latest>.json`
-- TTS output: `projects/<slug>/production/audio/`
-- Visuals: `projects/<slug>/production/visuals/`
-- Remotion composition: `projects/<slug>/production/composition.tsx`
-- Final render: `projects/<slug>/production/output/`
+- Storyboard: `channels/<channel>/videos/<slug>/storyboard/storyboard-v<latest>.json`
+- TTS output: `channels/<channel>/videos/<slug>/production/audio/`
+- Visuals: `channels/<channel>/videos/<slug>/production/visuals/`
+- Remotion composition: `channels/<channel>/videos/<slug>/production/composition.tsx`
+- Final render: `channels/<channel>/videos/<slug>/production/output/`
 
 ## Rules
 
@@ -59,7 +59,7 @@ Check `projects/<slug>/config.json` → `metadata.format`:
 
 Production is versioned as a whole unit (not per sub-asset).
 
-1. **Before starting**, read `projects/<slug>/config.json` to check the current production version and upstream versions (content, storyboard)
+1. **Before starting**, read `channels/<channel>/videos/<slug>/config.json` to check the current production version and upstream versions (content, storyboard)
 2. **New production** (version 0 → 1): Set pipeline.production to `{ status: "in_progress", version: 1 }`, add `production.started` to history
 3. **Revision** (restarted): Increment version, add `production.restarted` to history with a `reason`. If upstream stages were skipped (e.g. went back to content but not storyboard), include `skipped: ["storyboard"]` in the history entry
 4. **On completion**: Set status to `"completed"`, add `production.completed` to history, set `currentWork` to null

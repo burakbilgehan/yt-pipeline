@@ -254,6 +254,7 @@ async function main() {
     composition,
     serveUrl: bundleLocation,
     codec: "h264",
+    crf: 18,
     outputLocation: outputPath,
     inputProps,
     onProgress: ({ progress }) => {

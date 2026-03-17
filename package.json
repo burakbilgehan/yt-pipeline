@@ -16,7 +16,9 @@
     "generate-image": "tsx src/scripts/generate-image.ts",
     "generate-image:gemini": "tsx src/scripts/generate-image.ts --provider gemini",
     "generate-image:dalle": "tsx src/scripts/generate-image.ts --provider dalle",
-    "new-project": "tsx src/scripts/new-project.ts",
+    "new-channel": "tsx src/scripts/new-channel.ts",
+    "new-video": "tsx src/scripts/new-video.ts",
+    "new-project": "tsx src/scripts/new-video.ts",
     "sync-ai": "tsx .ai/sync.ts"
   },
   "dependencies": {

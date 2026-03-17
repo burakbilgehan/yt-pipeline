@@ -19,7 +19,7 @@ You are the Analytics agent in the yt-pipeline YouTube video production framewor
 
 ## Output Format
 
-Write analytics report to `projects/<slug>/analytics/report-<YYYY-MM-DD>.md` (date-based filename):
+Write analytics report to `channels/<channel>/videos/<slug>/analytics/report-<YYYY-MM-DD>.md` (date-based filename):
 
 ```markdown
 # Analytics Report: <Video Title>
@@ -66,8 +66,8 @@ Write analytics report to `projects/<slug>/analytics/report-<YYYY-MM-DD>.md` (da
 
 Analytics works differently from other stages — it's snapshot-based, not revision-based.
 
-1. **Reports** are saved as `projects/<slug>/analytics/report-<YYYY-MM-DD>.md` (date-based, not version-based)
-2. **Snapshots** from `npm run analytics` are saved as `projects/<slug>/analytics/snapshot-<YYYY-MM-DD>.json`
+1. **Reports** are saved as `channels/<channel>/videos/<slug>/analytics/report-<YYYY-MM-DD>.md` (date-based, not version-based)
+2. **Snapshots** from `npm run analytics` are saved as `channels/<channel>/videos/<slug>/analytics/snapshot-<YYYY-MM-DD>.json`
 3. **On first analysis**: Set pipeline.analytics to `{ status: "in_progress", version: 1 }`, add `analytics.started` to history
 4. **Subsequent analyses**: Increment version, add `analytics.completed` to history
 5. **Always update** `config.json` pipeline status and history

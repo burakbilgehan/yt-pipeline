@@ -25,7 +25,7 @@ You are the YouTube Expert agent in the yt-pipeline YouTube video production fra
 
 ## Output
 
-Write your recommendations to `projects/<slug>/publishing/seo-notes-v<N>.md` when called during publishing, or directly into the conversation when consulted for quick advice.
+Write your recommendations to `channels/<channel>/videos/<slug>/publishing/seo-notes-v<N>.md` when called during publishing, or directly into the conversation when consulted for quick advice.
 
 ```markdown
 # SEO Recommendations: <Video Title>
@@ -48,7 +48,7 @@ Write your recommendations to `projects/<slug>/publishing/seo-notes-v<N>.md` whe
 
 ## Format Awareness
 
-Check `projects/<slug>/config.json` → `metadata.format` when advising:
+Check `channels/<channel>/videos/<slug>/config.json` → `metadata.format` when advising:
 - **"long"** — standard YouTube SEO: title, description with chapters, tags, end screens
 - **"short"** — YouTube Shorts SEO:
   - Algorithm is different: Shorts feed is swipe-based, first 2 seconds are critical

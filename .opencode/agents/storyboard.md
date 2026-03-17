@@ -23,7 +23,7 @@ Before creating storyboards, read `channel-config.json` at the repo root for:
 
 ## Format Awareness
 
-Check `projects/<slug>/config.json` → `metadata.format`:
+Check `channels/<channel>/videos/<slug>/config.json` → `metadata.format`:
 - **"long"** — target 5-8 scenes for a 3-minute video (not 30!). Scene duration minimum: 10-15 seconds.
 - **"short"** — target 3-5 scenes. Scene duration: 3-8 seconds. Use `"cut"` transitions only.
 
@@ -41,7 +41,7 @@ Include an **Image Generation Strategy** section in the summary noting which sce
 
 ## Your Workflow
 
-1. **Read the approved script** from `projects/<slug>/content/script-v<latest>.md` (find the highest version number)
+1. **Read the approved script** from `channels/<channel>/videos/<slug>/content/script-v<latest>.md` (find the highest version number)
 2. **Break into scenes** - each visual change is a scene
 3. **Define visuals** for each scene — every scene must have a visual plan (stock footage, AI-generated images, text overlays, data visualizations)
 4. **Specify transitions** and timing
@@ -50,7 +50,7 @@ Include an **Image Generation Strategy** section in the summary noting which sce
 
 ## Output Format
 
-Write storyboard to `projects/<slug>/storyboard/storyboard-v<N>.json`:
+Write storyboard to `channels/<channel>/videos/<slug>/storyboard/storyboard-v<N>.json`:
 
 ```json
 {
@@ -84,7 +84,7 @@ Write storyboard to `projects/<slug>/storyboard/storyboard-v<N>.json`:
 }
 ```
 
-Also create a human-readable summary at `projects/<slug>/storyboard/storyboard-summary-v<N>.md` with the same version header format.
+Also create a human-readable summary at `channels/<channel>/videos/<slug>/storyboard/storyboard-summary-v<N>.md` with the same version header format.
 
 ## Rules
 
@@ -103,7 +103,7 @@ Also create a human-readable summary at `projects/<slug>/storyboard/storyboard-s
 
 You MUST follow these rules for versioning:
 
-1. **Before starting**, read `projects/<slug>/config.json` to check the current storyboard version and content version
+1. **Before starting**, read `channels/<channel>/videos/<slug>/config.json` to check the current storyboard version and content version
 2. **New storyboard** (version 0 → 1): Create `storyboard-v1.json`, set pipeline.storyboard to `{ status: "in_progress", version: 1 }`, add `storyboard.started` to history
 3. **Revision** (reopened): Increment version, create new file (e.g. `storyboard-v2.json`), preserve previous versions. Add `storyboard.reopened` to history with a `reason`
 4. **On completion**: Set status to `"completed"`, add `storyboard.completed` to history, set `currentWork` to null

@@ -13,7 +13,7 @@ import type {
 
 // ─── Constants ────────────────────────────────────────────────
 
-const CHART_PADDING = { top: 60, right: 180, bottom: 60, left: 80 };
+const CHART_PADDING = { top: 60, right: 180, bottom: 70, left: 90 };
 const LABEL_FONT_SIZE = 20;
 const LABEL_VALUE_FONT_SIZE = 15;
 const LABEL_LINE_HEIGHT = 44; // spacing between stacked labels
@@ -23,7 +23,16 @@ const WINDOW_YEARS = 18; // how many years visible in the sliding window
 
 function isDarkBackground(color: string): boolean {
   if (color === "transparent" || color === "") return false;
-  if (color.startsWith("#0") || color.startsWith("#1")) return true;
+  // Parse hex and check relative luminance
+  if (color.startsWith("#") && color.length >= 7) {
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    // Perceived brightness (0-255)
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness < 128;
+  }
+  if (color.startsWith("#0") || color.startsWith("#1") || color.startsWith("#2") || color.startsWith("#3")) return true;
   return false;
 }
 
@@ -306,22 +315,15 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
   const { fps, durationInFrames, width, height } = useVideoConfig();
 
   const useLogScale = logScaleProp !== false;
-  const isDark = isDarkBackground(backgroundColor);
 
-  // ── Theme colors ──
-  const gridColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
-  const tickLabelColor = isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)";
-  const yearBgColor = isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.04)";
-  const nowLineColor = isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.12)";
-  const yAxisLabelColor = isDark
-    ? "rgba(255,255,255,0.5)"
-    : "rgba(0,0,0,0.35)";
-  const yearDisplayColor = isDark
-    ? "rgba(255,255,255,0.75)"
-    : "rgba(0,0,0,0.65)";
-  const labelBgColor = isDark
-    ? "rgba(0,0,0,0.6)"
-    : "rgba(245,240,232,0.85)";
+  // ── Theme colors — dark-cozy hardcoded ──
+  const gridColor = "rgba(232,224,212,0.15)";
+  const tickLabelColor = "#E8E0D4";
+  const yearBgColor = "rgba(232,224,212,0.06)";
+  const nowLineColor = "rgba(232,224,212,0.35)";
+  const yAxisLabelColor = "#E8E0D4";
+  const yearDisplayColor = "#E8E0D4";
+  const labelBgColor = "rgba(0,0,0,0.6)";
 
   // ── Process series data ──
   const processedSeries = useMemo(() => {
@@ -375,15 +377,27 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
     }));
   }, [processedSeries, currentYear]);
 
-  // ── Determine Y range (auto-fit to visible window data) ──
+  // ── Determine Y range (auto-fit with look-ahead for smooth transitions) ──
+  //
+  // To prevent jarring Y-axis jumps, we:
+  //   1. Include data up to LOOK_AHEAD years beyond currentYear in the range calc
+  //   2. Apply generous padding so incoming values don't clip
+  //   3. Use a "sliding max-envelope" — the Y range only expands eagerly but
+  //      contracts slowly (hysteresis via wider lookback than visible window)
+  //
+  const LOOK_AHEAD_YEARS = 5;
+  const LOOK_BACK_EXTRA = 3; // extra years behind visible window for slower contraction
+
   const yRange = useMemo(() => {
     const visibleVals: number[] = [];
+    const lookBackStart = xWindowStart - LOOK_BACK_EXTRA;
+    const lookAheadEnd = currentYear + LOOK_AHEAD_YEARS;
 
     for (const s of processedSeries) {
       for (const dp of s.data) {
         const dpYear = dateToYear(dp.date);
-        if (dpYear > currentYear) break;
-        if (dpYear >= xWindowStart) {
+        if (dpYear > lookAheadEnd) break;
+        if (dpYear >= lookBackStart) {
           visibleVals.push(dp.ratio);
         }
       }
@@ -400,12 +414,13 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
       const logMin = Math.log10(minV);
       const logMax = Math.log10(maxV);
       const logRange = logMax - logMin || 1;
-      minV = Math.pow(10, logMin - logRange * 0.12);
-      maxV = Math.pow(10, logMax + logRange * 0.12);
+      // Generous padding: 20% each side (was 12%)
+      minV = Math.pow(10, logMin - logRange * 0.20);
+      maxV = Math.pow(10, logMax + logRange * 0.20);
     } else {
       const range = maxV - minV || 1;
-      minV = Math.max(0, minV - range * 0.1);
-      maxV = maxV + range * 0.15;
+      minV = Math.max(0, minV - range * 0.15);
+      maxV = maxV + range * 0.20;
     }
 
     return { min: minV, max: maxV };
@@ -612,7 +627,7 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
           left: 8,
           transform: "rotate(-90deg) translateX(-50%)",
           transformOrigin: "0 0",
-          fontSize: 13,
+          fontSize: 16,
           color: yAxisLabelColor,
           fontFamily,
           whiteSpace: "nowrap",
@@ -657,13 +672,13 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
                   strokeWidth={1}
                 />
                 <text
-                  x={CHART_PADDING.left - 12}
+                  x={CHART_PADDING.left - 14}
                   y={y + 5}
                   fill={tickLabelColor}
-                  fontSize={14}
+                  fontSize={20}
                   fontFamily={fontFamily}
                   textAnchor="end"
-                  fontWeight={500}
+                  fontWeight={600}
                 >
                   {formatTickLabel(tick)}
                 </text>
@@ -691,12 +706,12 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
                 />
                 <text
                   x={x}
-                  y={height - CHART_PADDING.bottom + 28}
+                  y={height - CHART_PADDING.bottom + 32}
                   fill={tickLabelColor}
-                  fontSize={15}
+                  fontSize={20}
                   fontFamily={fontFamily}
                   textAnchor="middle"
-                  fontWeight={500}
+                  fontWeight={600}
                 >
                   {year}
                 </text>
@@ -710,7 +725,7 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
             y1={CHART_PADDING.top}
             x2={CHART_PADDING.left}
             y2={height - CHART_PADDING.bottom}
-            stroke={isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)"}
+            stroke="rgba(255,255,255,0.25)"
             strokeWidth={2}
           />
           <line
@@ -718,7 +733,7 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
             y1={height - CHART_PADDING.bottom}
             x2={CHART_PADDING.left + plotWidth}
             y2={height - CHART_PADDING.bottom}
-            stroke={isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)"}
+            stroke="rgba(255,255,255,0.25)"
             strokeWidth={2}
           />
         </g>
@@ -755,7 +770,7 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
                   cx={dotX}
                   cy={y}
                   r={2.5}
-                  fill={isDark ? "#fff" : "#F5F0E8"}
+                  fill="#fff"
                   opacity={0.95}
                 />
               </g>
@@ -839,7 +854,7 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
                 style={{
                   fontSize: LABEL_VALUE_FONT_SIZE,
                   fontWeight: 500,
-                  color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.45)",
+                  color: "rgba(232,224,212,0.65)",
                   fontFamily,
                   lineHeight: 1.1,
                   padding: "0 4px",
@@ -870,16 +885,10 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
           annotation.style === "milestone-flash";
 
         const bannerBg = isMajor
-          ? isDark
-            ? "rgba(255, 50, 50, 0.9)"
-            : "rgba(192, 57, 43, 0.92)"
+          ? "rgba(255, 50, 50, 0.9)"
           : annotation.style === "policy-banner"
-            ? isDark
-              ? "rgba(70, 70, 220, 0.85)"
-              : "rgba(50, 50, 180, 0.88)"
-            : isDark
-              ? "rgba(0, 0, 0, 0.85)"
-              : "rgba(30, 30, 30, 0.88)";
+            ? "rgba(70, 70, 220, 0.85)"
+            : "rgba(0, 0, 0, 0.85)";
 
         return (
           <div

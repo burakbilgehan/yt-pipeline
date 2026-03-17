@@ -102,7 +102,7 @@ When invoked in this mode, you:
 A full audit covers:
 
 1. **Version Consistency Check**
-   - Read `projects/<slug>/config.json` for version numbers
+   - Read `channels/<channel>/videos/<slug>/config.json` for version numbers
    - Read version headers in each versioned file
    - Check `based_on` references — every downstream file should reference the latest upstream version
    - Flag stale dependencies
@@ -135,7 +135,7 @@ A full audit covers:
 ## What You Write To
 
 - **`qa-log.md`** (repo root) — persistent log of all friction points, root cause analyses, and action items. This file grows over time and is never reset.
-- **`projects/<slug>/qa-report.md`** — per-project quality report (version consistency, stage-specific issues)
+- **`channels/<channel>/videos/<slug>/qa-report.md`** — per-project quality report (version consistency, stage-specific issues)
 
 ## `qa-log.md` Structure
 

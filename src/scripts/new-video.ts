@@ -1,13 +1,30 @@
+/**
+ * New Video Script
+ *
+ * Creates a new video project under a channel directory.
+ *
+ * Usage: npm run new-video <slug> [title] [--channel <channel-slug>] [--format short|long] [--short]
+ *
+ * Creates: channels/<channel>/videos/<slug>/
+ */
+
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { ProjectConfig } from "../types/index.js";
-import { loadChannelConfig } from "../utils/project.js";
+import { getVideosDir, loadChannelConfig } from "../utils/project.js";
 
-const PROJECTS_DIR = path.resolve("projects");
 const TEMPLATE_PATH = path.resolve("templates/default-config.json");
 
 function main() {
   const args = process.argv.slice(2);
+
+  // Parse --channel flag
+  const channelFlagIndex = args.indexOf("--channel");
+  let channelSlug: string | undefined;
+  if (channelFlagIndex !== -1 && args[channelFlagIndex + 1]) {
+    channelSlug = args[channelFlagIndex + 1];
+    args.splice(channelFlagIndex, 2);
+  }
 
   // Parse --format flag
   const formatFlagIndex = args.indexOf("--format");
@@ -27,14 +44,21 @@ function main() {
   const title = args[1] || slug;
 
   if (!slug) {
-    console.error("Usage: npm run new-project <slug> [title] [--format short|long] [--short]");
+    console.error("Usage: npm run new-video <slug> [title] [--channel <channel-slug>] [--format short|long] [--short]");
     process.exit(1);
   }
 
-  const projectDir = path.join(PROJECTS_DIR, slug);
+  const videosDir = getVideosDir(channelSlug);
+  const projectDir = path.join(videosDir, slug);
+
+  if (!fs.existsSync(videosDir)) {
+    console.error(`Channel directory not found: ${videosDir}`);
+    console.error("Create a channel first: npm run new-channel <channel-slug>");
+    process.exit(1);
+  }
 
   if (fs.existsSync(projectDir)) {
-    console.error(`Project "${slug}" already exists at ${projectDir}`);
+    console.error(`Video "${slug}" already exists at ${projectDir}`);
     process.exit(1);
   }
 
@@ -57,7 +81,7 @@ function main() {
   }
 
   // Load channel config for defaults
-  let channelDefaults: { tone: string; targetAudience: string; language: string; targetLength: number } = {
+  let channelDefaults = {
     tone: "",
     targetAudience: "",
     language: "en",
@@ -65,7 +89,7 @@ function main() {
   };
 
   try {
-    const channelConfig = loadChannelConfig();
+    const channelConfig = loadChannelConfig(channelSlug);
     channelDefaults = {
       tone: channelConfig.content.defaultTone,
       targetAudience: channelConfig.content.targetAudience,
@@ -77,15 +101,12 @@ function main() {
   }
 
   // Create config.json from template
-  const template = JSON.parse(
-    fs.readFileSync(TEMPLATE_PATH, "utf-8")
-  ) as ProjectConfig;
+  const template = JSON.parse(fs.readFileSync(TEMPLATE_PATH, "utf-8")) as ProjectConfig;
 
-  // Determine target length based on format
   let targetLength = channelDefaults.targetLength || template.metadata.targetLength;
   if (format === "short") {
     try {
-      const channelConfig = loadChannelConfig();
+      const channelConfig = loadChannelConfig(channelSlug);
       targetLength = (channelConfig as any).shorts?.defaultLength || 45;
     } catch {
       targetLength = 45;
@@ -108,20 +129,16 @@ function main() {
     },
   };
 
-  fs.writeFileSync(
-    path.join(projectDir, "config.json"),
-    JSON.stringify(config, null, 2)
-  );
+  fs.writeFileSync(path.join(projectDir, "config.json"), JSON.stringify(config, null, 2));
 
-  console.log(`Project "${slug}" created at ${projectDir}`);
-  console.log(`Title: ${title}`);
-  console.log(`Tone: ${config.metadata.tone}`);
-  console.log(`Audience: ${config.metadata.targetAudience}`);
-  console.log(`Language: ${config.metadata.language}`);
-  console.log(`Target length: ${config.metadata.targetLength}s`);
-  console.log(`Format: ${config.metadata.format}`);
-  console.log(`Current work: ${config.currentWork ?? "none (ready to start)"}`);
-  console.log(`\nNext step: @researcher or /research ${slug} <topic>`);
+  console.log(`\nVideo "${slug}" created at ${projectDir}`);
+  console.log(`Title:          ${title}`);
+  console.log(`Channel:        ${channelSlug || "(auto-detected)"}`);
+  console.log(`Format:         ${config.metadata.format}`);
+  console.log(`Target length:  ${config.metadata.targetLength}s`);
+  console.log(`Tone:           ${config.metadata.tone}`);
+  console.log(`Audience:       ${config.metadata.targetAudience}`);
+  console.log(`\nNext step: /research ${slug} <topic>`);
 }
 
 main();

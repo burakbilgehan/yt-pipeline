@@ -6,17 +6,23 @@ dist/
 .env.*
 !.env.example
 
-# Project content (channel-specific, NOT part of the pipeline framework)
+# -------------------------------------------------------------------
+# CONTENT (channel-specific, NOT part of the pipeline framework)
 # The pipeline (agents, commands, scripts, templates) is git-tracked.
-# But all project content (research, scripts, storyboards, videos) is local only.
-# Each channel instance manages its own content independently.
+# All channel content lives in channels/ and is local only.
+# Each channel manages its own content independently.
+# -------------------------------------------------------------------
+channels/
+
+# Legacy path (pre-refactor) — kept for safety
 projects/
 
-# Generated project data in public/ (Remotion staticFile requires public/ location)
-# These are built from project data and should not be committed.
-public/gold-vs-commodities/
+# Generated render assets in public/ (Remotion staticFile requires public/ location)
+# These are symlinked/copied from channels/<name>/videos/<slug>/assets at render time.
+# Pattern: public/<channel-slug>/ or public/<video-slug>/
+public/*/
 
-# Channel-specific config (template is in templates/channel-config.json)
+# Root-level channel config (template is in templates/channel-config.json)
 channel-config.json
 
 # OS files

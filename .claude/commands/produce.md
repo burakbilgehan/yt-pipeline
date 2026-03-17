@@ -5,7 +5,7 @@ description: Produce a video from storyboard (TTS, visuals, render)
 
 Produce the video for project: $ARGUMENTS
 
-Read the latest storyboard from `projects/<slug>/storyboard/storyboard-v<N>.json` (use the highest version number) and:
+Read the latest storyboard from `channels/<channel>/videos/<slug>/storyboard/storyboard-v<N>.json` (use the highest version number) and:
 1. Generate TTS audio via `npm run tts <slug>`
 2. Collect/generate visuals (stock + AI images)
 3. Build Remotion composition

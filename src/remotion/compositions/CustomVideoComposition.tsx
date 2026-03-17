@@ -205,6 +205,7 @@ const CustomVideoComposition: React.FC<CustomVideoCompositionProps> = ({
                   bigHoldDuration={props.bigHoldDuration as number | undefined}
                   deflationDuration={props.deflationDuration as number | undefined}
                   subtitleDelay={props.subtitleDelay as number | undefined}
+                  variant={props.variant as "classic" | "counting-ticker" | undefined}
                 />
               )}
 

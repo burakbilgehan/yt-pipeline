@@ -1,10 +1,10 @@
 # yt-pipeline
 
-AI-powered YouTube channel factory framework. Automates the entire video production pipeline — from research to publishing — using AI agents orchestrated through [OpenCode](https://opencode.ai).
+AI-powered YouTube channel factory framework. Automates the entire video production pipeline — from research to publishing — using AI agents orchestrated through [OpenCode](https://opencode.ai) or Claude.
 
 ## What is this?
 
-`yt-pipeline` is a reusable framework for running a YouTube channel with minimal manual effort. You define your channel's identity once in `channel-config.json`, then use AI agents to handle each stage of video production:
+`yt-pipeline` is a reusable framework for running one or more YouTube channels with minimal manual effort. Define your channel's identity once, then use AI agents to handle each stage of video production:
 
 1. **Research** — Find trending topics, gather facts and data
 2. **Content Writing** — Generate video scripts with voiceover markers
@@ -15,54 +15,48 @@ AI-powered YouTube channel factory framework. Automates the entire video product
 
 Each stage produces versioned files (`script-v1.md`, `script-v2.md`, etc.) so you never lose work and can iterate freely.
 
-## Architecture
+## Two-Layer Architecture
+
+The project is cleanly separated into two layers:
+
+### Layer 1 — Pipeline (this repo, lives in git)
+Framework code: agent prompts, slash commands, TypeScript types, Remotion templates, Node.js scripts, template files. **Generic and channel-agnostic.**
+
+### Layer 2 — Content (local only, NOT in git)
+Everything channel-specific: research files, scripts, storyboards, renders, publishing metadata, analytics. Lives in `channels/` on your machine.
 
 ```
-yt-pipeline/
-├── .opencode/
-│   ├── agents/          # 11 AI agent prompts
-│   └── commands/        # 13 slash commands for OpenCode
+yt-pipeline/                          ← this repo (infrastructure)
 ├── src/
-│   ├── remotion/        # Video rendering engine
-│   │   ├── schemas.ts           # Zod schemas (canonical types)
-│   │   ├── Root.tsx             # Remotion root (registers compositions)
-│   │   ├── components/          # Shared: TransitionWrapper, ProgressBar, SubtitleOverlay, SectionTitle
-│   │   ├── compositions/        # MainComposition, DataChartPreview
-│   │   └── templates/
-│   │       ├── voiceover-visuals/   # Template 1: narration + images/text
-│   │       └── data-charts/         # Template 2: animated charts, counters, comparisons
-│   ├── scripts/         # Node.js scripts for heavy tasks
-│   │   ├── new-project.ts       # Create a new video project
-│   │   ├── tts-generate.ts      # ElevenLabs TTS generation
-│   │   ├── remotion-render.ts   # Bundle + render video
-│   │   ├── youtube-upload.ts    # Upload to YouTube
-│   │   ├── fetch-analytics.ts   # Pull YouTube analytics
-│   │   ├── collect-stock.ts     # Download Pexels stock media
-│   │   └── generate-image.ts    # Generate DALL-E images
-│   ├── types/index.ts   # TypeScript types
-│   └── utils/project.ts # Shared utilities
+│   ├── remotion/                     # Video rendering engine
+│   ├── scripts/                      # CLI scripts (TTS, render, upload, etc.)
+│   ├── types/                        # TypeScript types
+│   └── utils/                        # Shared utilities
+├── .ai/                              # Agent & command definitions (source of truth)
 ├── templates/
-│   ├── default-config.json      # Project config template
-│   └── channel-config.json      # Channel config template
-├── figma-plugin/        # Figma storyboard sync plugin
-│   ├── code.ts          # Plugin logic
-│   ├── ui.html          # Plugin UI
-│   └── manifest.json    # Figma manifest
-├── projects/            # Video projects (one folder per video)
-│   └── <slug>/
-│       ├── config.json          # Project state + pipeline status
-│       ├── research/            # research-v1.md, research-v2.md, ...
-│       ├── content/             # script-v1.md, script-v2.md, ...
-│       ├── storyboard/          # storyboard-v1.json, ...
-│       ├── production/
-│       │   ├── audio/           # TTS voiceover files
-│       │   ├── visuals/         # Stock + AI images
-│       │   └── output/          # final.mp4
-│       ├── publishing/          # metadata-v1.json, upload-log.md
-│       └── analytics/           # snapshot-YYYY-MM-DD.json
-├── channel-config.json  # YOUR channel settings (copy from templates/)
-├── .env                 # API keys (not committed)
+│   ├── channel-config.json           # Channel config template
+│   ├── default-config.json           # Video config template
+│   └── project/                      # Video project folder template
+├── public/<video-slug>/              # Remotion assets (gitignored)
+├── .env.example
 └── package.json
+
+channels/                             ← local only, NOT in git
+└── <channel-slug>/
+    ├── channel-config.json           # This channel's identity & settings
+    ├── channel-assets/               # Profile photo, banner, etc.
+    └── videos/
+        └── <video-slug>/
+            ├── config.json           # Pipeline state & version history
+            ├── research/             # research-v1.md, research-v2.md, ...
+            ├── content/              # script-v1.md, script-v2.md, ...
+            ├── storyboard/           # storyboard-v1.json, ...
+            ├── production/
+            │   ├── audio/            # TTS voiceover files
+            │   ├── visuals/          # Stock + AI images
+            │   └── output/           # final.mp4
+            ├── publishing/           # metadata-v1.json, upload-log.md
+            └── analytics/            # snapshot-YYYY-MM-DD.json
 ```
 
 ## Quick Start
@@ -71,7 +65,7 @@ yt-pipeline/
 
 - **Node.js** 18+ (20+ recommended)
 - **npm** 9+
-- **OpenCode** CLI installed ([opencode.ai](https://opencode.ai))
+- **OpenCode** CLI ([opencode.ai](https://opencode.ai)) or Claude
 - A code editor (VS Code recommended)
 
 ### Setup
@@ -88,21 +82,19 @@ npm install
 cp .env.example .env
 # Edit .env with your API keys (see API Keys section below)
 
-# 4. Set up channel config
-cp templates/channel-config.json channel-config.json
-# Edit channel-config.json with your channel's identity, tone, visual preferences
+# 4. Create your channel
+npm run new-channel my-channel-slug "My Channel Name"
+# Edit channels/my-channel-slug/channel-config.json with your identity, tone, visuals
 
-# 5. Start OpenCode
+# 5. Start OpenCode (or open Claude)
 opencode
 ```
 
 ### Create Your First Video
 
 ```bash
-# Inside OpenCode:
-
-# Create a new project
-npm run new-project my-first-video "The World's Most Expensive Liquids"
+# Create a new video project
+npm run new-video my-first-video "The World's Most Expensive Liquids" --channel my-channel-slug
 
 # Use agents to work through the pipeline:
 @researcher research "most expensive liquids in the world" for project my-first-video
@@ -110,8 +102,6 @@ npm run new-project my-first-video "The World's Most Expensive Liquids"
 @storyboard create storyboard for my-first-video
 
 # Run production scripts:
-npm run collect my-first-video image "expensive perfume bottle"
-npm run generate-image my-first-video "golden liquid pouring in cinematic lighting"
 npm run tts my-first-video
 npm run render my-first-video
 
@@ -153,23 +143,30 @@ All API keys go in `.env`. Here's how to get each one:
    OPENAI_API_KEY=your_key_here
    ```
 
-### YouTube Data API v3 + Analytics — Free (quota-based)
-
-This requires OAuth2 setup:
+### YouTube Data API v3 — Free (quota-based)
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create a new project (or select existing)
-3. Enable **YouTube Data API v3** and **YouTube Analytics API**
-4. Go to **Credentials** → Create **OAuth 2.0 Client ID**
-   - Application type: **Desktop app**
-   - Download the client secret JSON
-5. Copy `client_id` and `client_secret` from the JSON
-6. Get a refresh token:
-   - Use the [OAuth 2.0 Playground](https://developers.google.com/oauthplayground/)
-   - Scope: `https://www.googleapis.com/auth/youtube` and `https://www.googleapis.com/auth/yt-analytics.readonly`
-   - Exchange the authorization code for tokens
-   - Copy the **refresh_token**
-7. Set in `.env`:
+2. Create a new project, enable **YouTube Data API v3**
+3. Go to **Credentials** → Create **OAuth 2.0 Client ID** (Desktop app)
+4. Add `http://localhost:8888/callback` to Authorized redirect URIs
+5. Run the auth flow to get your refresh token:
+   ```bash
+   node -e "
+   const {google} = require('googleapis');
+   require('dotenv').config();
+   const oauth2Client = new google.auth.OAuth2(
+     process.env.YOUTUBE_CLIENT_ID,
+     process.env.YOUTUBE_CLIENT_SECRET,
+     'http://localhost:8888/callback'
+   );
+   console.log(oauth2Client.generateAuthUrl({
+     access_type: 'offline',
+     scope: ['https://www.googleapis.com/auth/youtube'],
+     prompt: 'consent'
+   }));
+   "
+   ```
+6. Set in `.env`:
    ```
    YOUTUBE_CLIENT_ID=your_client_id
    YOUTUBE_CLIENT_SECRET=your_client_secret
@@ -178,86 +175,81 @@ This requires OAuth2 setup:
 
 ## Channel Configuration
 
-`channel-config.json` defines your channel's identity and defaults. Copy the template and customize:
-
-```bash
-cp templates/channel-config.json channel-config.json
-```
-
-Key sections:
+`channels/<slug>/channel-config.json` defines your channel's identity and defaults.
 
 | Section | Controls |
 |---------|----------|
-| `channel` | Name, handle, language, niche, description |
-| `content` | Default tone, target audience, video length, brand keywords, avoid topics |
-| `tts` | ElevenLabs voice ID, model, stability, similarity boost |
-| `visuals` | Remotion template, brand colors, font, resolution, fps, stock source, AI image style |
-| `youtube` | Default category, visibility, tags, description CTA, end screen pattern |
-
-All agents and scripts read from this file. Project-level `config.json` can override these defaults per video.
+| `channel` | Name, handle, language, niche, description, maturity |
+| `content` | Default tone, target audience, video length, avoid topics |
+| `tts` | ElevenLabs voice ID, model, stability |
+| `visuals` | Brand colors, font, resolution, fps, AI image style |
+| `youtube` | Default category, visibility, tags, end screen pattern |
 
 ## NPM Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run new-project <slug> [title]` | Create a new video project |
-| `npm run tts <slug>` | Generate TTS voiceover from latest script |
+| `npm run new-channel <slug> [name]` | Create a new channel |
+| `npm run new-video <slug> [title] [--channel <slug>]` | Create a new video project |
+| `npm run tts <slug>` | Generate TTS voiceover |
 | `npm run render <slug>` | Render video via Remotion |
 | `npm run upload <slug>` | Upload to YouTube |
-| `npm run analytics <slug\|channel>` | Fetch YouTube analytics |
+| `npm run analytics <slug>` | Fetch YouTube analytics |
 | `npm run collect <slug> <image\|video> <query>` | Download Pexels stock media |
-| `npm run generate-image <slug> <prompt>` | Generate DALL-E image |
-| `npm run studio` | Open Remotion Studio for preview |
-| `npm run figma:build` | Build Figma storyboard plugin |
+| `npm run generate-image <slug> <prompt>` | Generate AI image |
+| `npm run studio` | Open Remotion Studio |
+| `npm run sync-ai` | Sync .ai/ → .claude/ + .opencode/ |
 
 ## Agents
 
-11 AI agents handle different pipeline stages. Invoke them via OpenCode's `@mention`:
-
 | Agent | Role |
 |-------|------|
+| `@director` | Pipeline orchestration, coordinates all other agents |
 | `@researcher` | Topic research, fact gathering, source validation |
 | `@content-writer` | Script writing with voiceover markers |
 | `@content-strategist` | Topic ideation, trend analysis, content calendar |
-| `@storyboard` | Scene-by-scene visual planning, timing, transitions |
-| `@collector` | Stock media search coordination |
+| `@storyboard` | Scene-by-scene visual planning |
+| `@collector` | Stock media & asset gathering |
 | `@video-production` | Production oversight, render coordination |
-| `@publisher` | YouTube metadata, SEO, upload preparation |
-| `@youtube-expert` | YouTube algorithm strategy, optimization tips |
-| `@analytics` | Performance analysis, insights, recommendations |
-| `@qa` | Quality checks across all pipeline stages |
-| `@director` | Pipeline orchestration, suggests next steps |
+| `@publisher` | YouTube metadata, SEO, upload |
+| `@youtube-expert` | YouTube algorithm strategy |
+| `@analytics` | Performance analysis and insights |
+| `@critic` | Quality gate at every pipeline stage |
+| `@qa` | Process improvement, friction detection |
+
+## Multiple Channels
+
+The framework supports multiple channels on the same machine:
+
+```bash
+npm run new-channel cooking-channel "My Cooking Channel"
+npm run new-channel finance-channel "My Finance Channel"
+
+npm run new-video pasta-101 --channel cooking-channel
+npm run new-video bitcoin-explained --channel finance-channel
+```
+
+Each channel has its own config, voice, visual style, and video library.
 
 ## Version Management
 
-Every versioned file follows this pattern:
 - Files: `script-v1.md`, `script-v2.md`, `storyboard-v1.json`, etc.
 - Old versions are **never deleted**
 - Each file includes a version header: `version`, `based_on`, `changes_from_prev`, `date`
 - `config.json` tracks current version per stage and a full `history` array
-- The pipeline is non-linear — you can jump back to any stage and create a new version
-
-## Figma Plugin
-
-The storyboard agent outputs `storyboard-v*.json` files. The Figma plugin imports these into Figma as frame-by-frame layouts:
-
-1. Build: `npm run figma:build`
-2. In Figma: **Plugins** → **Development** → **Import plugin from manifest** → select `figma-plugin/manifest.json`
-3. Open the plugin, paste the storyboard JSON, click **Sync**
-4. Each scene becomes a Figma frame with color-coded visual type indicators
 
 ## Cost Estimate
 
-For a typical 3-minute video:
+For a typical 8-minute data-driven video:
 
 | Service | Usage | Cost |
 |---------|-------|------|
-| ElevenLabs TTS | ~2,000 chars | Free (10k/month) |
-| Pexels stock | 5-10 images | Free |
-| DALL-E 3 | 3-5 images | ~$0.12-0.20 |
+| ElevenLabs TTS | ~3,000 chars | Free (10k/month) |
+| Pexels stock | N/A (data charts) | Free |
+| DALL-E / Gemini | 0-5 images | ~$0.00-0.20 |
 | YouTube API | Upload + analytics | Free |
-| **Total** | | **~$0.12-0.20/video** |
+| **Total** | | **~$0.00-0.20/video** |
 
 ## License
 
-Private repository. All rights reserved.
+MIT

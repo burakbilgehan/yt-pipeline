@@ -5,7 +5,7 @@ description: Show project pipeline status with version info
 
 Show the current status of project: $ARGUMENTS
 
-Read `projects/<slug>/config.json` and report:
+Read `channels/<channel>/videos/<slug>/config.json` and report:
 
 1. **Current Work** - What `currentWork` is set to (what's actively being worked on, or null if idle)
 2. **Pipeline Stage Versions** - For each stage in the pipeline, show:
@@ -22,4 +22,4 @@ Read `projects/<slug>/config.json` and report:
 
 Format the output as a clear table where possible.
 
-If no project slug is given, list all projects in the `projects/` directory with their `currentWork` and a summary of stage statuses.
+If no project slug is given, list all projects in the `channels/<channel>/videos/` directory with their `currentWork` and a summary of stage statuses.

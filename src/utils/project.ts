@@ -6,15 +6,55 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import type { ProjectConfig, PipelineStageName, ChannelConfig } from "../types/index.js";
 
-const PROJECTS_DIR = path.resolve("projects");
-const CHANNEL_CONFIG_PATH = path.resolve("channel-config.json");
+const CHANNELS_DIR = path.resolve("channels");
 const CHANNEL_CONFIG_TEMPLATE = path.resolve("templates/channel-config.json");
+
+/**
+ * Resolve the videos directory for a given channel slug.
+ * Looks up channels/<channelSlug>/videos/
+ * Auto-detects the first channel if no slug is given.
+ * Falls back to legacy projects/ if channels/ doesn't exist.
+ */
+export function getVideosDir(channelSlug?: string): string {
+  if (channelSlug) {
+    return path.join(CHANNELS_DIR, channelSlug, "videos");
+  }
+  if (fs.existsSync(CHANNELS_DIR)) {
+    const entries = fs.readdirSync(CHANNELS_DIR, { withFileTypes: true });
+    const first = entries.find((e) => e.isDirectory());
+    if (first) {
+      return path.join(CHANNELS_DIR, first.name, "videos");
+    }
+  }
+  // Legacy fallback
+  return path.resolve("projects");
+}
+
+/**
+ * Resolve the channel config path for a given channel slug.
+ * Auto-detects the first channel if no slug is given.
+ * Falls back to legacy channel-config.json at repo root.
+ */
+export function getChannelConfigPath(channelSlug?: string): string {
+  if (channelSlug) {
+    return path.join(CHANNELS_DIR, channelSlug, "channel-config.json");
+  }
+  if (fs.existsSync(CHANNELS_DIR)) {
+    const entries = fs.readdirSync(CHANNELS_DIR, { withFileTypes: true });
+    const first = entries.find((e) => e.isDirectory());
+    if (first) {
+      return path.join(CHANNELS_DIR, first.name, "channel-config.json");
+    }
+  }
+  // Legacy fallback
+  return path.resolve("channel-config.json");
+}
 
 /**
  * Load a project's config.json
  */
-export function loadProjectConfig(slug: string): ProjectConfig {
-  const configPath = path.join(PROJECTS_DIR, slug, "config.json");
+export function loadProjectConfig(slug: string, channelSlug?: string): ProjectConfig {
+  const configPath = path.join(getVideosDir(channelSlug), slug, "config.json");
   if (!fs.existsSync(configPath)) {
     throw new Error(`Project not found: ${slug}`);
   }
@@ -24,42 +64,45 @@ export function loadProjectConfig(slug: string): ProjectConfig {
 /**
  * Save a project's config.json
  */
-export function saveProjectConfig(slug: string, config: ProjectConfig): void {
-  const configPath = path.join(PROJECTS_DIR, slug, "config.json");
+export function saveProjectConfig(slug: string, config: ProjectConfig, channelSlug?: string): void {
+  const configPath = path.join(getVideosDir(channelSlug), slug, "config.json");
   config.updatedAt = new Date().toISOString();
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 }
 
 /**
- * Load the channel-level configuration (channel-config.json at repo root).
- * Falls back to the template if no channel-config.json exists.
+ * Load the channel-level configuration.
+ * Looks in channels/<channelSlug>/channel-config.json.
+ * Falls back to template if not found.
  */
-export function loadChannelConfig(): ChannelConfig {
-  if (fs.existsSync(CHANNEL_CONFIG_PATH)) {
-    return JSON.parse(fs.readFileSync(CHANNEL_CONFIG_PATH, "utf-8"));
+export function loadChannelConfig(channelSlug?: string): ChannelConfig {
+  const configPath = getChannelConfigPath(channelSlug);
+  if (fs.existsSync(configPath)) {
+    return JSON.parse(fs.readFileSync(configPath, "utf-8"));
   }
   if (fs.existsSync(CHANNEL_CONFIG_TEMPLATE)) {
     return JSON.parse(fs.readFileSync(CHANNEL_CONFIG_TEMPLATE, "utf-8"));
   }
   throw new Error(
-    "No channel-config.json found. Copy templates/channel-config.json to the repo root and customize it."
+    "No channel-config.json found. Run: npm run new-channel <slug> to create one."
   );
 }
 
 /**
- * List all projects with their current work and version summary
+ * List all videos for a given channel (or auto-detected channel).
  */
-export function listProjects(): Array<{
+export function listProjects(channelSlug?: string): Array<{
   slug: string;
   title: string;
   currentWork: string;
   versions: Record<string, number>;
 }> {
-  if (!fs.existsSync(PROJECTS_DIR)) {
+  const videosDir = getVideosDir(channelSlug);
+  if (!fs.existsSync(videosDir)) {
     return [];
   }
 
-  const entries = fs.readdirSync(PROJECTS_DIR, { withFileTypes: true });
+  const entries = fs.readdirSync(videosDir, { withFileTypes: true });
   const projects: Array<{
     slug: string;
     title: string;
@@ -70,13 +113,11 @@ export function listProjects(): Array<{
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
 
-    const configPath = path.join(PROJECTS_DIR, entry.name, "config.json");
+    const configPath = path.join(videosDir, entry.name, "config.json");
     if (!fs.existsSync(configPath)) continue;
 
     try {
-      const config: ProjectConfig = JSON.parse(
-        fs.readFileSync(configPath, "utf-8")
-      );
+      const config: ProjectConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
       const versions: Record<string, number> = {};
       for (const [stage, status] of Object.entries(config.pipeline)) {
         versions[stage] = status.version;
@@ -101,17 +142,17 @@ export function listProjects(): Array<{
 }
 
 /**
- * Get the path to a project directory
+ * Get the path to a project (video) directory
  */
-export function getProjectDir(slug: string): string {
-  return path.join(PROJECTS_DIR, slug);
+export function getProjectDir(slug: string, channelSlug?: string): string {
+  return path.join(getVideosDir(channelSlug), slug);
 }
 
 /**
  * Ensure a project subdirectory exists
  */
-export function ensureProjectDir(slug: string, subdir: string): string {
-  const dir = path.join(PROJECTS_DIR, slug, subdir);
+export function ensureProjectDir(slug: string, subdir: string, channelSlug?: string): string {
+  const dir = path.join(getVideosDir(channelSlug), slug, subdir);
   fs.mkdirSync(dir, { recursive: true });
   return dir;
 }
@@ -119,17 +160,14 @@ export function ensureProjectDir(slug: string, subdir: string): string {
 /**
  * Get the current version number for a pipeline stage
  */
-export function getStageVersion(slug: string, stage: PipelineStageName): number {
-  const config = loadProjectConfig(slug);
+export function getStageVersion(slug: string, stage: PipelineStageName, channelSlug?: string): number {
+  const config = loadProjectConfig(slug, channelSlug);
   return config.pipeline[stage].version;
 }
 
 /**
  * Get the latest versioned filename for a stage.
- * Scans the stage directory for files matching the pattern and returns the highest version.
- * Returns null if no versioned files exist.
- *
- * Returns just the filename (not the full path or stageDir prefix).
+ * Returns just the filename (not the full path).
  *
  * Example: getLatestVersionedFile("my-video", "content", "script")
  *   → "script-v3.md" (if v1, v2, v3 exist)
@@ -137,9 +175,10 @@ export function getStageVersion(slug: string, stage: PipelineStageName): number 
 export function getLatestVersionedFile(
   slug: string,
   stageDir: string,
-  baseName: string
+  baseName: string,
+  channelSlug?: string
 ): string | null {
-  const dir = path.join(PROJECTS_DIR, slug, stageDir);
+  const dir = path.join(getVideosDir(channelSlug), slug, stageDir);
   if (!fs.existsSync(dir)) return null;
 
   const files = fs.readdirSync(dir);
@@ -174,9 +213,10 @@ export function appendAssetLog(
     file: string;
     license: string;
     query: string;
-  }
+  },
+  channelSlug?: string
 ): void {
-  const logPath = path.join(PROJECTS_DIR, slug, "production", "asset-log.md");
+  const logPath = path.join(getVideosDir(channelSlug), slug, "production", "asset-log.md");
 
   if (!fs.existsSync(logPath)) {
     fs.writeFileSync(

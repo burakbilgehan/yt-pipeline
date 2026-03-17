@@ -10,7 +10,7 @@ Parse the first word as the slug and the rest as the optional title.
 
 1. Create the project directory structure:
    ```
-   projects/<slug>/
+   channels/<channel>/videos/<slug>/
      config.json
      research/
      content/

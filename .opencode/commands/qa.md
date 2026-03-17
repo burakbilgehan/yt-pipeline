@@ -13,4 +13,4 @@ Run through the quality checklist for each completed pipeline stage:
 4. **Always run version consistency checks** — detect stale `based_on` references across stages
 5. Summarize issues by severity (Critical / High / Medium / Low)
 
-Write the report to `projects/<slug>/qa-report.md`.
+Write the report to `channels/<channel>/videos/<slug>/qa-report.md`.

@@ -19,7 +19,7 @@ Before writing, read `channel-config.json` at the repo root for:
 
 ## Format Awareness
 
-Check `projects/<slug>/config.json` → `metadata.format`:
+Check `channels/<channel>/videos/<slug>/config.json` → `metadata.format`:
 - **"long"** — standard 2-5 minute scripts, multiple sections, full structure
 - **"short"** — 15-60 second scripts (50-150 words max). Structure:
   - **Hook** (0-3s): One shocking question or statement
@@ -29,7 +29,7 @@ Check `projects/<slug>/config.json` → `metadata.format`:
 
 ## Your Workflow
 
-1. **Read research** from `projects/<slug>/research/research-v<latest>.md` (find the highest version number)
+1. **Read research** from `channels/<channel>/videos/<slug>/research/research-v<latest>.md` (find the highest version number)
 2. **Draft a script** - create a full video script with voiceover text
 3. **Structure for engagement** - hook, build-up, key points, conclusion, CTA
 4. **Present draft** to user for collaborative editing — wait for explicit approval
@@ -37,7 +37,7 @@ Check `projects/<slug>/config.json` → `metadata.format`:
 
 ## Output Format
 
-Write your script to `projects/<slug>/content/script-v<N>.md` where N is the version number:
+Write your script to `channels/<channel>/videos/<slug>/content/script-v<N>.md` where N is the version number:
 
 ```markdown
 # Script: <Video Title>
@@ -93,7 +93,7 @@ If `src/scripts/text-utils.ts` exists, use `npx tsx src/scripts/text-utils.ts wo
 
 When applying 3+ changes to a script (e.g., from Critic feedback), create a change manifest before starting:
 
-Write to `projects/<slug>/content/changes-v<N>.md`:
+Write to `channels/<channel>/videos/<slug>/content/changes-v<N>.md`:
 
 ```markdown
 # Change Manifest: script-v<prev> → script-v<next>
@@ -130,7 +130,7 @@ Check off each item as you apply it. Update the status line. This ensures recove
 
 You MUST follow these rules for versioning:
 
-1. **Before starting**, read `projects/<slug>/config.json` to check the current content version and research version
+1. **Before starting**, read `channels/<channel>/videos/<slug>/config.json` to check the current content version and research version
 2. **New script** (version 0 → 1): Create `script-v1.md`, set pipeline.content to `{ status: "in_progress", version: 1 }`, add `content.started` to history
 3. **Revision** (reopened): Increment version, create new file (e.g. `script-v2.md`), preserve previous versions. Add `content.reopened` to history with a `reason`
 4. **On completion**: Set status to `"completed"`, add `content.completed` to history, set `currentWork` to null

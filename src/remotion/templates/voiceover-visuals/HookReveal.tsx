@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   AbsoluteFill,
   useCurrentFrame,
@@ -35,19 +35,66 @@ interface HookRevealProps {
   deflationDuration?: number;
   /** Seconds after deflation before subtitle appears (default 0.5) */
   subtitleDelay?: number;
+  /** Visual variant: "classic" (default) or "counting-ticker" */
+  variant?: "classic" | "counting-ticker";
+}
+
+// ─── Parse numeric value from formatted string like "26,000%" ───
+function parseDisplayNumber(s: string): number {
+  return parseFloat(s.replace(/[,%]/g, ""));
+}
+
+// ─── Format number back with commas + suffix ───
+function formatDisplayNumber(n: number, suffix: string): string {
+  const rounded = Math.round(n);
+  return rounded.toLocaleString("en-US") + suffix;
+}
+
+// ─── Interpolate color between two hex colors ───
+function lerpColor(c1: string, c2: string, t: number): string {
+  const hex = (s: string) => parseInt(s, 16);
+  const r1 = hex(c1.slice(1, 3)), g1 = hex(c1.slice(3, 5)), b1 = hex(c1.slice(5, 7));
+  const r2 = hex(c2.slice(1, 3)), g2 = hex(c2.slice(3, 5)), b2 = hex(c2.slice(5, 7));
+  const r = Math.round(r1 + (r2 - r1) * t);
+  const g = Math.round(g1 + (g2 - g1) * t);
+  const b = Math.round(b1 + (b2 - b1) * t);
+  return `rgb(${r},${g},${b})`;
 }
 
 /**
- * HookReveal — Text-driven dramatic number deflation.
+ * HookReveal — Text-driven dramatic number reveal.
  *
- * Editorial / light-theme design. Clean typography, no glow effects.
+ * Supports two variants:
  *
- * Phase 0 (0 → contextDuration): Context line fades in (e.g. "The Dow Jones · Since 1925")
- * Phase 1 (contextDuration → +bigHoldDuration): Big number scales up, holds. Context moves up.
- * Phase 2 (+bigHoldDuration → +deflationDuration): Deflation — big shrinks, small appears
- * Phase 3 (+subtitleDelay → +1.5s): Subtitle + subLabel fade in
+ * **"classic"** (default) — Big number appears, holds, deflates to small number.
+ *   Phase 0: Context line fades in
+ *   Phase 1: Big number scales up, holds
+ *   Phase 2: Deflation — big shrinks, small appears
+ *   Phase 3: Subtitle + subLabel fade in
+ *
+ * **"counting-ticker"** — Fast counting ticker that races up then rewinds down.
+ *   Phase 0: Context line fades in ("The Dow Jones · Since 1925")
+ *   Phase 1: Counter races up 0 → bigNumber (green), decelerating
+ *   Phase 2: Brief hold at peak
+ *   Phase 3: Counter rewinds bigNumber → smallNumber (color shifts to gold)
+ *   Phase 4: subLabel + subtitle fade in, number holds
  */
-export const HookReveal: React.FC<HookRevealProps> = ({
+export const HookReveal: React.FC<HookRevealProps> = (props) => {
+  const {
+    variant = "classic",
+  } = props;
+
+  if (variant === "counting-ticker") {
+    return <CountingTickerVariant {...props} />;
+  }
+  return <ClassicVariant {...props} />;
+};
+
+// ═══════════════════════════════════════════════════════════════
+// COUNTING TICKER VARIANT
+// ═══════════════════════════════════════════════════════════════
+
+const CountingTickerVariant: React.FC<HookRevealProps> = ({
   bigNumber,
   smallNumber,
   subtitle,
@@ -65,16 +112,384 @@ export const HookReveal: React.FC<HookRevealProps> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const isDarkBg = backgroundColor.startsWith("#0") || backgroundColor.startsWith("#1");
-  const mutedColor = isDarkBg ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.35)";
-  const subtitleColor = isDarkBg ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.5)";
-  const contextColor = isDarkBg ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)";
+  const isDarkBg = (() => {
+    if (backgroundColor.startsWith("#") && backgroundColor.length >= 7) {
+      const r = parseInt(backgroundColor.slice(1, 3), 16);
+      const g = parseInt(backgroundColor.slice(3, 5), 16);
+      const b = parseInt(backgroundColor.slice(5, 7), 16);
+      return (r * 299 + g * 587 + b * 114) / 1000 < 128;
+    }
+    return backgroundColor.startsWith("#0") || backgroundColor.startsWith("#1") || backgroundColor.startsWith("#2") || backgroundColor.startsWith("#3");
+  })();
+  const mutedColor = isDarkBg ? "rgba(232,224,212,0.7)" : "rgba(0,0,0,0.35)";
+  const subtitleColor = isDarkBg ? "rgba(232,224,212,0.85)" : "rgba(0,0,0,0.5)";
+  const contextTextColor = isDarkBg ? "rgba(232,224,212,0.75)" : "rgba(0,0,0,0.4)";
+
+  // Parse target values
+  const bigVal = parseDisplayNumber(bigNumber);
+  const smallVal = parseDisplayNumber(smallNumber);
+  const suffix = bigNumber.includes("%") ? "%" : "";
+
+  // ── Timeline (in frames) ──
+  const contextFrames = fps * contextDuration;          // 0 → 1.5s
+  const countUpDuration = fps * (bigHoldDuration - 1);  // 1.5s → ~5.5s (count up)
+  const holdDuration = fps * 1.0;                       // hold at peak ~1s
+  const rewindDuration = fps * deflationDuration;       // rewind ~2.5s
+  const labelDelay = fps * subtitleDelay;               // delay before labels
+
+  const countUpStart = contextFrames;
+  const countUpEnd = countUpStart + countUpDuration;
+  const holdEnd = countUpEnd + holdDuration;
+  const rewindStart = holdEnd;
+  const rewindEnd = rewindStart + rewindDuration;
+  const labelStart = rewindEnd + labelDelay;
+  const labelEnd = labelStart + fps * 1.2;
+
+  // ── Phase 0: Context line ──
+  const hasContext = Boolean(contextLine);
+  const contextOpacity = hasContext
+    ? interpolate(
+        frame,
+        [0, fps * 0.4, contextFrames - fps * 0.3, contextFrames],
+        [0, 1, 1, 0],
+        { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+      )
+    : 0;
+
+  const contextY = hasContext
+    ? interpolate(
+        frame,
+        [contextFrames - fps * 0.5, contextFrames],
+        [0, -80],
+        { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.quad) }
+      )
+    : 0;
+
+  // ── Phase 1: Count up (0 → bigVal) ──
+  const countUpProgress = interpolate(
+    frame,
+    [countUpStart, countUpEnd],
+    [0, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) }
+  );
+
+  // ── Phase 2: Hold ──
+  const isHolding = frame >= countUpEnd && frame < rewindStart;
+
+  // ── Phase 3: Rewind (bigVal → smallVal) ──
+  const rewindProgress = interpolate(
+    frame,
+    [rewindStart, rewindEnd],
+    [0, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) }
+  );
+
+  const isRewinding = frame >= rewindStart && frame <= rewindEnd;
+  const isDoneRewinding = frame > rewindEnd;
+
+  // ── Current displayed value ──
+  const displayValue = useMemo(() => {
+    if (frame < countUpStart) return formatDisplayNumber(0, suffix);
+    if (frame <= countUpEnd) {
+      // Count up: 0 → bigVal
+      const val = countUpProgress * bigVal;
+      return formatDisplayNumber(val, suffix);
+    }
+    if (frame < rewindStart) {
+      // Hold at peak
+      return formatDisplayNumber(bigVal, suffix);
+    }
+    if (frame <= rewindEnd) {
+      // Rewind: bigVal → smallVal
+      const val = bigVal + (smallVal - bigVal) * rewindProgress;
+      return formatDisplayNumber(val, suffix);
+    }
+    // Done — show smallVal
+    return formatDisplayNumber(smallVal, suffix);
+  }, [frame, countUpStart, countUpEnd, rewindStart, rewindEnd, countUpProgress, rewindProgress, bigVal, smallVal, suffix]);
+
+  // ── Color transition ──
+  const currentColor = useMemo(() => {
+    if (frame < rewindStart) return bigColor;
+    if (frame <= rewindEnd) {
+      return lerpColor(bigColor, smallColor, rewindProgress);
+    }
+    return smallColor;
+  }, [frame, rewindStart, rewindEnd, rewindProgress, bigColor, smallColor]);
+
+  // ── Number entrance opacity ──
+  const numberOpacity = interpolate(
+    frame,
+    [countUpStart, countUpStart + fps * 0.3],
+    [0, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
+
+  // ── Scale: slight pulse at peak hold, bounce at rewind end ──
+  const peakPulse = isHolding
+    ? 1 + 0.03 * Math.sin((frame - countUpEnd) / fps * Math.PI * 2)
+    : 1;
+
+  const rewindBounce = isDoneRewinding
+    ? spring({
+        fps,
+        frame: frame - rewindEnd,
+        config: { damping: 8, stiffness: 200, mass: 0.6 },
+      })
+    : 0;
+
+  // During rewind: slight scale down then back up
+  const rewindScale = isRewinding
+    ? interpolate(rewindProgress, [0, 0.5, 1], [1, 0.92, 1])
+    : 1;
+
+  const bounceScale = isDoneRewinding
+    ? interpolate(rewindBounce, [0, 1], [0.95, 1])
+    : 1;
+
+  const finalScale = peakPulse * rewindScale * bounceScale;
+
+  // ── Font size: slightly smaller during rewind to emphasize the "shrink" ──
+  const fontSize = interpolate(
+    frame,
+    [rewindStart, rewindEnd],
+    [200, 180],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
+
+  // ── Shake effect at rewind end ──
+  const shakeX = isDoneRewinding && frame - rewindEnd < fps * 0.3
+    ? Math.sin((frame - rewindEnd) * 3) * interpolate(frame - rewindEnd, [0, fps * 0.3], [8, 0], { extrapolateRight: "clamp" })
+    : 0;
+
+  // ── Phase 4: Labels ──
+  const labelOpacity = interpolate(
+    frame,
+    [labelStart, labelEnd],
+    [0, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
+
+  const labelY = interpolate(
+    frame,
+    [labelStart, labelEnd],
+    [20, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.quad) }
+  );
+
+  // ── Speed lines / motion blur hint during count-up ──
+  const isCountingUp = frame >= countUpStart && frame <= countUpEnd;
+  const countUpSpeed = isCountingUp ? countUpProgress : 0;
+
+  // ── Decorative "ghost" numbers during count-up (previous values fading out) ──
+  const ghostOpacity = isCountingUp
+    ? interpolate(countUpProgress, [0, 0.3, 0.8, 1], [0, 0.15, 0.08, 0])
+    : 0;
+
+  return (
+    <AbsoluteFill
+      style={{
+        backgroundColor,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        fontFamily,
+        overflow: "hidden",
+      }}
+    >
+      {/* Speed lines during count-up */}
+      {isCountingUp && countUpSpeed > 0.05 && (
+        <>
+          {[...Array(8)].map((_, i) => {
+            const yPos = 15 + i * 12;
+            const lineOpacity = interpolate(
+              countUpSpeed,
+              [0.05, 0.3, 0.8, 1],
+              [0, 0.06, 0.03, 0]
+            );
+            return (
+              <div
+                key={`speed-${i}`}
+                style={{
+                  position: "absolute",
+                  top: `${yPos}%`,
+                  left: "10%",
+                  right: "10%",
+                  height: 2,
+                  background: `linear-gradient(90deg, transparent, ${bigColor}${Math.round(lineOpacity * 255).toString(16).padStart(2, "0")}, transparent)`,
+                  opacity: lineOpacity,
+                  transform: `translateY(${Math.sin(frame * 0.5 + i) * 3}px)`,
+                }}
+              />
+            );
+          })}
+        </>
+      )}
+
+      {/* Ghost numbers above/below during count-up */}
+      {ghostOpacity > 0 && (
+        <>
+          <div
+            style={{
+              position: "absolute",
+              fontSize: 120,
+              fontWeight: 900,
+              color: bigColor,
+              opacity: ghostOpacity * 0.5,
+              transform: `translateY(-140px)`,
+              letterSpacing: -4,
+              userSelect: "none",
+              filter: "blur(2px)",
+            }}
+          >
+            {formatDisplayNumber(Math.max(0, countUpProgress * bigVal - bigVal * 0.08), suffix)}
+          </div>
+          <div
+            style={{
+              position: "absolute",
+              fontSize: 120,
+              fontWeight: 900,
+              color: bigColor,
+              opacity: ghostOpacity * 0.3,
+              transform: `translateY(140px)`,
+              letterSpacing: -4,
+              userSelect: "none",
+              filter: "blur(3px)",
+            }}
+          >
+            {formatDisplayNumber(Math.max(0, countUpProgress * bigVal - bigVal * 0.15), suffix)}
+          </div>
+        </>
+      )}
+
+      {/* Context line */}
+      {hasContext && (
+        <div
+          style={{
+            position: "absolute",
+            opacity: contextOpacity,
+            transform: `translateY(${contextY}px)`,
+            fontSize: 32,
+            fontWeight: 500,
+            color: contextTextColor,
+            letterSpacing: 4,
+            textTransform: "uppercase",
+            textAlign: "center",
+            userSelect: "none",
+          }}
+        >
+          {contextLine}
+        </div>
+      )}
+
+      {/* Main counting number */}
+      <div
+        style={{
+          position: "absolute",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          opacity: numberOpacity,
+          transform: `scale(${finalScale}) translateX(${shakeX}px)`,
+        }}
+      >
+        <div
+          style={{
+            fontSize,
+            fontWeight: 900,
+            color: currentColor,
+            letterSpacing: -6,
+            userSelect: "none",
+            lineHeight: 1,
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {displayValue}
+        </div>
+
+        {/* Sub-label (e.g. "in gold terms") — appears after rewind */}
+        {subLabel && (
+          <div
+            style={{
+              fontSize: 28,
+              fontWeight: 600,
+              color: mutedColor,
+              marginTop: 20,
+              letterSpacing: 6,
+              textTransform: "uppercase",
+              opacity: labelOpacity,
+              transform: `translateY(${labelY}px)`,
+            }}
+          >
+            {subLabel}
+          </div>
+        )}
+      </div>
+
+      {/* Subtitle at bottom */}
+      {subtitle && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "18%",
+            opacity: labelOpacity,
+            transform: `translateY(${labelY}px)`,
+            fontSize: 30,
+            fontWeight: 400,
+            color: subtitleColor,
+            letterSpacing: 0.5,
+            textAlign: "center",
+            maxWidth: "70%",
+            fontStyle: "italic",
+          }}
+        >
+          {subtitle}
+        </div>
+      )}
+    </AbsoluteFill>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// CLASSIC VARIANT (original behavior)
+// ═══════════════════════════════════════════════════════════════
+
+const ClassicVariant: React.FC<HookRevealProps> = ({
+  bigNumber,
+  smallNumber,
+  subtitle,
+  subLabel,
+  contextLine,
+  contextDuration = 1.5,
+  bigColor = "#2D8B4E",
+  smallColor = "#C8A94E",
+  backgroundColor = "#F5F0E8",
+  fontFamily = "Inter, sans-serif",
+  bigHoldDuration = 5,
+  deflationDuration = 2.5,
+  subtitleDelay = 0.5,
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const isDarkBg = (() => {
+    if (backgroundColor.startsWith("#") && backgroundColor.length >= 7) {
+      const r = parseInt(backgroundColor.slice(1, 3), 16);
+      const g = parseInt(backgroundColor.slice(3, 5), 16);
+      const b = parseInt(backgroundColor.slice(5, 7), 16);
+      return (r * 299 + g * 587 + b * 114) / 1000 < 128;
+    }
+    return backgroundColor.startsWith("#0") || backgroundColor.startsWith("#1") || backgroundColor.startsWith("#2") || backgroundColor.startsWith("#3");
+  })();
+  const mutedColor = isDarkBg ? "rgba(232,224,212,0.7)" : "rgba(0,0,0,0.35)";
+  const subtitleColor = isDarkBg ? "rgba(232,224,212,0.85)" : "rgba(0,0,0,0.5)";
+  const contextTextColor = isDarkBg ? "rgba(232,224,212,0.75)" : "rgba(0,0,0,0.4)";
 
   // ── Phase 0: Context line ──
   const contextFrames = fps * contextDuration;
   const hasContext = Boolean(contextLine);
 
-  // Context fades in from 0, fades out before big number fully appears
   const contextOpacity = hasContext
     ? interpolate(
         frame,
@@ -84,7 +499,6 @@ export const HookReveal: React.FC<HookRevealProps> = ({
       )
     : 0;
 
-  // Context line moves up when big number appears
   const contextY = hasContext
     ? interpolate(
         frame,
@@ -94,7 +508,7 @@ export const HookReveal: React.FC<HookRevealProps> = ({
       )
     : 0;
 
-  // ── Phase 1: Big number entrance (offset by context duration) ──
+  // ── Phase 1: Big number entrance ──
   const bigStartFrame = hasContext ? contextFrames * 0.6 : 0;
   const phase1End = bigStartFrame + fps * bigHoldDuration;
   const phase2Start = phase1End;
@@ -131,7 +545,6 @@ export const HookReveal: React.FC<HookRevealProps> = ({
 
   const bigShrink = interpolate(deflationProgress, [0, 1], [1, 0.5]);
 
-  // Small number entrance
   const smallEntrance = spring({
     fps,
     frame: frame - phase2Start - fps * 0.3,
@@ -169,7 +582,6 @@ export const HookReveal: React.FC<HookRevealProps> = ({
         fontFamily,
       }}
     >
-      {/* Context line — shown first before the big number */}
       {hasContext && (
         <div
           style={{
@@ -178,7 +590,7 @@ export const HookReveal: React.FC<HookRevealProps> = ({
             transform: `translateY(${contextY}px)`,
             fontSize: 32,
             fontWeight: 500,
-            color: contextColor,
+            color: contextTextColor,
             letterSpacing: 4,
             textTransform: "uppercase",
             textAlign: "center",
@@ -189,7 +601,6 @@ export const HookReveal: React.FC<HookRevealProps> = ({
         </div>
       )}
 
-      {/* Big number */}
       {showBig && (
         <div
           style={{
@@ -208,7 +619,6 @@ export const HookReveal: React.FC<HookRevealProps> = ({
         </div>
       )}
 
-      {/* Small number */}
       {showSmall && (
         <div
           style={{
@@ -233,7 +643,6 @@ export const HookReveal: React.FC<HookRevealProps> = ({
             {smallNumber}
           </div>
 
-          {/* Sub-label (e.g. "in gold terms") */}
           {subLabel && (
             <div
               style={{
@@ -252,7 +661,6 @@ export const HookReveal: React.FC<HookRevealProps> = ({
         </div>
       )}
 
-      {/* Subtitle */}
       {subtitle && (
         <div
           style={{

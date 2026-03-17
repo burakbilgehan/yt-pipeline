@@ -151,3 +151,29 @@ export const horseRaceCompositionSchema = z.object({
 });
 
 export type HorseRaceCompositionProps = z.infer<typeof horseRaceCompositionSchema>;
+
+// ─── Thumbnail composition schema ────────────────────────────
+
+export const thumbnailCompositionSchema = z.object({
+  variant: z.enum(["A", "B", "C"]),
+  beforeNumber: z.string(),
+  afterNumber: z.string(),
+  topLabel: z.string().optional(),
+  bottomLabel: z.string().optional(),
+  cornerLabel: z.string().optional(),
+  cornerPosition: z.enum(["bottom-left", "bottom-right"]).optional(),
+  bgTop: z.string().optional(),
+  bgBottom: z.string().optional(),
+  beforeColor: z.string().optional(),
+  strikethroughColor: z.string().optional(),
+  afterColor: z.string().optional(),
+  glowColor: z.string().optional(),
+  cornerLabelColor: z.string().optional(),
+  fontFamily: z.string().optional(),
+  showDivider: z.boolean().optional(),
+  dividerColor: z.string().optional(),
+  connectorText: z.string().optional(),
+  connectorColor: z.string().optional(),
+});
+
+export type ThumbnailCompositionProps = z.infer<typeof thumbnailCompositionSchema>;
