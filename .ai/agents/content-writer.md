@@ -72,6 +72,44 @@ Closing text...
 [VISUAL NOTE: Subscribe animation, end screen]
 ```
 
+## Post-Edit Validation (MANDATORY)
+
+After **ANY** edit to voiceover text — whether adding a sentence, rewriting a section, or restructuring acts — you MUST:
+
+1. **Count words** in all `[VOICEOVER]` sections (exclude `[VISUAL NOTE]`, `[DATA POINT]`, headers, metadata)
+2. **Calculate estimated duration** at 145 WPM (the channel's standard speaking rate)
+3. **Update metadata** in the script file:
+   - `Target length:` must reflect actual word count and estimated duration
+   - If word count changed by >15% from the previous version, **flag it to the Director** with: "⚠️ Word count changed significantly: X words (prev) → Y words (now). Duration estimate: Z minutes. Please confirm this is acceptable."
+4. **Update version header** — bump sub-version (e.g., v3.1 → v3.2), update `changes_from_prev` and `date`
+
+If `src/scripts/text-utils.ts` exists, use `npx tsx src/scripts/text-utils.ts wordcount <file>` for accurate counts. Otherwise, count manually by reading all `[VOICEOVER]` blocks.
+
+**Never mark a content stage as complete without running this validation.**
+
+## Change Manifest (for batch edits)
+
+When applying 3+ changes to a script (e.g., from Critic feedback), create a change manifest before starting:
+
+Write to `projects/<slug>/content/changes-v<N>.md`:
+
+```markdown
+# Change Manifest: script-v<prev> → script-v<next>
+Based on: <source of changes — e.g., "Critic review round 2">
+Date: <ISO date>
+
+## Planned Changes
+- [ ] Change 1: <description>
+- [ ] Change 2: <description>
+- [ ] Change 3: <description>
+- [ ] Update word count in metadata
+- [ ] Update version header
+
+## Status: PENDING (0/N applied)
+```
+
+Check off each item as you apply it. Update the status line. This ensures recoverability if a session is interrupted mid-edit.
+
 ## Rules
 
 - ALL script content must be in **English** (conversation with user is in Turkish)
@@ -83,6 +121,8 @@ Closing text...
 - End with a clear call-to-action
 - Fact-check against the research document - don't invent claims
 - After drafting, present the script and collaborate with the user on edits
+- **Always run Post-Edit Validation after changes** (see section above)
+- **Use Change Manifest for batch edits** (3+ changes)
 
 ## Version Management
 

@@ -65,3 +65,55 @@ Every pipeline stage uses versioned files (`script-v1.md`, `script-v2.md`, etc.)
 - `growing` — 5-20 videos, start adapting to early data
 - `established` — 20+ videos, optimize based on analytics
 - `mature` — 50+ videos, full channel identity locked in
+
+## Orchestration Model
+
+The **Director agent** is the primary orchestrator. All production sessions should start with the Director. The orchestration model has these key mechanisms:
+
+### Critic Loop (Automatic)
+Nothing reaches the user without Critic approval. After any agent produces a deliverable:
+1. Director invokes Critic → Critic reviews → PASS or FAIL
+2. If FAIL → Director routes fixes to appropriate agent → Critic re-reviews → max 3 loops
+3. User sees final output + change log of what was caught/fixed
+
+### QA Reactive Loop
+When the user gives negative feedback, Director immediately invokes QA for root cause analysis. QA classifies the failure (prompt-gap, context-loss, misinterpretation, etc.), logs it in `qa-log.md`, and proposes structural fixes.
+
+### Content Strategist Alignment
+Auto-triggered at project start and script finalization to verify the content fits the channel's macro direction. Returns an alignment score (1-5).
+
+### Pipeline Stage Transitions
+**Never auto-chain.** Every stage transition requires explicit user approval. Only quality gates (Critic, validation checks) run automatically.
+
+## Windows / PowerShell Gotchas
+
+This project runs on Windows. All agents MUST be aware of these issues:
+
+### Dollar Sign Escaping
+When using the Bash tool on Windows, `$variable` syntax in PowerShell commands gets eaten by the shell layer before PowerShell receives it. **This causes silent failures.**
+
+**Workarounds (in order of preference):**
+
+1. **Use Node.js one-liners instead of PowerShell:**
+   ```bash
+   node -e "console.log(require('fs').readFileSync('file.txt','utf8').split(/\s+/).length)"
+   ```
+
+2. **Use `npx tsx` for TypeScript scripts:**
+   ```bash
+   npx tsx src/scripts/text-utils.ts wordcount path/to/file.md
+   ```
+
+3. **Write a temp .ps1 file and execute it** (for complex PowerShell):
+   ```bash
+   # Write the script first, then invoke it
+   powershell -File temp-script.ps1
+   ```
+
+4. **Avoid raw PowerShell commands with `$` variables** in Bash tool calls — they will fail.
+
+### Path Separators
+Windows uses `\` but most Node.js tools accept `/`. Always use forward slashes in code. The Bash tool accepts both.
+
+### Line Endings
+Files may have `\r\n` (Windows) line endings. When matching or replacing text, be aware of this. Node.js `fs` handles this transparently in most cases.

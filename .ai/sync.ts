@@ -93,6 +93,9 @@ function toOpenCodeAgent(parsed: ParsedFile): string {
     ? (parsed.frontmatter.tools as string[])
     : [];
 
+  // Respect mode from frontmatter (default: subagent)
+  const mode = (parsed.frontmatter.mode as string) || "subagent";
+
   // OpenCode uses a subset of tools as boolean flags
   const toolMap: Record<string, string> = {
     Read: "read",
@@ -111,7 +114,7 @@ function toOpenCodeAgent(parsed: ParsedFile): string {
 
   return `---
 description: "${desc}"
-mode: subagent
+mode: ${mode}
 tools:
 ${toolLines}
 ---
@@ -152,11 +155,22 @@ function generateOpenCodeJson(
 
   for (const { filename, parsed } of agentFiles) {
     const name = filename.replace(".md", "");
-    agents[name] = {
-      description: parsed.frontmatter.description,
-      mode: "subagent",
-      prompt: `{file:.opencode/agents/${filename}}`,
-    };
+    const declaredMode = (parsed.frontmatter.mode as string) || "subagent";
+
+    if (declaredMode === "primary") {
+      // Primary agents get their full prompt loaded inline
+      agents[name] = {
+        description: parsed.frontmatter.description,
+        mode: "primary",
+        prompt: `{file:.opencode/agents/${filename}}\n\n${SYNC_RULE}`,
+      };
+    } else {
+      agents[name] = {
+        description: parsed.frontmatter.description,
+        mode: "subagent",
+        prompt: `{file:.opencode/agents/${filename}}`,
+      };
+    }
   }
 
   const config = {

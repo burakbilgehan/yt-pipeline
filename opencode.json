@@ -20,7 +20,7 @@
       "prompt": "{file:.opencode/agents/collector.md}"
     },
     "content-strategist": {
-      "description": "Tracks trends, manages content calendar, plans follow-ups and new topics.",
+      "description": "Tracks trends, manages content calendar, plans follow-ups and new topics. Ensures channel macro alignment.",
       "mode": "subagent",
       "prompt": "{file:.opencode/agents/content-strategist.md}"
     },
@@ -30,14 +30,14 @@
       "prompt": "{file:.opencode/agents/content-writer.md}"
     },
     "critic": {
-      "description": "Reviews rendered video output for artistic, visual, and content quality. Provides actionable critique.",
+      "description": "Quality gate at every pipeline stage. Reviews for factual accuracy, engagement, and production quality. Blocks bullshit.",
       "mode": "subagent",
       "prompt": "{file:.opencode/agents/critic.md}"
     },
     "director": {
       "description": "Oversees all agents, coordinates pipeline, advises on channel strategy and direction.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/director.md}"
+      "mode": "primary",
+      "prompt": "{file:.opencode/agents/director.md}\n\nCRITICAL: After editing any file under .ai/agents/ or .ai/commands/, you MUST run \"npx tsx .ai/sync.ts\" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly — they are auto-generated and will be overwritten."
     },
     "publisher": {
       "description": "Plans publishing strategy and uploads videos to YouTube.",
