@@ -19,6 +19,8 @@
     "new-channel": "tsx src/scripts/new-channel.ts",
     "new-video": "tsx src/scripts/new-video.ts",
     "new-project": "tsx src/scripts/new-video.ts",
+    "text-utils": "tsx src/scripts/text-utils.ts",
+    "validate": "tsx src/scripts/validate.ts",
     "sync-ai": "tsx .ai/sync.ts"
   },
   "dependencies": {

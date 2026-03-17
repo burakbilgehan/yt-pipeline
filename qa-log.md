@@ -2,11 +2,7 @@
 
 ## Open Action Items
 
-| ID | Issue | Priority | Status |
-|----|-------|----------|--------|
-| A1 | Create `src/scripts/text-utils.ts` (voiceover word count) | P1 | Open |
-| A2 | Create `npm run validate <slug>` (version consistency check) | P1 | Open |
-| A3 | Create `.ai/protocols/multi-agent-review.md` + `/review` command | P2 | Open |
+*None.*
 
 ## Resolved
 
@@ -17,6 +13,9 @@
 | FP-003 | No mid-edit checkpoint | Change manifest pattern added to content-writer agent |
 | FP-004 | Script word count drift vs metadata | Post-edit validation rule added to content-writer agent |
 | FP-005 | Director agent unused | Director set as `mode: primary`, entry point documented |
+| A1 | No voiceover word count tool | Created `src/scripts/text-utils.ts` — `npm run text-utils wordcount/stats/duration` |
+| A2 | No version consistency check | Created `src/scripts/validate.ts` — `npm run validate <slug>` |
+| A3 | No multi-agent review protocol | Created `.ai/protocols/multi-agent-review.md` + `/review` command |
 
 ## Root Cause Analyses
 
