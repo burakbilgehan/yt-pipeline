@@ -20,7 +20,9 @@
     "sync-ai": "tsx .ai/sync.ts"
   },
   "dependencies": {
+    "@andresaya/edge-tts": "^1.8.0",
     "@remotion/cli": "^4.0.0",
+    "@remotion/paths": "^4.0.435",
     "@remotion/renderer": "^4.0.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

@@ -12,6 +12,10 @@ dist/
 # Each channel instance manages its own content independently.
 projects/
 
+# Generated project data in public/ (Remotion staticFile requires public/ location)
+# These are built from project data and should not be committed.
+public/gold-vs-commodities/
+
 # Channel-specific config (template is in templates/channel-config.json)
 channel-config.json
 

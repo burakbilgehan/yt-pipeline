@@ -82,6 +82,17 @@ Include a version header at the top of every file:
 - When you're done researching, present a summary and ask the user for feedback before finalizing
 - **Self-check before completion:** Count your claims vs your sources. If the ratio is below 90% sourced, you are NOT done.
 
+## CRITICAL: File Output Rules
+
+**NEVER hold data only in memory. ALWAYS write to disk immediately.**
+
+1. **Incremental saving**: As you research, write findings to the output file progressively. Do NOT wait until you have "all" the data to write. Write after each major section (e.g., after finishing data for one asset, one time period, or one category).
+2. **Create the file first**: At the very start of your research session, create the output file (`research-v<N>.md`) with the header and skeleton structure. Then fill it in section by section.
+3. **Raw data files**: If you collect structured data (tables, CSV-like data, price series), also save them as separate files in `projects/<slug>/research/data/` (e.g., `gold-prices-raw.md`, `dow-gold-ratio.md`). These serve as reusable reference data.
+4. **Source snapshots**: When fetching web pages with important data, save key excerpts to `projects/<slug>/research/sources/` as `.md` files (e.g., `source-wikipedia-gold-investment.md`). This ensures data survives even if the URL goes dead.
+5. **Never return only a summary**: Your final message back should reference the files you wrote, not contain the full research text. The files ARE your deliverable.
+6. **Verify writes**: After writing a file, read it back to confirm it was saved correctly.
+
 ## Version Management
 
 You MUST follow these rules for versioning:

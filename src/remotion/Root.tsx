@@ -1,13 +1,30 @@
 import React from "react";
-import { Composition } from "remotion";
-import { videoCompositionSchema, dataChartCompositionSchema, shortsCompositionSchema } from "./schemas";
+import { Composition, staticFile } from "remotion";
+import { videoCompositionSchema, dataChartCompositionSchema, shortsCompositionSchema, horseRaceCompositionSchema } from "./schemas";
+import { customVideoCompositionSchema } from "./compositions/CustomVideoComposition";
+import type { z } from "zod";
 
 const FPS = 30;
 const WIDTH = 1920;
 const HEIGHT = 1080;
 
+// Minimal fallback props for HorseRacePreview (used before calculateMetadata loads real data)
+const horseRaceFallbackProps: z.infer<typeof horseRaceCompositionSchema> = {
+  series: [],
+  cameraKeyframes: [{ year: 1925, zoom: 1.0, speed: 1.0 }],
+  annotations: [],
+  timeRange: { start: 1925, end: 2025 },
+  backgroundColor: "#0a0a0a",
+  brandColor: "#FFD700",
+  fontFamily: "Inter, sans-serif",
+};
+
 /**
  * Root component that registers all Remotion compositions.
+ *
+ * NOTE: Project-specific compositions are NOT registered here.
+ * Instead, use the generic "CustomVideo" composition with --props
+ * pointing to a video-config.json in the project directory.
  */
 export const RemotionRoot: React.FC = () => {
   return (
@@ -72,6 +89,7 @@ export const RemotionRoot: React.FC = () => {
           fontFamily: "Inter, sans-serif",
         }}
       />
+
       {/* Shorts video composition - 9:16 vertical format */}
       <Composition
         id="ShortsVideo"
@@ -103,6 +121,53 @@ export const RemotionRoot: React.FC = () => {
           showSubtitles: true,
           brandColor: "#6C63FF",
           fontFamily: "Inter, sans-serif",
+        }}
+      />
+
+      {/* Horse Race chart preview — loads real data via calculateMetadata */}
+      <Composition
+        id="HorseRacePreview"
+        lazyComponent={() => import("./compositions/HorseRacePreview")}
+        schema={horseRaceCompositionSchema}
+        durationInFrames={FPS * 120}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        defaultProps={horseRaceFallbackProps}
+      />
+
+      {/*
+        Custom Video — Generic data-driven composition.
+        Usage: npx remotion render CustomVideo --props=<path-to-video-props.json>
+        The props JSON should contain: { videoConfig, horseRace? }
+        Use a build script to produce this props file from video-config.json + horse-race-props.json
+      */}
+      <Composition
+        id="CustomVideo"
+        lazyComponent={() => import("./compositions/CustomVideoComposition")}
+        schema={customVideoCompositionSchema}
+        durationInFrames={FPS * 60}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        defaultProps={{
+          videoConfig: {
+            title: "Untitled",
+            durationSeconds: 60,
+            backgroundColor: "#0a0a0a",
+            brandColor: "#6C63FF",
+            fontFamily: "Inter, sans-serif",
+            showSubtitles: true,
+            scenes: [],
+            audioSegments: [],
+          },
+        }}
+        calculateMetadata={async ({ props }) => {
+          const duration = props.videoConfig?.durationSeconds;
+          if (duration && typeof duration === "number") {
+            return { durationInFrames: Math.ceil(duration * FPS) };
+          }
+          return {};
         }}
       />
     </>

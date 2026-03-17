@@ -29,6 +29,11 @@
       "mode": "subagent",
       "prompt": "{file:.opencode/agents/content-writer.md}"
     },
+    "critic": {
+      "description": "Reviews rendered video output for artistic, visual, and content quality. Provides actionable critique.",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/critic.md}"
+    },
     "director": {
       "description": "Oversees all agents, coordinates pipeline, advises on channel strategy and direction.",
       "mode": "subagent",

@@ -6,4 +6,5 @@ export { LineChart } from "./LineChart";
 export { TimelineChart } from "./TimelineChart";
 export { ScaleComparison } from "./ScaleComparison";
 export { ProgressRing } from "./ProgressRing";
+export { HorseRaceChart } from "./HorseRaceChart";
 export { DataChartScene } from "./DataChartScene";

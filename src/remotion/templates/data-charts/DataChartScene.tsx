@@ -68,6 +68,11 @@ export const DataChartScene: React.FC<DataChartSceneProps> = ({
         <ProgressRing chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
       );
 
+    case "horse-race":
+      // HorseRaceChart has its own composition with specialized props.
+      // Use the HorseRacePreview composition directly in Root.tsx.
+      return null;
+
     default:
       return null;
   }

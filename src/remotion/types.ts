@@ -26,7 +26,8 @@ export type ChartType =
   | "comparison"
   | "timeline"
   | "progress"
-  | "scale-comparison";
+  | "scale-comparison"
+  | "horse-race";
 
 // ─── Scene Input ──────────────────────────────────────────────
 
@@ -125,6 +126,86 @@ export interface DataChartCompositionProps {
   durationInFrames: number;
   brandColor: string;
   fontFamily: string;
+}
+
+// ─── Horse Race Chart Types ───────────────────────────────────
+
+/** A single data point in the horse race chart (one row of CSV) */
+export interface HorseRaceDataPoint {
+  date: string; // YYYY-MM-DD
+  ratio: number;
+}
+
+/** One asset series in the horse race chart */
+export interface HorseRaceSeries {
+  id: string;
+  label: string;
+  color: string;
+  data: HorseRaceDataPoint[];
+}
+
+/** Camera keyframe — controls zoom/speed at a given year */
+export interface HorseRaceCameraKeyframe {
+  /** Year (can be fractional, e.g. 1989.5) */
+  year: number;
+  /** Zoom level (1.0 = normal, <1 = zoom out, >1 = zoom in) */
+  zoom?: number;
+  /** Speed multiplier (1.0 = normal, <1 = slow, >1 = fast) */
+  speed?: number;
+  /** Which assets to focus on (affects Y-axis framing) */
+  focusAssets?: string[];
+}
+
+/** Event annotation to flash on the chart */
+export interface HorseRaceAnnotation {
+  /** Year to display (can be fractional) */
+  year: number;
+  /** Text to display */
+  text: string;
+  /** Visual style */
+  style: "crisis-flash" | "major-crisis-flash" | "policy-banner" | "milestone-flash" | "leader-callout" | "crossing-alert";
+  /** Optional: which asset this annotation belongs to */
+  asset?: string;
+  /** Duration in seconds to show */
+  duration?: number;
+  /** Show an icon (crown, skull, etc.) */
+  icon?: string;
+}
+
+/** Scene-level year range for voiceover sync */
+export interface SceneYearRange {
+  /** Scene start time in seconds (within chart sequence) */
+  sceneStartSec: number;
+  /** Scene end time in seconds (within chart sequence) */
+  sceneEndSec: number;
+  /** Year the chart should be at when this scene starts */
+  yearStart: number;
+  /** Year the chart should reach when this scene ends */
+  yearEnd: number;
+}
+
+/** Full props for the HorseRaceChart composition */
+export interface HorseRaceChartProps {
+  /** All asset series */
+  series: HorseRaceSeries[];
+  /** Camera keyframes (zoom, speed, focus) — LEGACY, ignored if sceneYearRanges provided */
+  cameraKeyframes: HorseRaceCameraKeyframe[];
+  /** Event annotations */
+  annotations: HorseRaceAnnotation[];
+  /** Time range for this scene */
+  timeRange: { start: number; end: number };
+  /** Scene-to-year mapping for voiceover sync (takes priority over cameraKeyframes speed) */
+  sceneYearRanges?: SceneYearRange[];
+  /** Background color */
+  backgroundColor: string;
+  /** Brand color for accents */
+  brandColor: string;
+  /** Font family */
+  fontFamily: string;
+  /** Whether to use log scale for Y-axis */
+  logScale?: boolean;
+  /** Y-axis label (e.g. "Asset / Gold Ratio") */
+  yAxisLabel?: string;
 }
 
 /** Props for the shorts video composition (9:16) */

@@ -52,6 +52,17 @@ You are called by other agents (primarily @video-production and @researcher) whe
 - Name files descriptively: `scene-003-city-skyline.jpg` not `image1.jpg`
 - If you can't find a suitable asset, report back with what you tried
 
+## CRITICAL: File Output Rules
+
+**NEVER hold fetched data only in memory. ALWAYS save to disk immediately.**
+
+1. **Save everything you fetch**: When gathering information from the web, save the relevant content to `projects/<slug>/research/sources/<descriptive-name>.md`. Do NOT just read a page and summarize it in your response — save the raw data first.
+2. **Incremental downloads**: Download and save assets one by one. Do NOT batch everything in memory and save at the end.
+3. **Always update the asset log**: After every download or fetch, immediately append to `projects/<slug>/production/asset-log.md`.
+4. **Structured data**: If you fetch tables, price data, or structured information, save as `.md` or `.csv` files in `projects/<slug>/research/data/`.
+5. **Verify writes**: After saving a file, confirm it exists and has content. If a write fails, retry or report the error.
+6. **Never return only a summary**: Your final message should reference the files you saved, not contain all the data inline. The files ARE your deliverable.
+
 ## Version Management
 
 The Collector agent does not manage pipeline versions (it's a utility, not a pipeline stage). However, always append to the asset log rather than overwriting it — it's a cumulative record of all collected assets for the project.

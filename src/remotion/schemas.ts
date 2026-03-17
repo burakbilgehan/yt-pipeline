@@ -64,7 +64,7 @@ export const dataChartItemSchema = z.object({
 });
 
 export const dataChartInputSchema = z.object({
-  type: z.enum(["bar-chart", "line-chart", "pie-chart", "counter", "comparison", "timeline", "progress", "scale-comparison"]),
+  type: z.enum(["bar-chart", "line-chart", "pie-chart", "counter", "comparison", "timeline", "progress", "scale-comparison", "horse-race"]),
   title: z.string().optional(),
   items: z.array(dataChartItemSchema).optional(),
   counterValue: z.number().optional(),
@@ -100,3 +100,54 @@ export const shortsCompositionSchema = z.object({
 });
 
 export type ShortsCompositionProps = z.infer<typeof shortsCompositionSchema>;
+
+// ─── Horse Race chart composition schema ─────────────────────
+
+export const horseRaceDataPointSchema = z.object({
+  date: z.string(),
+  ratio: z.number(),
+});
+
+export const horseRaceSeriesSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  color: z.string(),
+  data: z.array(horseRaceDataPointSchema),
+});
+
+export const horseRaceCameraKeyframeSchema = z.object({
+  year: z.number(),
+  zoom: z.number().optional(),
+  speed: z.number().optional(),
+  focusAssets: z.array(z.string()).optional(),
+});
+
+export const horseRaceAnnotationSchema = z.object({
+  year: z.number(),
+  text: z.string(),
+  style: z.enum([
+    "crisis-flash",
+    "major-crisis-flash",
+    "policy-banner",
+    "milestone-flash",
+    "leader-callout",
+    "crossing-alert",
+  ]),
+  asset: z.string().optional(),
+  duration: z.number().optional(),
+  icon: z.string().optional(),
+});
+
+export const horseRaceCompositionSchema = z.object({
+  series: z.array(horseRaceSeriesSchema),
+  cameraKeyframes: z.array(horseRaceCameraKeyframeSchema),
+  annotations: z.array(horseRaceAnnotationSchema),
+  timeRange: z.object({ start: z.number(), end: z.number() }),
+  backgroundColor: z.string(),
+  brandColor: z.string(),
+  fontFamily: z.string(),
+  logScale: z.boolean().optional(),
+  yAxisLabel: z.string().optional(),
+});
+
+export type HorseRaceCompositionProps = z.infer<typeof horseRaceCompositionSchema>;
