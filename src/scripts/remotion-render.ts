@@ -19,9 +19,9 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
-import { getLatestVersionedFile, loadProjectConfig, saveProjectConfig, loadChannelConfig } from "../utils/project";
+import { getLatestVersionedFile, loadProjectConfig, saveProjectConfig, loadChannelConfig, getProjectDir } from "../utils/project";
+import type { AudioManifest } from "../types/index";
 
-const PROJECTS_DIR = path.resolve("projects");
 const REMOTION_ENTRY = path.resolve("src", "remotion", "index.ts");
 
 interface AudioSegment {
@@ -37,7 +37,7 @@ async function main() {
     process.exit(1);
   }
 
-  const projectDir = path.join(PROJECTS_DIR, slug);
+  const projectDir = getProjectDir(slug);
 
   if (!fs.existsSync(projectDir)) {
     console.error(`Project not found: ${projectDir}`);
@@ -94,98 +94,105 @@ async function main() {
   // ── Collect audio files ──
   const audioDir = path.join(projectDir, "production", "audio");
   let audioFiles: string[] = [];
+  const audioSegments: AudioSegment[] = [];
 
-  if (fs.existsSync(audioDir)) {
+  // Strategy 1 (preferred): Read audio-manifest.json for direct scene→audio mapping
+  const manifestPath = path.join(audioDir, "audio-manifest.json");
+  const hasManifest = fs.existsSync(manifestPath);
+
+  if (hasManifest) {
+    const manifest: AudioManifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+    console.log(`\nUsing audio-manifest.json (${manifest.blocks.length} blocks, ${manifest.totalDuration.toFixed(1)}s)`);
+
+    for (const block of manifest.blocks) {
+      const audioRelPath = path.join("production", "audio", block.file);
+      const audioAbsPath = path.join(projectDir, audioRelPath);
+
+      if (!fs.existsSync(audioAbsPath)) {
+        console.warn(`  ⚠️ Missing audio file: ${block.file}`);
+        continue;
+      }
+
+      audioFiles.push(audioRelPath);
+
+      // Use startTime from manifest if available, otherwise fall back to storyboard scene matching
+      let startTime: number = block.startTime ?? -1;
+      if (startTime < 0) {
+        // Try to find matching scene in storyboard by block ID
+        const matchingScene = scenes.find((s: any) => s.id === block.id);
+        startTime = matchingScene?.startTime ?? 0;
+      }
+
+      audioSegments.push({ src: audioRelPath, startTime });
+      console.log(`  ${block.file} → ${block.section}/${block.id} at ${startTime.toFixed(1)}s (${block.duration.toFixed(1)}s)`);
+    }
+  } else if (fs.existsSync(audioDir)) {
+    // Strategy 2 (legacy fallback): Scan audio directory and match via script/storyboard heuristics
+    console.log("\nNo audio-manifest.json found — using legacy audio matching.");
+
     audioFiles = fs
       .readdirSync(audioDir)
       .filter((f) => f.endsWith(".mp3") || f.endsWith(".wav"))
       .sort()
       .map((f) => path.join("production", "audio", f));
     console.log(`Found ${audioFiles.length} audio files`);
-  } else {
-    console.log("No audio directory found - rendering without voiceover");
-  }
 
-  // ── Build audio segments with correct timing ──
-  // Audio files correspond to script sections (voiceover blocks), not individual scenes.
-  // Each [VOICEOVER] block in the script becomes one audio file (via TTS).
-  //
-  // Strategy 1: Parse the script file for section timestamps (e.g., "## Hook (0:00 - 0:15)")
-  // Strategy 2: Detect voiceover block boundaries from storyboard scene gaps
-  // Strategy 3: Fallback to even distribution
-  const audioSegments: AudioSegment[] = [];
+    // Build audio segments with timing from script or storyboard
+    if (audioFiles.length > 0 && scenes.length > 0) {
+      const scriptFile = getLatestVersionedFile(slug, "content", "script");
+      let sectionStartTimes: number[] = [];
 
-  if (audioFiles.length > 0 && scenes.length > 0) {
-    // Try to read the script file and extract section start times
-    const scriptFile = getLatestVersionedFile(slug, "content", "script");
-    let sectionStartTimes: number[] = [];
+      if (scriptFile) {
+        const scriptPath = path.join(projectDir, "content", scriptFile);
+        const scriptContent = fs.readFileSync(scriptPath, "utf-8");
 
-    if (scriptFile) {
-      const scriptPath = path.join(projectDir, "content", scriptFile);
-      const scriptContent = fs.readFileSync(scriptPath, "utf-8");
-
-      // Parse timestamps from section headers like "## Hook (0:00 - 0:15)"
-      // or "## Section 1: #10 to #8 — The Everyday Shockers (0:15 - 0:55)"
-      const sectionRegex = /^## .+\((\d+):(\d+)\s*-\s*\d+:\d+\)/gm;
-      let match: RegExpExecArray | null;
-      while ((match = sectionRegex.exec(scriptContent)) !== null) {
-        const minutes = parseInt(match[1], 10);
-        const seconds = parseInt(match[2], 10);
-        sectionStartTimes.push(minutes * 60 + seconds);
-      }
-      console.log(`\nParsed ${sectionStartTimes.length} section timestamps from ${scriptFile}`);
-    }
-
-    if (sectionStartTimes.length === audioFiles.length) {
-      console.log(`Audio-section mapping (${audioFiles.length} segments):`);
-      for (let i = 0; i < audioFiles.length; i++) {
-        audioSegments.push({
-          src: audioFiles[i],
-          startTime: sectionStartTimes[i],
-        });
-        console.log(`  ${audioFiles[i]} → starts at ${sectionStartTimes[i]}s`);
-      }
-    } else {
-      // Fallback: detect from storyboard voiceover gaps
-      console.log(`Script sections (${sectionStartTimes.length}) don't match audio files (${audioFiles.length}).`);
-      console.log("Trying storyboard voiceover gap detection...");
-
-      sectionStartTimes = [];
-      let inVoiceoverBlock = false;
-      for (let i = 0; i < scenes.length; i++) {
-        const scene = scenes[i];
-        const hasVoiceover = scene.voiceover && scene.voiceover.trim().length > 0;
-        if (hasVoiceover && !inVoiceoverBlock) {
-          sectionStartTimes.push(scene.startTime);
-          inVoiceoverBlock = true;
-        } else if (!hasVoiceover) {
-          inVoiceoverBlock = false;
+        const sectionRegex = /^## .+\((\d+):(\d+)\s*-\s*\d+:\d+\)/gm;
+        let match: RegExpExecArray | null;
+        while ((match = sectionRegex.exec(scriptContent)) !== null) {
+          const minutes = parseInt(match[1], 10);
+          const seconds = parseInt(match[2], 10);
+          sectionStartTimes.push(minutes * 60 + seconds);
         }
+        console.log(`Parsed ${sectionStartTimes.length} section timestamps from ${scriptFile}`);
       }
 
       if (sectionStartTimes.length === audioFiles.length) {
-        console.log(`Audio-section mapping (${audioFiles.length} segments):`);
         for (let i = 0; i < audioFiles.length; i++) {
-          audioSegments.push({
-            src: audioFiles[i],
-            startTime: sectionStartTimes[i],
-          });
+          audioSegments.push({ src: audioFiles[i], startTime: sectionStartTimes[i] });
           console.log(`  ${audioFiles[i]} → starts at ${sectionStartTimes[i]}s`);
         }
       } else {
-        // Final fallback: even distribution
-        console.log(`Warning: Detected ${sectionStartTimes.length} blocks but have ${audioFiles.length} audio files.`);
-        console.log("Falling back to even distribution across timeline.");
-        const segmentDuration = totalDurationSec / audioFiles.length;
-        for (let i = 0; i < audioFiles.length; i++) {
-          audioSegments.push({
-            src: audioFiles[i],
-            startTime: i * segmentDuration,
-          });
-          console.log(`  ${audioFiles[i]} → starts at ${(i * segmentDuration).toFixed(1)}s`);
+        // Fallback: detect voiceover block boundaries from storyboard scene gaps
+        sectionStartTimes = [];
+        let inVoiceoverBlock = false;
+        for (const scene of scenes) {
+          const hasVoiceover = scene.voiceover && scene.voiceover.trim().length > 0;
+          if (hasVoiceover && !inVoiceoverBlock) {
+            sectionStartTimes.push(scene.startTime);
+            inVoiceoverBlock = true;
+          } else if (!hasVoiceover) {
+            inVoiceoverBlock = false;
+          }
+        }
+
+        if (sectionStartTimes.length === audioFiles.length) {
+          for (let i = 0; i < audioFiles.length; i++) {
+            audioSegments.push({ src: audioFiles[i], startTime: sectionStartTimes[i] });
+            console.log(`  ${audioFiles[i]} → starts at ${sectionStartTimes[i]}s`);
+          }
+        } else {
+          // Final fallback: even distribution
+          console.log("Falling back to even distribution across timeline.");
+          const segmentDuration = totalDurationSec / audioFiles.length;
+          for (let i = 0; i < audioFiles.length; i++) {
+            audioSegments.push({ src: audioFiles[i], startTime: i * segmentDuration });
+            console.log(`  ${audioFiles[i]} → starts at ${(i * segmentDuration).toFixed(1)}s`);
+          }
         }
       }
     }
+  } else {
+    console.log("No audio directory found - rendering without voiceover");
   }
 
   // ── Prepare output directory ──

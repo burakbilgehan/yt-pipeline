@@ -33,6 +33,16 @@ Read `config.json` first — check storyboard version, content version, and `met
 - `textOverlay` → text-only scenes
 - `dataVisualization` → chart scenes
 
+## Workflow
+
+1. Read `config.json` — get current storyboard version, content version, `metadata.format`
+2. Read latest approved script (`content/script-v<N>.md`)
+3. Read `channel-config.json` for visual style, colors, brand guidelines
+4. Create `storyboard-v<N>.json` — write skeleton first (title, version, basedOn, empty scenes array), then populate each scene one by one
+5. Create `storyboard-summary-v<N>.md` — human-readable scene list with timestamps and visual descriptions
+6. Update `config.json` — set storyboard to `in_progress`, add history entry
+7. Present scene summary to caller and wait for approval before marking status as complete
+
 ## Output Format
 
 ```json
@@ -68,7 +78,37 @@ Read `config.json` first — check storyboard version, content version, and `met
 
 - No empty visuals — every scene needs stock, AI, text, or data
 - Scene durations must match script timestamps
-- Present to user and wait for approval before finalizing
+- Write draft files first, then present a scene summary to the caller. Approval gates the status transition to "completed" — not the file write itself.
+- Create the JSON file with skeleton structure first, then populate scenes. Do not compose the entire JSON in memory before writing.
+
+## Scene ID & Section Naming Conventions
+
+Scene IDs and section names flow downstream to TTS (file naming) and rendering (audio mapping). Follow these rules strictly:
+
+- **Scene IDs**: `scene-001`, `scene-002`, ... — zero-padded 3-digit, sequential across the entire storyboard
+- **Section names**: Use the script section title exactly (e.g., `"Hook"`, `"Global Trade Wars"`, `"CTA"`). These get slugified for audio file naming (`hook--scene-001.mp3`, `section-global-trade--scene-003.mp3`)
+- **One voiceover block per section**: Each script `## Section` maps to one TTS audio block. A section may contain multiple scenes (visual changes within the same voiceover), but the first scene's ID is used for the audio file.
+- **Consistency**: If the content-writer writes `## Section: Global Trade (0:15-0:55)`, the storyboard section name must be `"Global Trade"` — not renamed, not abbreviated.
+
+## Scene Timing (mandatory)
+
+Use the duration predictor for accurate scene timing instead of manual guesses:
+
+1. For each scene's voiceover text, run:
+   `npx tsx src/scripts/text-utils.ts estimate <scene-voiceover-text-file>`
+   Or use the word count as a quick estimate: words ÷ WPM × 60 = seconds
+
+2. Read calibration data from `channel-config.json → tts.calibration.measuredWPM` (if available)
+   - Calibrated: use `measuredWPM` value
+   - Not calibrated: use 150 WPM default
+
+3. Scene timing rules:
+   - `endTime = startTime + predicted voiceover duration + 0.5s` (transition buffer)
+   - Include explicit `<break>` tag durations from the script
+   - Sum of all scene durations must be ≤ `config.json → metadata.targetLength`
+   - If total exceeds target, flag to Director — script may need trimming
+
+4. Set `totalDuration` in storyboard JSON to the sum of all scene durations
 
 ## Version Management
 

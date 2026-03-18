@@ -139,6 +139,49 @@ export interface TTSConfig {
   stability?: number;
   similarityBoost?: number;
   style?: number;
+  speed?: number; // 0.7-1.2, default 1.0
+}
+
+// TTS calibration — stores measured WPM per voice/model combo
+export interface TTSCalibrationMeasurement {
+  wordCount: number;
+  predictedDuration: number; // seconds
+  actualDuration: number; // seconds
+  speed: number; // speed param used (1.0 = normal)
+  date: string; // ISO date
+}
+
+export interface TTSCalibration {
+  measuredWPM: number; // rolling average from actual TTS outputs
+  naturalPauseRatio: number; // fraction of speech duration that is natural pauses
+  sampleCount: number; // how many measurements this is based on
+  lastCalibratedAt: string; // ISO date
+  measurements: TTSCalibrationMeasurement[];
+}
+
+// Audio manifest — tracks all TTS audio blocks with metadata
+export interface AudioBlock {
+  id: string; // scene ID, e.g. "scene-001"
+  section: string; // section slug, e.g. "hook", "section-global-trade"
+  file: string; // filename, e.g. "hook--scene-001.mp3"
+  text: string; // the voiceover text that was synthesized
+  duration: number; // measured duration in seconds
+  wordCount: number; // spoken word count (excluding SSML tags)
+  speed: number; // TTS speed parameter used (1.0 = normal)
+  startTime?: number; // intended start time in video timeline (seconds)
+  endTime?: number; // intended end time (startTime + duration)
+}
+
+export interface AudioManifest {
+  generatedAt: string; // ISO date
+  scriptVersion: number; // which script version this was generated from
+  scriptFile: string; // e.g. "script-v2.md"
+  provider: string; // "elevenlabs" | "edge-tts"
+  modelId?: string; // ElevenLabs model ID
+  speed: number; // base speed used
+  totalDuration: number; // sum of all block durations
+  totalWordCount: number; // sum of all block word counts
+  blocks: AudioBlock[];
 }
 
 // Analytics snapshot
@@ -188,10 +231,12 @@ export interface ChannelConfig {
   tts: {
     provider: "elevenlabs"; // currently only ElevenLabs supported
     voiceId: string; // ElevenLabs voice ID
-    modelId: string; // e.g. "eleven_monolingual_v1"
+    modelId: string; // e.g. "eleven_multilingual_v2"
     stability: number; // 0-1
     similarityBoost: number; // 0-1
     style: number; // 0-1, ElevenLabs style setting
+    speed?: number; // 0.7-1.2, default 1.0
+    calibration?: TTSCalibration; // auto-populated from TTS measurements
   };
   visuals: {
     defaultTemplate: "voiceover-visuals" | "data-charts";

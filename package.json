@@ -9,6 +9,7 @@
     "studio": "remotion studio src/remotion/index.ts",
     "figma:build": "esbuild figma-plugin/code.ts --bundle --outfile=figma-plugin/code.js --target=es2020",
     "tts": "tsx src/scripts/tts-generate.ts",
+    "tts-calibrate": "tsx src/scripts/tts-calibrate.ts",
     "render": "tsx src/scripts/remotion-render.ts",
     "upload": "tsx src/scripts/youtube-upload.ts",
     "analytics": "tsx src/scripts/fetch-analytics.ts",
