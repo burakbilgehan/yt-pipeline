@@ -147,10 +147,83 @@ function skipID3v2(buffer: Buffer): number {
 // ─── Public API ──────────────────────────────────────────
 
 /**
+ * Get audio file duration in seconds.
+ * Supports MP3 (frame header parsing) and WAV (RIFF header parsing).
+ */
+export async function getAudioDuration(filePath: string): Promise<number> {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".wav") {
+    return getWavDuration(filePath);
+  }
+  return getMp3Duration(filePath);
+}
+
+/**
+ * Get WAV file duration by parsing RIFF/WAVE header.
+ * Reads the data chunk size + sample rate + bits per sample + channels.
+ */
+function getWavDuration(filePath: string): number {
+  const buffer = fs.readFileSync(filePath);
+
+  // RIFF header validation
+  if (buffer.length < 44) {
+    throw new Error(`WAV file too small: ${filePath}`);
+  }
+
+  const riff = buffer.toString("ascii", 0, 4);
+  const wave = buffer.toString("ascii", 8, 12);
+  if (riff !== "RIFF" || wave !== "WAVE") {
+    throw new Error(`Not a valid WAV file: ${filePath}`);
+  }
+
+  // Find "fmt " chunk
+  let offset = 12;
+  let sampleRate = 0;
+  let bitsPerSample = 0;
+  let numChannels = 0;
+  let byteRate = 0;
+  let dataSize = 0;
+
+  while (offset < buffer.length - 8) {
+    const chunkId = buffer.toString("ascii", offset, offset + 4);
+    const chunkSize = buffer.readUInt32LE(offset + 4);
+
+    if (chunkId === "fmt ") {
+      numChannels = buffer.readUInt16LE(offset + 10);
+      sampleRate = buffer.readUInt32LE(offset + 12);
+      byteRate = buffer.readUInt32LE(offset + 16);
+      bitsPerSample = buffer.readUInt16LE(offset + 22);
+    } else if (chunkId === "data") {
+      dataSize = chunkSize;
+      break; // data chunk found, we have everything we need
+    }
+
+    offset += 8 + chunkSize;
+    // Chunks are word-aligned (pad to even)
+    if (chunkSize % 2 !== 0) offset++;
+  }
+
+  if (sampleRate === 0 || dataSize === 0) {
+    throw new Error(`Could not parse WAV header: ${filePath}`);
+  }
+
+  // Duration = data size / byte rate
+  // byteRate = sampleRate * numChannels * bitsPerSample / 8
+  if (byteRate > 0) {
+    return dataSize / byteRate;
+  }
+
+  // Fallback calculation
+  const blockAlign = numChannels * (bitsPerSample / 8);
+  const totalSamples = dataSize / blockAlign;
+  return totalSamples / sampleRate;
+}
+
+/**
  * Get MP3 file duration in seconds by parsing frame headers.
  * Works with both CBR and VBR files.
  */
-export async function getAudioDuration(filePath: string): Promise<number> {
+function getMp3Duration(filePath: string): number {
   const buffer = fs.readFileSync(filePath);
   let offset = skipID3v2(buffer);
   let totalDuration = 0;
@@ -188,7 +261,7 @@ export async function getAudioDurations(
 
   const files = fs
     .readdirSync(audioDir)
-    .filter((f) => f.endsWith(".mp3"))
+    .filter((f) => f.endsWith(".mp3") || f.endsWith(".wav"))
     .sort();
 
   const results: Array<{ file: string; duration: number }> = [];

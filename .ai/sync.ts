@@ -1,8 +1,8 @@
 /**
  * .ai/ → .claude/ + .opencode/ sync script
  *
- * Single source of truth: .ai/agents/ and .ai/commands/
- * Generated (read-only): .claude/agents/, .claude/commands/, .opencode/agents/, .opencode/commands/, opencode.json
+ * Single source of truth: .ai/agents/, .ai/commands/, .ai/skills/
+ * Generated (read-only): .claude/agents/, .claude/commands/, .claude/skills/, .opencode/agents/, .opencode/commands/, opencode.json
  *
  * Usage: npx tsx .ai/sync.ts
  */
@@ -50,6 +50,29 @@ function parseFrontmatter(content: string): ParsedFile {
   return { frontmatter: fm, body: match[2] };
 }
 
+// ── Skill content loading ────────────────────────────────────────────
+
+function loadSkillContent(skillName: string): string | null {
+  const skillPath = path.join(AI_DIR, "skills", skillName, "SKILL.md");
+  if (!fs.existsSync(skillPath)) {
+    console.warn(`  ⚠ Skill "${skillName}" not found at ${skillPath}`);
+    return null;
+  }
+  return fs.readFileSync(skillPath, "utf-8");
+}
+
+function buildSkillsSection(skillNames: string[]): string {
+  const sections: string[] = [];
+  for (const name of skillNames) {
+    const content = loadSkillContent(name);
+    if (content) {
+      sections.push(`<skill name="${name}">\n${content}\n</skill>`);
+    }
+  }
+  if (sections.length === 0) return "";
+  return `\n\n---\n\n## Preloaded Skills\n\n${sections.join("\n\n")}`;
+}
+
 // ── Claude format ────────────────────────────────────────────────────
 
 function toClaudeAgent(parsed: ParsedFile, filename: string): string {
@@ -58,6 +81,11 @@ function toClaudeAgent(parsed: ParsedFile, filename: string): string {
   const tools = Array.isArray(parsed.frontmatter.tools)
     ? (parsed.frontmatter.tools as string[]).join(", ")
     : "";
+  const skills = Array.isArray(parsed.frontmatter.skills)
+    ? (parsed.frontmatter.skills as string[])
+    : [];
+
+  const skillsSection = buildSkillsSection(skills);
 
   return `---
 name: ${name}
@@ -65,18 +93,12 @@ description: ${desc}
 tools: ${tools}
 ---
 ${AUTO_GENERATED_HEADER}
-${parsed.body}`;
+${parsed.body}${skillsSection}`;
 }
 
 function toClaudeCommand(parsed: ParsedFile): string {
   const desc = parsed.frontmatter.description || "";
-  // Claude commands don't use agent field, they use @agent-name in body
-  // We strip the agent field and add @subagent invocation prefix if agent is specified
-  const agent = parsed.frontmatter.agent as string | undefined;
-  let body = parsed.body;
-
-  // If the body doesn't already reference the agent with @, we don't force it
-  // The body is the canonical source
+  const body = parsed.body;
 
   return `---
 description: ${desc}
@@ -91,6 +113,9 @@ function toOpenCodeAgent(parsed: ParsedFile): string {
   const desc = parsed.frontmatter.description || "";
   const tools = Array.isArray(parsed.frontmatter.tools)
     ? (parsed.frontmatter.tools as string[])
+    : [];
+  const skills = Array.isArray(parsed.frontmatter.skills)
+    ? (parsed.frontmatter.skills as string[])
     : [];
 
   // Respect mode from frontmatter (default: subagent)
@@ -112,6 +137,8 @@ function toOpenCodeAgent(parsed: ParsedFile): string {
     .map((t) => `  ${t}: true`)
     .join("\n");
 
+  const skillsSection = buildSkillsSection(skills);
+
   return `---
 description: "${desc}"
 mode: ${mode}
@@ -119,7 +146,7 @@ tools:
 ${toolLines}
 ---
 ${AUTO_GENERATED_HEADER}
-${parsed.body}`;
+${parsed.body}${skillsSection}`;
 }
 
 function toOpenCodeCommand(parsed: ParsedFile): string {
@@ -145,11 +172,11 @@ function generateOpenCodeJson(
   const agents: Record<string, unknown> = {
     build: {
       mode: "primary",
-      prompt: `You are part of the yt-pipeline YouTube channel factory framework. You help build and implement the video production pipeline. All conversation is in Turkish, but YouTube content is in English. Use TypeScript everywhere. Follow the architecture defined in agents-plan.md.\n\n${SYNC_RULE}`,
+      prompt: `You are part of the yt-pipeline YouTube channel factory framework. You help build and implement the video production pipeline. All conversation is in Turkish, but YouTube content is in English. Use TypeScript everywhere. Follow the architecture defined in AGENTS.md.\n\n${SYNC_RULE}`,
     },
     plan: {
       mode: "primary",
-      prompt: `You are part of the yt-pipeline YouTube channel factory framework. Analyze, plan, and suggest without making changes. All conversation is in Turkish. Follow the architecture defined in agents-plan.md.\n\n${SYNC_RULE}`,
+      prompt: `You are part of the yt-pipeline YouTube channel factory framework. Analyze, plan, and suggest without making changes. All conversation is in Turkish. Follow the architecture defined in AGENTS.md.\n\n${SYNC_RULE}`,
     },
   };
 
@@ -158,7 +185,6 @@ function generateOpenCodeJson(
     const declaredMode = (parsed.frontmatter.mode as string) || "subagent";
 
     if (declaredMode === "primary") {
-      // Primary agents get their full prompt loaded inline
       agents[name] = {
         description: parsed.frontmatter.description,
         mode: "primary",
@@ -179,6 +205,96 @@ function generateOpenCodeJson(
   };
 
   return JSON.stringify(config, null, 2) + "\n";
+}
+
+// ── Skills sync ──────────────────────────────────────────────────────
+
+function syncSkills() {
+  const sourceDir = path.join(AI_DIR, "skills");
+  const claudeSkillsDir = path.join(CLAUDE_DIR, "skills");
+
+  if (!fs.existsSync(sourceDir)) {
+    console.log("Skills: no .ai/skills/ directory, skipping");
+    return;
+  }
+
+  // Ensure target dir exists
+  fs.mkdirSync(claudeSkillsDir, { recursive: true });
+
+  const skillDirs = fs
+    .readdirSync(sourceDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name);
+
+  const synced: string[] = [];
+
+  for (const skillName of skillDirs) {
+    const srcSkillDir = path.join(sourceDir, skillName);
+    const destSkillDir = path.join(claudeSkillsDir, skillName);
+
+    // Check for SKILL.md
+    const skillFile = path.join(srcSkillDir, "SKILL.md");
+    if (!fs.existsSync(skillFile)) {
+      console.warn(`  ⚠ Skipping ${skillName} — no SKILL.md`);
+      continue;
+    }
+
+    // Ensure dest dir exists
+    fs.mkdirSync(destSkillDir, { recursive: true });
+
+    // Copy all files in the skill directory
+    const files = fs.readdirSync(srcSkillDir);
+    for (const file of files) {
+      const srcFile = path.join(srcSkillDir, file);
+      const destFile = path.join(destSkillDir, file);
+      const stat = fs.statSync(srcFile);
+      if (stat.isFile()) {
+        const content = fs.readFileSync(srcFile, "utf-8");
+        // Add auto-generated header to SKILL.md only
+        if (file === "SKILL.md") {
+          fs.writeFileSync(
+            destFile,
+            `${AUTO_GENERATED_HEADER}\n\n${content}`
+          );
+        } else {
+          fs.writeFileSync(destFile, content);
+        }
+      }
+    }
+
+    synced.push(skillName);
+  }
+
+  // Clean up skill dirs in claude that don't exist in source
+  // But skip skills that aren't from .ai/ (like remotion-best-practices which lives directly in .claude/)
+  const existingClaudeSkills = fs.existsSync(claudeSkillsDir)
+    ? fs
+        .readdirSync(claudeSkillsDir, { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+        .map((d) => d.name)
+    : [];
+
+  for (const existing of existingClaudeSkills) {
+    if (!skillDirs.includes(existing)) {
+      // Check if this skill has the auto-generated header — only remove if it was synced by us
+      const existingSkillFile = path.join(
+        claudeSkillsDir,
+        existing,
+        "SKILL.md"
+      );
+      if (fs.existsSync(existingSkillFile)) {
+        const content = fs.readFileSync(existingSkillFile, "utf-8");
+        if (content.startsWith(AUTO_GENERATED_HEADER)) {
+          fs.rmSync(path.join(claudeSkillsDir, existing), { recursive: true });
+          console.log(`  Removed orphan skill: ${existing}`);
+        }
+      }
+    }
+  }
+
+  for (const s of synced) {
+    console.log(`  ✓ ${s}`);
+  }
 }
 
 // ── Main sync ────────────────────────────────────────────────────────
@@ -246,6 +362,9 @@ function main() {
   for (const { filename } of commandResults) {
     console.log(`  ✓ ${filename}`);
   }
+
+  console.log("\nSkills:");
+  syncSkills();
 
   // Generate opencode.json
   const opencodeJson = generateOpenCodeJson(agentResults);

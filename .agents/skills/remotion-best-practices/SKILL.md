@@ -9,6 +9,41 @@ metadata:
 
 Use this skills whenever you are dealing with Remotion code to obtain the domain-specific knowledge.
 
+## yt-pipeline Specific Rules (CRITICAL)
+
+These rules are specific to the yt-pipeline project and were learned through painful debugging. **Always follow them.**
+
+### No Emoji Flags
+Remotion uses Chromium which **does not render emoji flags** — they appear as black squares (☐). Always use styled **country code text badges** (e.g., `"USA"`, `"JPN"`) instead of flag emojis (🇺🇸, 🇯🇵). This applies to ALL components.
+
+### Never Run Full Renders as Blocking
+Full Remotion renders take **10+ minutes**. Never run them as blocking `npx remotion render ...`. Always:
+- Use `start /B npx remotion render ...` on Windows to background
+- For quick checks: `npx remotion still src/remotion/index.ts MainVideo --public-dir "<path>" --frame <N> --output <path>`
+- For interactive preview: `npm run studio -- --public-dir "<project-path>"` (Remotion Studio) — **preferred method**
+- Preview first, render last
+
+### Verify All Displayed Math
+Any formula or calculation shown on screen must be mathematically verified before render. Compute the actual result independently.
+
+### Progressive Enhancement Pattern
+Complex data-chart components should support progressive feature addition:
+- Base rendering (dots, axes, labels) always works
+- Advanced features (connectors, spotlights, overlays, camera zoom, dimming) are optional config fields
+- Missing config = feature disabled, NOT a crash
+- Each feature has its own config interface and is independently toggleable
+
+### Storyboard Bridge
+The bridge (`src/utils/storyboard-bridge.ts`) transforms storyboard JSON → Remotion props. Key behaviors:
+- `bridgeSceneVisual(visual)` transforms a single scene; `bridgeAllScenes(scenes)` does all + propagates fallbacks
+- Country dot data comes from `cfg.allDots` (storyboard config), NOT hardcoded
+- Normalizes `label` → `labels[]`, `connectorLine` → `connectorLines`, `cameraZoom.scale` → `endScale`
+- Auto-assigns `labelDir` based on position (left/right half × top/bottom half)
+- Never crashes on missing optional fields
+
+### Audio is WAV, Not MP3
+The TTS pipeline produces LINEAR16/WAV files (24kHz). Audio file references in manifests use `.wav` extension. The `audio-probe.ts` utility supports both WAV and MP3 header parsing.
+
 ## Captions
 
 When dealing with captions or subtitles, load the [./rules/subtitles.md](./rules/subtitles.md) file for more information.
@@ -58,4 +93,4 @@ Read individual rule files for detailed explanations and code examples:
 - [rules/videos.md](rules/videos.md) - Embedding videos in Remotion - trimming, volume, speed, looping, pitch
 - [rules/parameters.md](rules/parameters.md) - Make a video parametrizable by adding a Zod schema
 - [rules/maps.md](rules/maps.md) - Add a map using Mapbox and animate it
-- [rules/voiceover.md](rules/voiceover.md) - Adding AI-generated voiceover to Remotion compositions using ElevenLabs TTS
+- [rules/voiceover.md](rules/voiceover.md) - Adding AI-generated voiceover to Remotion compositions using Google Cloud TTS (Chirp 3: HD)

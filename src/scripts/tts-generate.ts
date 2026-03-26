@@ -10,6 +10,7 @@
  *   - Single-block re-generation via --block flag
  *   - Pre-flight duration prediction (before spending API credits)
  *   - ElevenLabs speed parameter support (0.7-1.2)
+ *   - Google Cloud TTS speakingRate support (0.25-2.0)
  *   - Post-TTS duration measurement and validation
  *   - Auto-calibration: stores measured WPM in channel-config.json
  *   - Request stitching for prosody continuity (v2 models)
@@ -35,6 +36,7 @@ import {
   ensureProjectDir,
   loadChannelConfig,
   getChannelConfigPath,
+  loadStoryboardResolved,
 } from "../utils/project.js";
 import {
   predictDuration,
@@ -49,13 +51,59 @@ import { getAudioDuration, getAudioDurations } from "../utils/audio-probe.js";
 import type {
   TTSCalibration,
   TTSCalibrationMeasurement,
+  TTSConfig,
   AudioManifest,
   AudioBlock,
   Storyboard,
   Scene,
+  ChannelConfig,
+  ProjectConfig,
 } from "../types/index.js";
 
-type TTSProvider = "elevenlabs" | "edge-tts";
+type TTSProvider = "elevenlabs" | "edge-tts" | "google";
+
+// ─── TTS Config Resolution ─────────────────────────────
+// Single source of truth: channel-config.tts is the base.
+// Video-level config.tts overrides specific fields.
+// This ensures model/voice IDs are NEVER hardcoded in scripts.
+
+interface ResolvedTTSConfig {
+  provider: TTSProvider;
+  voiceId: string;
+  voiceName?: string;
+  modelId: string;
+  stability: number;
+  similarityBoost: number;
+  style: number;
+  useSpeakerBoost: boolean;
+  speed: number;
+  calibration: TTSCalibration | null;
+  // Google TTS specific
+  languageCode: string;
+  stylePrompt: string;
+  sampleRateHertz: number;
+}
+
+function resolveTTSConfig(channelConfig: ChannelConfig, projectConfig?: ProjectConfig): ResolvedTTSConfig {
+  const ch = channelConfig.tts;
+  const vid = projectConfig?.tts;
+
+  return {
+    provider: (vid?.provider ?? ch?.provider ?? "google") as TTSProvider,
+    voiceId: vid?.voiceId ?? ch?.voiceId ?? "",
+    voiceName: vid?.voiceName ?? ch?.voiceName,
+    modelId: vid?.modelId ?? ch?.modelId ?? "gemini-2.5-flash-tts",
+    stability: vid?.stability ?? ch?.stability ?? 0.35,
+    similarityBoost: vid?.similarityBoost ?? ch?.similarityBoost ?? 0.75,
+    style: vid?.style ?? ch?.style ?? 0,
+    useSpeakerBoost: vid?.useSpeakerBoost ?? ch?.useSpeakerBoost ?? false,
+    speed: vid?.speed ?? ch?.speed ?? 1.0,
+    calibration: (ch as any)?.calibration ?? null,
+    languageCode: vid?.languageCode ?? ch?.languageCode ?? "en-US",
+    stylePrompt: vid?.stylePrompt ?? ch?.stylePrompt ?? "Say the following",
+    sampleRateHertz: vid?.sampleRateHertz ?? ch?.sampleRateHertz ?? 24000,
+  };
+}
 
 // ─── Voiceover Block (internal, pre-generation) ─────────
 
@@ -78,7 +126,7 @@ function parseArgs() {
 
   if (!slug || slug.startsWith("--")) {
     console.error(
-      "Usage: npm run tts <project-slug> [-- --provider edge-tts|elevenlabs] [-- --speed 1.1] [-- --block scene-003]"
+      "Usage: npm run tts <project-slug> [-- --provider google|edge-tts|elevenlabs] [-- --speed 1.1] [-- --block scene-003]"
     );
     process.exit(1);
   }
@@ -111,14 +159,18 @@ async function main() {
   const config = loadProjectConfig(slug);
   const channelConfig = loadChannelConfig();
 
-  // Determine provider: CLI flag > channel-config > default
-  const provider: TTSProvider =
-    providerFlag || (channelConfig.tts?.provider as TTSProvider) || "edge-tts";
+  // ── Resolve TTS settings: video override > channel default ──
+  // Single source of truth: channel-config.tts is the base,
+  // config.tts (video-level) overrides specific fields.
+  const ttsConfig = resolveTTSConfig(channelConfig, config);
 
-  // Determine speed: CLI flag > channel-config > default 1.0
-  const baseSpeed = speedFlag || channelConfig.tts?.speed || 1.0;
+  // CLI flags override everything
+  const provider: TTSProvider = providerFlag || ttsConfig.provider || "google";
+  const baseSpeed = speedFlag || ttsConfig.speed || 1.0;
 
   console.log(`TTS Provider: ${provider}`);
+  console.log(`TTS Voice: ${ttsConfig.voiceName || ttsConfig.voiceId}`);
+  console.log(`TTS Model: ${ttsConfig.modelId}`);
   if (baseSpeed !== 1.0) console.log(`TTS Speed: ${baseSpeed}`);
 
   // Find latest versioned script
@@ -146,8 +198,11 @@ async function main() {
   // Try to load storyboard for scene mapping
   const storyboard = loadStoryboard(slug);
 
-  // Extract scene-aware voiceover blocks
-  const voiceoverBlocks = extractSceneAwareVoiceover(script, storyboard);
+  // Extract voiceover blocks — prefer storyboard scene-level blocks (modular, 1 scene = 1 audio file)
+  // Falls back to script parsing only if no storyboard is available
+  const voiceoverBlocks = storyboard
+    ? extractVoiceoverFromStoryboard(storyboard)
+    : extractSceneAwareVoiceover(script, storyboard);
 
   console.log(`Found ${voiceoverBlocks.length} voiceover blocks:`);
   for (const block of voiceoverBlocks) {
@@ -161,7 +216,7 @@ async function main() {
       blockId,
       voiceoverBlocks,
       audioDir,
-      channelConfig,
+      ttsConfig,
       provider,
       baseSpeed,
       scriptVersion,
@@ -173,7 +228,7 @@ async function main() {
   }
 
   // ── Pre-flight Duration Prediction ──
-  const calibration = channelConfig.tts?.calibration ?? null;
+  const calibration = ttsConfig.calibration;
   const fullVoiceover = voiceoverBlocks.map((b) => b.text).join("\n\n");
   const prediction = predictDuration(fullVoiceover, calibration);
   const targetDuration = config.metadata?.targetLength;
@@ -205,12 +260,20 @@ async function main() {
   const generatedBlocks: AudioBlock[] = [];
 
   if (provider === "edge-tts") {
-    await generateAllEdgeTTS(voiceoverBlocks, audioDir, channelConfig, generatedBlocks);
+    await generateAllEdgeTTS(voiceoverBlocks, audioDir, ttsConfig, generatedBlocks);
+  } else if (provider === "google") {
+    await generateAllGoogleTTS(
+      voiceoverBlocks,
+      audioDir,
+      ttsConfig,
+      baseSpeed,
+      generatedBlocks
+    );
   } else {
     await generateAllElevenLabs(
       voiceoverBlocks,
       audioDir,
-      channelConfig,
+      ttsConfig,
       baseSpeed,
       generatedBlocks
     );
@@ -222,7 +285,7 @@ async function main() {
     scriptVersion,
     scriptFile,
     provider,
-    channelConfig.tts?.modelId,
+    ttsConfig.modelId,
     baseSpeed
   );
   writeManifest(audioDir, manifest);
@@ -256,7 +319,7 @@ async function handleSingleBlockRegeneration(
   blockId: string,
   voiceoverBlocks: VoiceoverBlock[],
   audioDir: string,
-  channelConfig: any,
+  ttsConfig: ResolvedTTSConfig,
   provider: TTSProvider,
   speed: number,
   scriptVersion: number,
@@ -299,18 +362,26 @@ async function handleSingleBlockRegeneration(
   console.log(`  Speed: ${speed}`);
 
   // Generate the single block
-  const fileName = `${targetBlock.sectionSlug}--${targetBlock.sceneId}.mp3`;
+  const ext = provider === "google" ? "wav" : "mp3";
+  const fileName = `${targetBlock.sectionSlug}--${targetBlock.sceneId}.${ext}`;
   const outputPath = path.join(audioDir, fileName);
 
   if (provider === "edge-tts") {
-    await generateEdgeTTSBlock(targetBlock.text, outputPath, channelConfig);
+    await generateEdgeTTSBlock(targetBlock.text, outputPath, ttsConfig);
+  } else if (provider === "google") {
+    await generateGoogleTTSBlock(
+      targetBlock.text,
+      outputPath,
+      ttsConfig,
+      speed
+    );
   } else {
     // For single-block re-gen, find the previous block's request ID if we have one
     // (we don't store request IDs in manifest, so no stitching for re-gen)
     await generateElevenLabsBlock(
       targetBlock.text,
       outputPath,
-      channelConfig,
+      ttsConfig,
       speed,
       []
     );
@@ -364,20 +435,44 @@ async function handleSingleBlockRegeneration(
   console.log(`  Manifest updated.`);
 }
 
-// ─── Scene-Aware Voiceover Extraction ────────────────────
+// ─── Storyboard-Based Voiceover Extraction (preferred) ───
 
 /**
- * Extract voiceover blocks from script, mapping them to scene IDs.
+ * Extract voiceover blocks directly from storyboard scenes.
+ * Each scene with a non-null voiceover becomes one TTS block.
+ * This is the preferred method — produces modular, scene-level audio files
+ * that can be individually re-generated if needed.
  *
- * Script format expected:
- *   ## Hook (0:00-0:15)
- *   [VOICEOVER] ...
- *
- *   ## Section: Global Trade (0:15-0:55)
- *   [VOICEOVER] ...
- *
- * If storyboard is available, we match sections to scene IDs.
- * If not, we assign sequential scene IDs (scene-001, scene-002, ...).
+ * Scenes with voiceover=null (title cards, transition-only scenes) are skipped.
+ */
+function extractVoiceoverFromStoryboard(
+  storyboard: Storyboard
+): VoiceoverBlock[] {
+  const blocks: VoiceoverBlock[] = [];
+
+  for (const scene of storyboard.scenes) {
+    // Skip scenes without voiceover (title cards, visual-only scenes)
+    if (!scene.voiceover || !scene.voiceover.trim()) {
+      continue;
+    }
+
+    blocks.push({
+      sceneId: scene.id,
+      sectionSlug: slugify(scene.section),
+      text: scene.voiceover.trim(),
+      startTime: scene.startTime,
+    });
+  }
+
+  return blocks;
+}
+
+// ─── Script-Based Voiceover Extraction (fallback) ────────
+
+/**
+ * FALLBACK: Extract voiceover blocks from script text when no storyboard is available.
+ * Parses section headers and treats non-bracketed text as voiceover.
+ * When storyboard exists, use extractVoiceoverFromStoryboard() instead.
  */
 function extractSceneAwareVoiceover(
   script: string,
@@ -389,22 +484,37 @@ function extractSceneAwareVoiceover(
   let currentSection: string | null = null;
   let currentSectionSlug: string | null = null;
   let currentStartTime: number | undefined;
-  let inVoiceover = false;
+  let inSection = false;
   let currentText = "";
   let sectionIndex = 0;
 
+  /**
+   * Non-voiceover line patterns — these are production directions, not spoken text.
+   * Anything inside [...] brackets (visual notes, verify tags, etc.), horizontal rules,
+   * blockquotes (> ...), and front-matter lines (key: value at top of file).
+   */
+  const isNonVoiceoverLine = (line: string): boolean => {
+    const trimmed = line.trim();
+    if (trimmed === "") return true; // blank lines are separators, not content
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) return true; // [VISUAL NOTE: ...], [VERIFY: ...]
+    if (trimmed.startsWith("[") && trimmed.includes("]")) return true; // multi-line bracket tags on one line
+    if (trimmed === "---") return true; // horizontal rule
+    if (trimmed.startsWith("> ")) return true; // blockquotes (production notes)
+    if (trimmed.startsWith("#")) return true; // any header (already handled above, but defensive)
+    return false;
+  };
+
   for (const line of lines) {
-    // Detect section headers: ## Hook (0:00-0:15) or ## Section: Title (0:15-0:55)
+    // Detect section headers: ## Hook (0:00-0:15) or ## HOOK — (0:00–0:45) or ## Section: Title (0:15-0:55)
     const headerMatch = line.match(
       /^##\s+(?:Section:\s*)?(.+?)\s*(?:\((\d+):(\d+)\s*[-–—]\s*\d+:\d+\))?$/
     );
     if (headerMatch) {
       // Save previous voiceover block if any
-      if (inVoiceover && currentText.trim()) {
+      if (inSection && currentText.trim()) {
         blocks.push(buildBlock(currentText, currentSectionSlug!, sectionIndex, currentStartTime, storyboard));
         sectionIndex++;
       }
-      inVoiceover = false;
       currentText = "";
 
       currentSection = headerMatch[1].trim();
@@ -414,36 +524,28 @@ function extractSceneAwareVoiceover(
       } else {
         currentStartTime = undefined;
       }
+      inSection = true;
       continue;
     }
 
+    // Legacy explicit [VOICEOVER] marker — still supported
     if (line.trim() === "[VOICEOVER]") {
-      // If we were already in a voiceover block (shouldn't happen, but defensive)
-      if (inVoiceover && currentText.trim()) {
-        blocks.push(buildBlock(currentText, currentSectionSlug || "unknown", sectionIndex, currentStartTime, storyboard));
-        sectionIndex++;
-      }
-      inVoiceover = true;
-      currentText = "";
+      inSection = true;
       continue;
     }
 
-    if (inVoiceover) {
-      // Stop at the next marker or section header
-      if (line.startsWith("[") && !line.startsWith("[VOICEOVER]")) {
-        if (currentText.trim()) {
-          blocks.push(buildBlock(currentText, currentSectionSlug || "unknown", sectionIndex, currentStartTime, storyboard));
-          sectionIndex++;
-        }
-        inVoiceover = false;
+    if (inSection) {
+      // Skip non-voiceover lines (visual notes, verify tags, rules, blockquotes)
+      if (isNonVoiceoverLine(line)) {
         continue;
       }
+      // This is a voiceover line — append it
       currentText += line + "\n";
     }
   }
 
   // Don't forget the last block
-  if (inVoiceover && currentText.trim()) {
+  if (inSection && currentText.trim()) {
     blocks.push(buildBlock(currentText, currentSectionSlug || "unknown", sectionIndex, currentStartTime, storyboard));
   }
 
@@ -531,27 +633,13 @@ function slugify(text: string): string {
 // ─── Storyboard Loading ──────────────────────────────────
 
 function loadStoryboard(slug: string): Storyboard | null {
-  const storyboardFile = getLatestVersionedFile(slug, "storyboard", "storyboard");
-  if (!storyboardFile) {
+  const storyboard = loadStoryboardResolved(slug);
+  if (!storyboard) {
     console.log("No storyboard found — using sequential scene IDs.");
     return null;
   }
-
-  const storyboardPath = path.join(getProjectDir(slug), "storyboard", storyboardFile);
-  // Only load .json storyboards
-  if (!storyboardFile.endsWith(".json")) {
-    console.log(`Storyboard file is not JSON (${storyboardFile}) — using sequential scene IDs.`);
-    return null;
-  }
-
-  try {
-    const data = JSON.parse(fs.readFileSync(storyboardPath, "utf-8"));
-    console.log(`Using storyboard: ${storyboardFile} (${data.scenes?.length || 0} scenes)`);
-    return data as Storyboard;
-  } catch (err) {
-    console.warn(`Failed to parse storyboard: ${err}`);
-    return null;
-  }
+  console.log(`Using storyboard (${storyboard.scenes?.length || 0} scenes)`);
+  return storyboard;
 }
 
 // ─── Manifest ────────────────────────────────────────────
@@ -591,13 +679,13 @@ function writeManifest(audioDir: string, manifest: AudioManifest): void {
 async function generateEdgeTTSBlock(
   text: string,
   outputPath: string,
-  channelConfig: any
+  ttsConfig: ResolvedTTSConfig
 ): Promise<void> {
   const { EdgeTTS } = await import("@andresaya/edge-tts");
 
   const voice =
     process.env.EDGE_TTS_VOICE ||
-    channelConfig.tts?.voiceId ||
+    ttsConfig.voiceId ||
     "en-US-AndrewNeural";
 
   const tts = new EdgeTTS();
@@ -618,12 +706,12 @@ async function generateEdgeTTSBlock(
 async function generateAllEdgeTTS(
   blocks: VoiceoverBlock[],
   audioDir: string,
-  channelConfig: any,
+  ttsConfig: ResolvedTTSConfig,
   generatedBlocks: AudioBlock[]
 ): Promise<void> {
   const voice =
     process.env.EDGE_TTS_VOICE ||
-    channelConfig.tts?.voiceId ||
+    ttsConfig.voiceId ||
     "en-US-AndrewNeural";
 
   console.log(`Edge TTS voice: ${voice}`);
@@ -631,14 +719,14 @@ async function generateAllEdgeTTS(
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];
     const words = countSpokenWords(block.text);
-    const fileName = `${block.sectionSlug}--${block.sceneId}.mp3`;
+    const fileName = `${block.sectionSlug}--${block.sceneId}.mp3`; // Edge TTS always produces MP3
     const outputPath = path.join(audioDir, fileName);
 
     console.log(
       `Generating block ${i + 1}/${blocks.length}: ${block.sectionSlug}--${block.sceneId} (${block.text.length} chars, ~${words} words)...`
     );
 
-    await generateEdgeTTSBlock(block.text, outputPath, channelConfig);
+    await generateEdgeTTSBlock(block.text, outputPath, ttsConfig);
 
     const duration = await getAudioDuration(outputPath);
     const stat = fs.statSync(outputPath);
@@ -660,54 +748,243 @@ async function generateAllEdgeTTS(
   }
 }
 
+// ─── Google Cloud TTS (Gemini TTS + Chirp 3: HD) ────────
+//
+// Both model families use the same REST API endpoint.
+// Key differences:
+//   - Gemini TTS: supports `prompt` (style instructions), uses short voice name ("Erinome")
+//   - Chirp 3: HD: uses `markup` input, locale-prefixed voice name ("en-US-Chirp3-HD-Achernar")
+//   - Both: support `speakingRate` (0.25-2.0) in audioConfig
+
+/**
+ * Resolve the full voice name for Cloud TTS API.
+ * - Gemini TTS models use short name: "Achernar"
+ * - Chirp 3: HD uses locale-prefixed name: "en-US-Chirp3-HD-Achernar"
+ */
+function resolveGoogleVoiceName(ttsConfig: ResolvedTTSConfig): string {
+  const voiceName = ttsConfig.voiceName || "Achernar";
+  if (ttsConfig.modelId === "chirp3-hd") {
+    // Chirp 3: HD requires locale-prefixed voice name
+    const locale = ttsConfig.languageCode || "en-US";
+    return `${locale}-Chirp3-HD-${voiceName}`;
+  }
+  // Gemini TTS uses short name
+  return voiceName;
+}
+
+/**
+ * Check if the model is Gemini TTS (supports style prompts) vs Chirp 3: HD.
+ */
+function isGeminiTTSModel(modelId: string): boolean {
+  return modelId.startsWith("gemini-");
+}
+
+/**
+ * Generate a single TTS block via Google Cloud TTS REST API.
+ * Works with both Gemini TTS models and Chirp 3: HD.
+ *
+ * API: POST https://texttospeech.googleapis.com/v1/text:synthesize
+ * Auth: API key via query param
+ */
+async function generateGoogleTTSBlock(
+  text: string,
+  outputPath: string,
+  ttsConfig: ResolvedTTSConfig,
+  speed: number
+): Promise<void> {
+  const apiKey = process.env.GOOGLE_CLOUD_API_KEY;
+
+  if (!apiKey) {
+    console.error("Missing GOOGLE_CLOUD_API_KEY in .env");
+    process.exit(1);
+  }
+
+  const voiceName = resolveGoogleVoiceName(ttsConfig);
+  const isGemini = isGeminiTTSModel(ttsConfig.modelId);
+
+  // Build voice params
+  const voice: Record<string, unknown> = {
+    languageCode: ttsConfig.languageCode || "en-US",
+    name: voiceName,
+  };
+
+  // Gemini TTS models require model_name in voice params
+  if (isGemini) {
+    voice.model_name = ttsConfig.modelId;
+  }
+
+  // Build input — Gemini TTS supports style prompts, Chirp 3: HD uses markup or ssml
+  const input: Record<string, unknown> = {};
+  if (isGemini) {
+    input.text = text;
+    if (ttsConfig.stylePrompt) {
+      input.prompt = ttsConfig.stylePrompt;
+    }
+  } else {
+    // Chirp 3: HD — detect SSML content and use appropriate input field
+    const isSSML = text.trimStart().startsWith("<speak>");
+    if (isSSML) {
+      // SSML mode: use input.ssml for precise control (break, prosody, emphasis tags)
+      input.ssml = text;
+    } else {
+      // Plain text / basic markup mode
+      input.markup = text;
+    }
+  }
+
+  // Audio config — use LINEAR16 (WAV) for lossless quality
+  const audioConfig: Record<string, unknown> = {
+    audioEncoding: "LINEAR16",
+    sampleRateHertz: ttsConfig.sampleRateHertz || 24000,
+  };
+
+  // speakingRate is supported by ALL Cloud TTS models (Gemini TTS + Chirp 3: HD)
+  // Range: [0.25, 2.0], 1.0 = native speed
+  if (speed !== 1.0) {
+    audioConfig.speakingRate = speed;
+  }
+
+  const requestBody = { input, voice, audioConfig };
+
+  const response = await fetch(
+    `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+    }
+  );
+
+  if (!response.ok) {
+    console.error(
+      `Google Cloud TTS API error: ${response.status} ${response.statusText}`
+    );
+    const body = await response.text();
+    console.error(body);
+    return;
+  }
+
+  const data = (await response.json()) as { audioContent: string };
+
+  if (!data.audioContent) {
+    console.error("Google Cloud TTS returned empty audioContent");
+    return;
+  }
+
+  // audioContent is base64-encoded audio
+  const buffer = Buffer.from(data.audioContent, "base64");
+  fs.writeFileSync(outputPath, buffer);
+}
+
+async function generateAllGoogleTTS(
+  blocks: VoiceoverBlock[],
+  audioDir: string,
+  ttsConfig: ResolvedTTSConfig,
+  speed: number,
+  generatedBlocks: AudioBlock[]
+): Promise<void> {
+  const voiceName = resolveGoogleVoiceName(ttsConfig);
+  const isGemini = isGeminiTTSModel(ttsConfig.modelId);
+
+  console.log(
+    `Google Cloud TTS voice: ${voiceName}, model: ${ttsConfig.modelId}, language: ${ttsConfig.languageCode}, sampleRate: ${ttsConfig.sampleRateHertz}Hz`
+  );
+  if (isGemini && ttsConfig.stylePrompt) {
+    console.log(`  Style prompt: "${ttsConfig.stylePrompt}"`);
+  }
+  if (speed !== 1.0) {
+    console.log(`  Speaking rate: ${speed}`);
+  }
+
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
+    const words = countSpokenWords(block.text);
+    const ext = "wav"; // All Google Cloud TTS with LINEAR16 encoding → WAV
+    const fileName = `${block.sectionSlug}--${block.sceneId}.${ext}`;
+    const outputPath = path.join(audioDir, fileName);
+
+    console.log(
+      `Generating block ${i + 1}/${blocks.length}: ${block.sectionSlug}--${block.sceneId} (${block.text.length} chars, ~${words} words)...`
+    );
+
+    await generateGoogleTTSBlock(block.text, outputPath, ttsConfig, speed);
+
+    if (!fs.existsSync(outputPath)) {
+      console.error(`  ✗ Failed to generate ${fileName}`);
+      continue;
+    }
+
+    const duration = await getAudioDuration(outputPath);
+    console.log(
+      `  Saved: ${fileName} (${(fs.statSync(outputPath).size / 1024).toFixed(1)} KB, ${duration.toFixed(1)}s)`
+    );
+
+    generatedBlocks.push({
+      id: block.sceneId,
+      section: block.sectionSlug,
+      file: fileName,
+      text: block.text,
+      duration,
+      wordCount: words,
+      speed,
+      startTime: block.startTime,
+      endTime: block.startTime != null ? block.startTime + duration : undefined,
+    });
+  }
+}
+
 // ─── ElevenLabs ──────────────────────────────────────────
 
 async function generateElevenLabsBlock(
   text: string,
   outputPath: string,
-  channelConfig: any,
+  ttsConfig: ResolvedTTSConfig,
   speed: number,
   previousRequestIds: string[]
 ): Promise<string | null> {
   const apiKey = process.env.ELEVENLABS_API_KEY;
-  const voiceId =
-    process.env.ELEVENLABS_VOICE_ID || channelConfig.tts?.voiceId;
-  const modelId =
-    process.env.ELEVENLABS_MODEL_ID ||
-    channelConfig.tts?.modelId ||
-    "eleven_multilingual_v2";
-  const stability = channelConfig.tts?.stability ?? 0.5;
-  const similarityBoost = channelConfig.tts?.similarityBoost ?? 0.75;
 
   if (!apiKey) {
     console.error("Missing ELEVENLABS_API_KEY in .env");
     process.exit(1);
   }
 
-  if (!voiceId) {
+  if (!ttsConfig.voiceId) {
     console.error(
-      "Missing ELEVENLABS_VOICE_ID in .env or tts.voiceId in channel-config.json"
+      "Missing voiceId in channel-config.json → tts.voiceId (or video config.json → tts.voiceId)"
     );
     process.exit(1);
   }
 
-  const requestBody: Record<string, unknown> = {
-    text,
-    model_id: modelId,
-    voice_settings: {
-      stability,
-      similarity_boost: similarityBoost,
-      speed,
-    },
+  const voiceSettings: Record<string, unknown> = {
+    stability: ttsConfig.stability,
+    similarity_boost: ttsConfig.similarityBoost,
+    speed,
   };
 
-  // Request stitching for prosody continuity (v2 models only)
-  if (previousRequestIds.length > 0 && modelId.includes("v2")) {
+  // style param — only supported on eleven_multilingual_v2 and v1
+  if (ttsConfig.style > 0 && ttsConfig.modelId.includes("multilingual_v2")) {
+    voiceSettings.style = ttsConfig.style;
+  }
+
+  // speaker boost
+  if (ttsConfig.useSpeakerBoost) {
+    voiceSettings.use_speaker_boost = true;
+  }
+
+  const requestBody: Record<string, unknown> = {
+    text,
+    model_id: ttsConfig.modelId,
+    voice_settings: voiceSettings,
+  };
+
+  // Request stitching for prosody continuity (v2 models only, not v3)
+  if (previousRequestIds.length > 0 && ttsConfig.modelId.includes("v2")) {
     requestBody.previous_request_ids = previousRequestIds.slice(-3);
   }
 
   const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+    `https://api.elevenlabs.io/v1/text-to-speech/${ttsConfig.voiceId}`,
     {
       method: "POST",
       headers: {
@@ -739,19 +1016,15 @@ async function generateElevenLabsBlock(
 async function generateAllElevenLabs(
   blocks: VoiceoverBlock[],
   audioDir: string,
-  channelConfig: any,
+  ttsConfig: ResolvedTTSConfig,
   speed: number,
   generatedBlocks: AudioBlock[]
 ): Promise<void> {
-  const voiceId =
-    process.env.ELEVENLABS_VOICE_ID || channelConfig.tts?.voiceId;
-  const modelId =
-    process.env.ELEVENLABS_MODEL_ID ||
-    channelConfig.tts?.modelId ||
-    "eleven_multilingual_v2";
-
   console.log(
-    `ElevenLabs voice: ${voiceId}, model: ${modelId}, speed: ${speed}`
+    `ElevenLabs voice: ${ttsConfig.voiceName || ttsConfig.voiceId}, model: ${ttsConfig.modelId}, speed: ${speed}`
+  );
+  console.log(
+    `  Settings: stability=${ttsConfig.stability}, similarity=${ttsConfig.similarityBoost}, style=${ttsConfig.style}, speakerBoost=${ttsConfig.useSpeakerBoost}`
   );
 
   const previousRequestIds: string[] = [];
@@ -769,7 +1042,7 @@ async function generateAllElevenLabs(
     const requestId = await generateElevenLabsBlock(
       block.text,
       outputPath,
-      channelConfig,
+      ttsConfig,
       speed,
       previousRequestIds
     );

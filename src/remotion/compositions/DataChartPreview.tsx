@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill } from "remotion";
 import type { DataChartCompositionProps } from "../schemas";
 import { DataChartScene } from "../templates/data-charts";
+import { loadFontsSync } from "../../fonts/load-fonts";
 
 /**
  * Standalone data chart preview composition.
@@ -12,6 +13,9 @@ const DataChartPreview: React.FC<DataChartCompositionProps> = ({
   brandColor,
   fontFamily,
 }) => {
+  // Safety net: ensure fonts are loaded (primary load happens in Root.tsx calculateMetadata)
+  loadFontsSync(fontFamily);
+
   return (
     <AbsoluteFill
       style={{

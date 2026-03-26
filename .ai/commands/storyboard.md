@@ -5,6 +5,9 @@ agent: storyboard
 
 Create a storyboard for the project: $ARGUMENTS
 
-Read the latest approved script and break it down into scenes with visual descriptions, timing, and transition types.
+Read `channels/<channel>/videos/<slug>/config.json` and the latest approved script. Follow the skeleton-first workflow:
+1. Write a lightweight skeleton (outline, rough timing, visual types)
+2. Write individual scene detail files
+3. Merge into final storyboard JSON + human-readable summary
 
-Output both `storyboard-v<N>.json` (machine-readable) and `storyboard-summary-v<N>.md` (human-readable) to the project's `storyboard/` folder.
+Output to `channels/<channel>/videos/<slug>/storyboard/`.

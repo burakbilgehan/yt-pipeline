@@ -46,6 +46,53 @@ function dateToYear(dateStr: string): number {
   return y + (m * 30 + d) / 365;
 }
 
+/**
+ * Pre-computed series data point with numeric year for O(1) access.
+ * Avoids repeated string→number parsing every frame.
+ */
+interface PrecomputedDataPoint {
+  year: number;
+  ratio: number;
+}
+
+/**
+ * Pre-compute year values for a data array (called once via useMemo).
+ */
+function precomputeYears(data: { date: string; ratio: number }[]): PrecomputedDataPoint[] {
+  return data.map((dp) => ({ year: dateToYear(dp.date), ratio: dp.ratio }));
+}
+
+/**
+ * Binary search + interpolation on pre-computed data (no string parsing).
+ */
+function getValueAtYear(
+  precomputed: PrecomputedDataPoint[],
+  year: number
+): number | null {
+  if (precomputed.length === 0) return null;
+
+  if (year < precomputed[0].year) return null;
+  if (year >= precomputed[precomputed.length - 1].year) return precomputed[precomputed.length - 1].ratio;
+
+  // Binary search
+  let lo = 0;
+  let hi = precomputed.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1; // faster than Math.floor
+    if (precomputed[mid].year < year) lo = mid + 1;
+    else hi = mid;
+  }
+
+  if (lo > 0) {
+    const prev = precomputed[lo - 1];
+    const next = precomputed[lo];
+    const t = (year - prev.year) / (next.year - prev.year || 1);
+    return prev.ratio + (next.ratio - prev.ratio) * t;
+  }
+  return precomputed[0].ratio;
+}
+
+// Legacy wrapper for non-precomputed usage
 function getSeriesValueAtYear(
   series: HorseRaceSeries,
   year: number
@@ -325,12 +372,17 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
   const yearDisplayColor = "#E8E0D4";
   const labelBgColor = "rgba(0,0,0,0.6)";
 
-  // ── Process series data ──
+  // ── Process series data — pre-compute year values once ──
   const processedSeries = useMemo(() => {
-    return series.map((s) => ({
-      ...s,
-      data: subsampleData(s.data, 3000),
-    }));
+    return series.map((s) => {
+      const sampled = subsampleData(s.data, 2000);
+      return {
+        ...s,
+        data: sampled,
+        // Pre-compute numeric years to avoid string parsing every frame
+        precomputed: precomputeYears(sampled),
+      };
+    });
   }, [series]);
 
   // ── Determine the chart start second (first scene start) ──
@@ -367,13 +419,13 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
   const plotWidth = width - CHART_PADDING.left - CHART_PADDING.right;
   const plotHeight = height - CHART_PADDING.top - CHART_PADDING.bottom;
 
-  // ── Current values for all series ──
+  // ── Current values for all series (uses pre-computed years) ──
   const currentValues = useMemo(() => {
     return processedSeries.map((s) => ({
       id: s.id,
       label: s.label,
       color: s.color,
-      value: getSeriesValueAtYear(s, currentYear),
+      value: getValueAtYear(s.precomputed, currentYear),
     }));
   }, [processedSeries, currentYear]);
 
@@ -389,24 +441,33 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
   const LOOK_BACK_EXTRA = 3; // extra years behind visible window for slower contraction
 
   const yRange = useMemo(() => {
-    const visibleVals: number[] = [];
+    let minV = Infinity;
+    let maxV = -Infinity;
     const lookBackStart = xWindowStart - LOOK_BACK_EXTRA;
     const lookAheadEnd = currentYear + LOOK_AHEAD_YEARS;
+    let hasValues = false;
 
     for (const s of processedSeries) {
-      for (const dp of s.data) {
-        const dpYear = dateToYear(dp.date);
-        if (dpYear > lookAheadEnd) break;
-        if (dpYear >= lookBackStart) {
-          visibleVals.push(dp.ratio);
-        }
+      const pc = s.precomputed;
+      // Binary search for lookBackStart to skip irrelevant data
+      let lo = 0;
+      let hi = pc.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (pc[mid].year < lookBackStart) lo = mid + 1;
+        else hi = mid;
+      }
+      // Scan from lookBackStart to lookAheadEnd
+      for (let i = lo; i < pc.length; i++) {
+        if (pc[i].year > lookAheadEnd) break;
+        const ratio = pc[i].ratio;
+        if (ratio < minV) minV = ratio;
+        if (ratio > maxV) maxV = ratio;
+        hasValues = true;
       }
     }
 
-    if (visibleVals.length === 0) return { min: 0.01, max: 10 };
-
-    let minV = Math.min(...visibleVals);
-    let maxV = Math.max(...visibleVals);
+    if (!hasValues) return { min: 0.01, max: 10 };
 
     if (useLogScale) {
       minV = Math.max(0.005, minV);
@@ -471,20 +532,20 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
     return labels;
   }, [xWindowStart, xWindowEnd]);
 
-  // ── Build smooth SVG paths (continuous — interpolated tip for smooth drawing) ──
+  // ── Build smooth SVG paths (uses pre-computed years — no string parsing per frame) ──
   const seriesPaths = useMemo(() => {
     return processedSeries.map((s) => {
+      const pc = s.precomputed;
       const points: { x: number; y: number }[] = [];
       let addedTip = false;
 
-      for (let i = 0; i < s.data.length; i++) {
-        const dp = s.data[i];
-        const dpYear = dateToYear(dp.date);
+      for (let i = 0; i < pc.length; i++) {
+        const dpYear = pc[i].year;
 
         // If this data point is beyond currentYear, add interpolated tip and stop
         if (dpYear > currentYear) {
           if (!addedTip && i > 0) {
-            const tipValue = getSeriesValueAtYear(s, currentYear);
+            const tipValue = getValueAtYear(pc, currentYear);
             if (tipValue !== null) {
               const tipX = yearToX(currentYear);
               const tipY = valueToY(tipValue);
@@ -498,13 +559,13 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
         // Include points slightly before visible window for smooth spline entry
         if (dpYear < xWindowStart - 2) continue;
         const x = yearToX(dpYear);
-        const y = valueToY(dp.ratio);
+        const y = valueToY(pc[i].ratio);
         points.push({ x, y });
       }
 
       // If we reached the end of data without adding tip (currentYear >= last data point)
       if (!addedTip && points.length > 0) {
-        const tipValue = getSeriesValueAtYear(s, currentYear);
+        const tipValue = getValueAtYear(pc, currentYear);
         if (tipValue !== null) {
           const tipX = yearToX(currentYear);
           const tipY = valueToY(tipValue);

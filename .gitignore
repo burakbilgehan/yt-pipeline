@@ -36,6 +36,15 @@ Thumbs.db
 # Figma plugin build output
 figma-plugin/code.js
 
-# Test/temp files
+# Test/temp files — debug screenshots, voice tests, render output
+test-*.png
+test-*.wav
 test_voice.mp3
+render-log.txt
 nul
+
+# A/B test scratch
+ab-test/
+
+# Render output (should always go to channels/<ch>/videos/<slug>/production/output/)
+out/

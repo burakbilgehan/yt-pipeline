@@ -106,4 +106,66 @@
 
 ---
 
+### RCA-003: Director Assumes Upload Failed When Video Is Actually Live
+| Field | Value |
+|-------|-------|
+| Date | 2026-03-23 |
+| Failure Type | state-sync-gap |
+| Severity | Medium |
+| Affected Agent | director, publisher |
+
+**What happened:** The first video (gold-vs-commodities) was uploaded manually via YouTube Studio after the pipeline upload script failed with a quota error. However, in subsequent sessions the Director would see `upload-log.md` with `Status: FAILED` and assume the video wasn't published — despite the video being live on YouTube with 187+ views.
+
+**Root cause:** The pipeline has no reconciliation mechanism between local state and actual YouTube state. The Director trusts local `upload-log.md` and `config.json` as ground truth without verifying against the YouTube API.
+
+**Fix applied:**
+- Added Hard Rule #13 to AGENTS.md: "Pipeline Upload Failures Don't Mean Video Isn't Published"
+- Fixed `upload-log.md` for gold-vs-commodities to reflect actual state (manually uploaded, live)
+- `analytics:sync` script already reconciles by fetching actual YouTube video catalog
+- Director session-start protocol should run `analytics:sync` to verify YouTube state
+
+**Prevention:**
+- On session start, Director should run `npm run analytics:sync` to get actual YouTube state
+- If a video has `youtube.videoId` in config but upload-log says FAILED, check YouTube API before assuming failure
+- Consider adding a `verify-upload` npm script that checks if a videoId is actually live
+
+---
+
+### RCA-004: Director Fails to Recognize Cancelled Projects
+| Field | Value |
+|-------|-------|
+| Date | 2026-03-23 |
+| Failure Type | context-loss |
+| Severity | Low |
+| Affected Agent | director |
+
+**What happened:** The sleep-deprivation-economy project was cancelled (config.json has `"status": "cancelled"` and `"cancelReason"`), but in some sessions the Director would still reference it as a pending/active project or suggest resuming it.
+
+**Root cause:** Director prompt didn't explicitly instruct agents to check for and skip cancelled projects. The `status: cancelled` field was present in config but agents treated project existence as evidence of active work.
+
+**Fix applied:**
+- Added Hard Rule #14 to AGENTS.md: "Respect Project `status: cancelled` in config.json"
+- Cancelled projects are excluded from all pipeline operations and active project counts
+
+---
+
+### RCA-005: YouTube Tag Character Limit Miscalculation
+| Field | Value |
+|-------|-------|
+| Date | 2026-03-23 |
+| Failure Type | data-validation-gap |
+| Severity | Medium |
+| Affected Agent | publisher |
+
+**What happened:** Upload of time-vs-earnings failed with `invalidTags` because tag character count exceeded YouTube's 500-char limit. Naive counting showed 496 chars (under limit), but YouTube counts multi-word tags with +2 chars for implied quotes, making the actual count 542 chars.
+
+**Root cause:** Publisher agent and upload script counted tag characters naively (sum of string lengths + commas) without accounting for YouTube's quote-padding behavior on multi-word tags.
+
+**Fix applied:**
+- Added Hard Rule #15 to AGENTS.md: YouTube Tag Character Counting rules
+- Removed 3 low-value tags to bring count to 478 YouTube-style chars
+- Publisher agent should calculate YouTube-style character count before finalizing metadata
+
+---
+
 *Detail for any entry: ask Director to expand*

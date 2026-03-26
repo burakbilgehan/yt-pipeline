@@ -27,6 +27,7 @@ export type ChartType =
   | "timeline"
   | "progress"
   | "scale-comparison"
+  | "quadrant-scatter"
   | "horse-race";
 
 // ─── Scene Input ──────────────────────────────────────────────

@@ -1,19 +1,17 @@
 ---
 name: voiceover
-description: Adding AI-generated voiceover to Remotion compositions using ElevenLabs TTS
+description: Adding AI-generated voiceover to Remotion compositions using Google Cloud TTS (Chirp 3: HD)
 metadata:
-  tags: voiceover, audio, elevenlabs, tts, speech, calculateMetadata, dynamic duration
+  tags: voiceover, audio, google-cloud-tts, chirp3-hd, tts, speech, ssml, calculateMetadata, dynamic duration
 ---
 
 # Adding AI voiceover to a Remotion composition
 
-Use ElevenLabs TTS to generate speech audio per scene, then use [`calculateMetadata`](./calculate-metadata) to dynamically size the composition to match the audio.
+Use **Google Cloud Text-to-Speech (Chirp 3: HD)** to generate speech audio per scene, then use [`calculateMetadata`](./calculate-metadata) to dynamically size the composition to match the audio.
 
 ## Prerequisites
 
-An **ElevenLabs API key** is required (`ELEVENLABS_API_KEY` environment variable).
-
-**MUST** ask the user for their ElevenLabs API key if `ELEVENLABS_API_KEY` is not set. **MUST NOT** fall back to other TTS tools.
+A **Google Cloud API key** is required (`GOOGLE_CLOUD_API_KEY` environment variable), restricted to the Cloud Text-to-Speech API.
 
 Ensure the environment variable is available when running the generation script:
 
@@ -21,36 +19,91 @@ Ensure the environment variable is available when running the generation script:
 node --strip-types generate-voiceover.ts
 ```
 
-## Generating audio with ElevenLabs
+## Generating audio with Google Cloud TTS (Chirp 3: HD)
 
-Create a script that reads the config, calls the ElevenLabs API for each scene, and writes MP3 files to the `public/` directory so Remotion can access them via `staticFile()`.
+Create a script that reads the config, calls the Google Cloud TTS API for each scene, and writes MP3 files to the `public/` directory so Remotion can access them via `staticFile()`.
 
 The core API call for a single scene:
 
 ```ts title="generate-voiceover.ts"
+// Read voice config from channel-config.json → tts
+// voiceName, languageCode, engine, speed come from there — never hardcode
+const { voiceName, languageCode, speed } = channelConfig.tts;
+const fullVoiceName = `${languageCode}-Chirp3-HD-${voiceName}`;
+
 const response = await fetch(
-  `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+  `https://texttospeech.googleapis.com/v1/text:synthesize?key=${process.env.GOOGLE_CLOUD_API_KEY}`,
   {
     method: "POST",
-    headers: {
-      "xi-api-key": process.env.ELEVENLABS_API_KEY!,
-      "Content-Type": "application/json",
-      Accept: "audio/mpeg",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      text: "Welcome to the show.",
-      model_id: "eleven_multilingual_v2",
-      voice_settings: {
-        stability: 0.5,
-        similarity_boost: 0.75,
-        style: 0.3,
+      input: {
+        ssml: `<speak>
+          <s>Welcome to the show.</s>
+          <break time="500ms"/>
+          <s><prosody rate="slow">Let's begin.</prosody></s>
+        </speak>`,
+      },
+      voice: {
+        languageCode,
+        name: fullVoiceName,
+      },
+      audioConfig: {
+        audioEncoding: "MP3",
+        speaking_rate: speed ?? 1.0,
       },
     }),
   },
 );
 
-const audioBuffer = Buffer.from(await response.arrayBuffer());
+const data = await response.json();
+const audioBuffer = Buffer.from(data.audioContent, "base64");
 writeFileSync(`public/voiceover/${compositionId}/${scene.id}.mp3`, audioBuffer);
+```
+
+### Input modes
+
+Chirp 3: HD supports three input modes — use the right one for your script:
+
+| Input field | When to use | Supports |
+|-------------|-------------|----------|
+| `text` | Plain text, no markup | Punctuation-based pauses only |
+| `markup` | Scripts with `[pause short/long]` tags | `[pause short]`, `[pause]`, `[pause long]` tags |
+| `ssml` | Full SSML control | `<break>`, `<prosody>`, `<say-as>`, `<phoneme>`, `<p>`, `<s>` |
+
+### SSML tags available (Chirp 3: HD — Preview)
+
+- `<speak>` — root element (required for SSML input)
+- `<break time="Xms"/>` — precise pause in milliseconds
+- `<prosody rate="slow" pitch="-1st">` — rate: `x-slow`/`slow`/`medium`/`fast`/`x-fast`; pitch: semitones
+- `<p>`, `<s>` — paragraph and sentence boundaries
+- `<say-as interpret-as="date/characters/cardinal">` — pronunciation hints
+- `<phoneme alphabet="ipa" ph="...">` — custom IPA pronunciation
+- `<sub alias="...">` — substitution alias
+
+### Speaking rate (pace control)
+
+Use `speaking_rate` in `audioConfig` (0.25 to 2.0, default 1.0):
+
+```json
+{ "audioConfig": { "audioEncoding": "MP3", "speaking_rate": 0.85 } }
+```
+
+### Custom pronunciations
+
+For technical terms or abbreviations:
+
+```json
+{
+  "input": {
+    "text": "The GDP fell by 2.4 percent",
+    "custom_pronunciations": {
+      "phrase": "GDP",
+      "phonetic_encoding": "PHONETIC_ENCODING_IPA",
+      "pronunciation": "dʒiː diː piː"
+    }
+  }
+}
 ```
 
 ## Dynamic composition duration with calculateMetadata

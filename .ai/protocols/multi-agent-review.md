@@ -66,7 +66,7 @@ After Critic PASS, run the domain specialist:
 | `research` | `researcher` — source credibility check |
 | `content` | `youtube-expert` — hook strength, retention pacing |
 | `storyboard` | `storyboard` agent — timing feasibility self-check |
-| `production` | (skip — Critic covers render quality) |
+| `production` | Math/formula verification (see below) |
 | `publishing` | `youtube-expert` — SEO score, tag completeness |
 
 Specialist check is a **lightweight pass** (not a full rewrite). It returns:
@@ -74,6 +74,17 @@ Specialist check is a **lightweight pass** (not a full rewrite). It returns:
 - A confidence score (1-5) for that deliverable
 
 If confidence ≤ 2: treat as soft FAIL, route back to appropriate agent once.
+
+### Step 3b — Math/Formula Verification (production stage ONLY)
+
+For production reviews, before presenting to user:
+1. Extract ALL on-screen formulas, divisions, comparisons from scene configs
+2. Compute each formula independently (not trusting the displayed result)
+3. Flag any mismatch between computed and displayed values
+4. Check intermediate steps are shown when needed (e.g., annual→hourly→BigMacs/hr)
+5. Verify rankings match the underlying data
+
+**This is a BLOCKING check.** Wrong math on screen = automatic FAIL regardless of other quality.
 
 ---
 
@@ -104,8 +115,7 @@ Summarize the review with:
 Every time a deliverable is revised during the review loop:
 1. Increment the version number in the file header
 2. Update `changes_from_prev` in the header
-3. Update `config.json` stage version to match
-4. Run `npm run validate <slug>` after all changes
+3. Update `channels/<channel>/videos/<slug>/config.json` stage version to match
 
 ---
 

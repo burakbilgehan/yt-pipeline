@@ -10,9 +10,16 @@
     "figma:build": "esbuild figma-plugin/code.ts --bundle --outfile=figma-plugin/code.js --target=es2020",
     "tts": "tsx src/scripts/tts-generate.ts",
     "tts-calibrate": "tsx src/scripts/tts-calibrate.ts",
+    "tts-ab-test": "tsx src/scripts/tts-ab-test.ts",
     "render": "tsx src/scripts/remotion-render.ts",
+    "benchmark": "tsx src/scripts/benchmark.ts",
+    "preview": "tsx src/scripts/preview-frames.ts",
     "upload": "tsx src/scripts/youtube-upload.ts",
     "analytics": "tsx src/scripts/fetch-analytics.ts",
+    "analytics:sync": "tsx src/scripts/analytics-sync.ts",
+    "channel-status": "tsx src/scripts/channel-status.ts",
+    "video-status": "tsx src/scripts/video-status.ts",
+    "suggest": "tsx src/scripts/youtube-suggest.ts",
     "collect": "tsx src/scripts/collect-stock.ts",
     "generate-image": "tsx src/scripts/generate-image.ts",
     "generate-image:gemini": "tsx src/scripts/generate-image.ts --provider gemini",
@@ -22,12 +29,15 @@
     "new-project": "tsx src/scripts/new-video.ts",
     "text-utils": "tsx src/scripts/text-utils.ts",
     "validate": "tsx src/scripts/validate.ts",
-    "sync-ai": "tsx .ai/sync.ts"
+    "sync-ai": "tsx .ai/sync.ts",
+    "design-system": "npm run dev --prefix src/tools/design-system"
   },
   "dependencies": {
     "@andresaya/edge-tts": "^1.8.0",
     "@remotion/cli": "^4.0.0",
-    "@remotion/paths": "^4.0.435",
+    "@remotion/google-fonts": "^4.0.429",
+    "@remotion/media": "4.0.429",
+    "@remotion/paths": "4.0.429",
     "@remotion/renderer": "^4.0.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -42,6 +52,7 @@
     "@figma/plugin-typings": "^1.123.0",
     "@types/node": "^22.0.0",
     "esbuild": "^0.27.3",
+    "sharp": "^0.34.5",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
   }

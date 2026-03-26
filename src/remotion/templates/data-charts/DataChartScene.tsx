@@ -8,6 +8,18 @@ import { LineChart } from "./LineChart";
 import { TimelineChart } from "./TimelineChart";
 import { ScaleComparison } from "./ScaleComparison";
 import { ProgressRing } from "./ProgressRing";
+import { QuadrantScatter } from "./QuadrantScatter";
+import { SalaryShuffleScene } from "./SalaryShuffleScene";
+import { RankingResortScene } from "./RankingResortScene";
+import { CalendarGrid } from "./CalendarGrid";
+import { DivisionComparison } from "./DivisionComparison";
+import { EndCardScene } from "./EndCardScene";
+import { HookScene } from "./HookScene";
+import { HorizontalBarChart } from "./HorizontalBarChart";
+import { SplitComparison } from "./SplitComparison";
+import { TitleCard } from "./TitleCard";
+import { CompositePhases } from "./CompositePhases";
+import { ClosingScene } from "./ClosingScene";
 
 interface DataChartSceneProps {
   chart: DataChartInput;
@@ -66,6 +78,66 @@ export const DataChartScene: React.FC<DataChartSceneProps> = ({
     case "progress":
       return (
         <ProgressRing chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "quadrant-scatter":
+      return (
+        <QuadrantScatter chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "salary-shuffle":
+      return (
+        <SalaryShuffleScene chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "ranking-resort":
+      return (
+        <RankingResortScene chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "calendar-grid":
+      return (
+        <CalendarGrid chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "division-comparison":
+      return (
+        <DivisionComparison chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "end-card":
+      return (
+        <EndCardScene chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "hook-scene":
+      return (
+        <HookScene chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "horizontal-bar-chart":
+      return (
+        <HorizontalBarChart chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "split-comparison":
+      return (
+        <SplitComparison chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "title-card":
+      return (
+        <TitleCard chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "composite-phases":
+      return (
+        <CompositePhases chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "closing-scene":
+      return (
+        <ClosingScene chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
       );
 
     case "horse-race":

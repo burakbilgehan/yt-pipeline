@@ -27,12 +27,19 @@ export interface ProjectConfig {
     language: string;
     format: "long" | "short";
   };
+  /** Optional per-video TTS overrides. Merged on top of channel-config.tts defaults. */
+  tts?: Partial<TTSConfig>;
   pipeline: Record<PipelineStageName, StageStatus>;
   history: HistoryEntry[];
   youtube?: {
     videoId: string;
     url: string;
     publishedAt: string;
+    analyticsSchedule?: {
+      day1?: string | null; // ISO date when snapshot was taken, null if pending
+      day7?: string | null;
+      day30?: string | null;
+    };
   };
 }
 
@@ -74,6 +81,14 @@ export interface Storyboard {
   date: string;
   totalDuration: number; // seconds
   scenes: Scene[];
+  /** Background music configuration — multi-track sequential playback */
+  backgroundMusic?: {
+    tracks: Array<{ src: string; durationSec: number }>;
+    volume?: number;
+    crossfadeSec?: number;
+    fadeInSec?: number;
+    fadeOutSec?: number;
+  };
 }
 
 export interface Scene {
@@ -81,10 +96,14 @@ export interface Scene {
   section: string;
   startTime: number;
   endTime: number;
-  voiceover: string;
+  voiceover: string | null;
   visual: SceneVisual;
   transition: "fade" | "cut" | "slide" | "zoom";
   notes?: string;
+  /** Relative path to the detailed scene file (e.g. "scenes/scene-001.json").
+   *  When present, the full visual/notes details live in that file
+   *  and the scene in the main storyboard is a lightweight skeleton. */
+  sceneFile?: string;
 }
 
 export interface SceneVisual {
@@ -101,6 +120,8 @@ export interface SceneVisual {
   textOverlay?: string;
   dataVisualization?: DataVisualization;
   assetPath?: string; // path to the actual asset file
+  /** Runtime-only fallback: propagated from previous scene during render */
+  _fallbackAssetPath?: string;
 }
 
 export interface DataVisualization {
@@ -132,14 +153,21 @@ export interface Asset {
   sceneId?: string;
 }
 
-// TTS configuration
+// TTS configuration — used as channel default and video-level override
 export interface TTSConfig {
-  voiceId: string;
-  modelId: string;
-  stability?: number;
-  similarityBoost?: number;
-  style?: number;
-  speed?: number; // 0.7-1.2, default 1.0
+  provider?: "elevenlabs" | "edge-tts" | "google"; // default: "google"
+  voiceId?: string; // ElevenLabs voice ID
+  voiceName?: string; // human-readable voice name (e.g. "Achernar", "Maisie")
+  modelId?: string; // ElevenLabs: "eleven_multilingual_v2", Google: "gemini-2.5-flash-tts" | "chirp3-hd"
+  stability?: number; // 0.0-1.0, lower = more dynamic/emotional (ElevenLabs only)
+  similarityBoost?: number; // 0.0-1.0, voice fidelity (ElevenLabs only)
+  style?: number; // 0.0-1.0, amplifies speaker's natural style (ElevenLabs only)
+  useSpeakerBoost?: boolean; // extra fidelity pass, adds latency (ElevenLabs only)
+  speed?: number; // All Google Cloud TTS: 0.25-2.0, ElevenLabs: 0.7-1.2, default 1.0
+  // Google TTS specific
+  languageCode?: string; // BCP-47 code, e.g. "en-US" (Google only)
+  stylePrompt?: string; // natural language style prompt (Gemini TTS only, e.g. "Calm, authoritative narrator")
+  sampleRateHertz?: number; // output sample rate, e.g. 24000 or 44100 (Google only)
 }
 
 // TTS calibration — stores measured WPM per voice/model combo
@@ -184,26 +212,140 @@ export interface AudioManifest {
   blocks: AudioBlock[];
 }
 
-// Analytics snapshot
+// Analytics snapshot — per-video metrics pulled from YouTube APIs
 export interface AnalyticsSnapshot {
   fetchedAt: string;
   videoId: string;
+  // Core metrics
   views: number;
   watchTimeHours: number;
-  averageViewDuration: number;
-  averageViewPercentage: number;
-  clickThroughRate: number;
+  averageViewDuration: number; // seconds
+  averageViewPercentage: number; // 0-100
+  // Discovery metrics
+  impressions: number;
+  clickThroughRate: number; // 0-100 percentage
+  // Engagement
   likes: number;
   dislikes: number;
   comments: number;
+  shares: number;
   subscribersGained: number;
-  trafficSources: Record<string, number>;
+  subscribersLost: number;
+  // Traffic sources with watch time (not just views)
+  trafficSources: Record<string, TrafficSourceEntry>;
+  // Search terms driving traffic (Analytics API insightTrafficSourceDetail)
+  searchTerms?: Array<{ term: string; views: number; watchTimeMinutes: number }>;
+  // Retention (manual import from YouTube Studio CSV, not available via public API)
   retentionData?: RetentionPoint[];
+  // Demographics (Phase 2)
+  demographics?: {
+    ageGender?: Array<{ ageGroup: string; gender: string; percentage: number }>;
+    topCountries?: Array<{ country: string; views: number; watchTimeMinutes: number }>;
+  };
+}
+
+export interface TrafficSourceEntry {
+  views: number;
+  watchTimeMinutes: number;
 }
 
 export interface RetentionPoint {
   timestamp: number; // seconds
   retentionPercentage: number;
+}
+
+// Daily data point for time-series tracking
+export interface DailyDataPoint {
+  date: string; // YYYY-MM-DD
+  views: number;
+  watchTimeMinutes: number;
+  impressions: number;
+  ctr: number; // 0-100
+  likes: number;
+  shares: number;
+  subscribersGained: number;
+  subscribersLost: number;
+  averageViewDuration: number; // seconds
+}
+
+// Channel snapshot — cached channel-level data from YouTube Data API v3
+export interface ChannelSnapshot {
+  fetchedAt: string;
+  channelId: string;
+  title: string;
+  handle: string;
+  subscriberCount: number;
+  videoCount: number;
+  totalViewCount: number;
+  publishedAt: string; // channel creation date
+  uploadsPlaylistId: string; // for efficient video listing
+}
+
+// Video catalog entry — basic info for each published video
+export interface VideoCatalogEntry {
+  videoId: string;
+  title: string;
+  publishedAt: string;
+  duration: string; // ISO 8601 duration (PT8M38S)
+  durationSeconds: number;
+  privacyStatus: string;
+  views: number;
+  likes: number;
+  comments: number;
+  // Local project mapping (null if video not in our pipeline)
+  projectSlug: string | null;
+}
+
+// Video catalog — all channel videos with basic stats
+export interface VideoCatalog {
+  fetchedAt: string;
+  channelId: string;
+  videos: VideoCatalogEntry[];
+}
+
+// Channel benchmarks — computed averages across all videos
+export interface ChannelBenchmarks {
+  fetchedAt: string;
+  period: string; // "all_time" or "last_90_days"
+  videoCount: number;
+  averages: {
+    viewsPerVideo: number;
+    watchTimeHoursPerVideo: number;
+    avgViewDuration: number; // seconds
+    avgViewPercentage: number; // 0-100
+    ctr: number; // 0-100
+    likesPerVideo: number;
+    sharesPerVideo: number;
+    subscribersGainedPerVideo: number;
+  };
+  medians: {
+    viewsPerVideo: number;
+    ctr: number;
+    avgViewPercentage: number;
+  };
+  perVideo: Array<{
+    videoId: string;
+    title: string;
+    publishedAt: string;
+    views: number;
+    watchTimeHours: number;
+    ctr: number;
+    avgViewPercentage: number;
+  }>;
+}
+
+// Cache metadata — tracks TTL for cached files
+export interface CacheMeta {
+  fetchedAt: string; // ISO date
+  ttlHours: number; // how long this cache is valid
+  source: string; // which script/command produced this
+}
+
+// YouTube suggest result — keyword autocomplete
+export interface YouTubeSuggestion {
+  query: string;
+  suggestions: string[];
+  fetchedAt: string;
 }
 
 // Channel maturity levels - affects how agents behave
@@ -214,6 +356,7 @@ export interface ChannelConfig {
   channel: {
     name: string;
     handle: string; // @handle
+    channelId?: string; // YouTube channel ID (UC...)
     language: string; // e.g. "en"
     niche: string; // e.g. "educational facts", "science explainers"
     description: string;
@@ -228,15 +371,11 @@ export interface ChannelConfig {
     avoidTopics: string[]; // topics to never cover
     brandKeywords: string[]; // words/phrases that define the brand voice
   };
-  tts: {
-    provider: "elevenlabs"; // currently only ElevenLabs supported
-    voiceId: string; // ElevenLabs voice ID
-    modelId: string; // e.g. "eleven_multilingual_v2"
-    stability: number; // 0-1
-    similarityBoost: number; // 0-1
-    style: number; // 0-1, ElevenLabs style setting
-    speed?: number; // 0.7-1.2, default 1.0
-    calibration?: TTSCalibration; // auto-populated from TTS measurements
+  tts: TTSConfig & {
+    /** calibration data — auto-populated from TTS measurements, do not edit manually */
+    calibration?: TTSCalibration;
+    /** human-readable notes about voice/model choices */
+    notes?: string;
   };
   visuals: {
     defaultTemplate: "voiceover-visuals" | "data-charts";

@@ -17,14 +17,16 @@
     "brandKeywords": []
   },
   "tts": {
-    "provider": "elevenlabs",
-    "voiceId": "",
-    "modelId": "eleven_multilingual_v2",
-    "stability": 0.5,
-    "similarityBoost": 0.75,
-    "style": 0,
+    "provider": "google",
+    "voiceName": "Achernar",
+    "modelId": "gemini-2.5-pro-tts",
+    "languageCode": "en-US",
+    "stylePrompt": "Say the following in a calm, authoritative documentary narrator voice",
     "speed": 1.0,
-    "calibration": null
+    "sampleRateHertz": 44100,
+    "calibration": {
+      "measuredWPM": null
+    }
   },
   "visuals": {
     "defaultTemplate": "voiceover-visuals",

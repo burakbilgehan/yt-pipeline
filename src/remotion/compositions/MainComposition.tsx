@@ -4,13 +4,13 @@ import {
   Audio,
   Sequence,
   staticFile,
-  useCurrentFrame,
   useVideoConfig,
 } from "remotion";
 import type { VideoCompositionProps, SceneInput } from "../schemas";
-import { TransitionWrapper, ProgressBar, SubtitleOverlay, SectionTitle } from "../components";
+import { TransitionWrapper, SubtitleOverlay, BackgroundMusicLayer } from "../components";
 import { SceneVisual } from "../templates/voiceover-visuals";
 import { DataChartScene } from "../templates/data-charts";
+import { loadFontsSync } from "../../fonts/load-fonts";
 
 /**
  * Main video composition.
@@ -28,18 +28,18 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
   scenes,
   audioFiles,
   audioSegments,
+  backgroundMusic,
   showSubtitles,
-  showProgressBar,
   brandColor,
   fontFamily,
 }) => {
   const { fps, durationInFrames } = useVideoConfig();
 
-  // Compute unique section count for the progress bar chapter markers
-  const uniqueSections = new Set(scenes.map((s) => s.section)).size;
+  // Safety net: ensure fonts are loaded (primary load happens in Root.tsx calculateMetadata)
+  loadFontsSync(fontFamily);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#000000" }}>
+    <AbsoluteFill style={{ backgroundColor: "#1A1B22" }}>
       {/* ── Scene sequences ── */}
       {scenes.map((scene, index) => {
         const startFrame = Math.round(scene.startTime * fps);
@@ -49,7 +49,7 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
         if (sceneDuration <= 0) return null;
 
         const isDataChart =
-          scene.visual.type === "data-chart" && scene.visual.dataChart;
+          scene.visual.dataChart && (scene.visual.type === "data-chart" || scene.visual.type === "composite");
 
         return (
           <Sequence
@@ -83,7 +83,7 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: 40,
+                    padding: 0,
                   }}
                 >
                   <DataChartScene
@@ -93,13 +93,6 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
                   />
                 </AbsoluteFill>
               )}
-
-              {/* Section title (appears briefly at scene start) */}
-              <SectionTitle
-                title={scene.section}
-                brandColor={brandColor}
-                fontFamily={fontFamily}
-              />
 
               {/* Subtitles */}
               {showSubtitles && scene.voiceover && (
@@ -144,16 +137,11 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
             );
           })}
 
-      {/* ── Progress bar overlay ── */}
-      {showProgressBar && scenes.length > 0 && (
-        <ProgressBarOverlay
-          scenes={scenes}
-          fps={fps}
-          totalFrames={durationInFrames}
-          color={brandColor}
-          sectionCount={uniqueSections}
-        />
+      {/* ── Background Music ── */}
+      {backgroundMusic && (
+        <BackgroundMusicLayer config={backgroundMusic} />
       )}
+
     </AbsoluteFill>
   );
 };
@@ -164,52 +152,16 @@ export default MainComposition;
 
 function findPreviousAsset(scenes: SceneInput[], currentIndex: number): string | undefined {
   for (let i = currentIndex - 1; i >= 0; i--) {
-    if (scenes[i].visual.assetPath) {
-      return scenes[i].visual.assetPath;
+    const asset = scenes[i].visual.assetPath;
+    if (asset) {
+      // Skip video files as fallbacks — they are too heavy for background use
+      // in data-chart/text-overlay scenes and cause render hangs with large files.
+      // Only static images are suitable as fallback backgrounds.
+      if (/\.(mp4|webm|mov)$/i.test(asset)) continue;
+      return asset;
     }
   }
   return undefined;
 }
 
-// ─── Internal: Progress bar that tracks current scene ─────────
-
-interface ProgressBarOverlayProps {
-  scenes: SceneInput[];
-  fps: number;
-  totalFrames: number;
-  color: string;
-  sectionCount: number;
-}
-
-const ProgressBarOverlay: React.FC<ProgressBarOverlayProps> = ({
-  scenes,
-  fps,
-  totalFrames,
-  color,
-  sectionCount,
-}) => {
-  const frame = useCurrentFrame();
-
-  let currentScene = 0;
-  for (let i = 0; i < scenes.length; i++) {
-    const sceneStart = Math.round(scenes[i].startTime * fps);
-    const sceneEnd = Math.round(scenes[i].endTime * fps);
-    if (frame >= sceneStart && frame < sceneEnd) {
-      currentScene = i;
-      break;
-    }
-  }
-
-  return (
-    <AbsoluteFill style={{ pointerEvents: "none" }}>
-      <ProgressBar
-        currentScene={currentScene}
-        totalScenes={scenes.length}
-        globalFrame={frame}
-        totalFrames={totalFrames}
-        color={color}
-        sectionCount={sectionCount}
-      />
-    </AbsoluteFill>
-  );
-};
+// end of file

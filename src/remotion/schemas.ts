@@ -13,7 +13,7 @@ export const sceneVisualInputSchema = z.object({
   ]),
   description: z.string(),
   searchQuery: z.string().optional(),
-  textOverlay: z.string().optional(),
+  textOverlay: z.any().optional(),
   dataChart: z.any().optional(),
   assetPath: z.string().optional(),
 });
@@ -25,7 +25,7 @@ export const sceneInputSchema = z.object({
   endTime: z.number(),
   voiceover: z.string(),
   visual: sceneVisualInputSchema,
-  transition: z.enum(["fade", "cut", "slide", "zoom"]),
+  transition: z.enum(["fade", "cut", "slide", "zoom", "crossfade", "morph", "seamless", "cross-dissolve", "fade-to-black"]),
   notes: z.string().optional(),
 });
 
@@ -38,6 +38,28 @@ export const audioSegmentSchema = z.object({
   startTime: z.number(),
 });
 
+// ─── Background music schema ─────────────────────────────────
+
+export const backgroundMusicTrackSchema = z.object({
+  /** Path to audio file (relative to publicDir) */
+  src: z.string(),
+  /** Duration of the track in seconds */
+  durationSec: z.number(),
+});
+
+export const backgroundMusicSchema = z.object({
+  /** Ordered list of tracks to play sequentially */
+  tracks: z.array(backgroundMusicTrackSchema),
+  /** Base volume 0-1 (recommended: 0.04-0.08) */
+  volume: z.number(),
+  /** Crossfade duration between tracks in seconds */
+  crossfadeSec: z.number().optional(),
+  /** Fade-in at video start in seconds */
+  fadeInSec: z.number().optional(),
+  /** Fade-out at video end in seconds */
+  fadeOutSec: z.number().optional(),
+});
+
 // ─── Main video composition schema ───────────────────────────
 
 export const videoCompositionSchema = z.object({
@@ -46,6 +68,8 @@ export const videoCompositionSchema = z.object({
   audioFiles: z.array(z.string()),
   /** Audio segments with precise timing (preferred over audioFiles) */
   audioSegments: z.array(audioSegmentSchema).optional(),
+  /** Background music tracks — sequential playback with crossfade */
+  backgroundMusic: backgroundMusicSchema.optional(),
   showSubtitles: z.boolean(),
   showProgressBar: z.boolean(),
   brandColor: z.string(),
@@ -64,14 +88,20 @@ export const dataChartItemSchema = z.object({
 });
 
 export const dataChartInputSchema = z.object({
-  type: z.enum(["bar-chart", "line-chart", "pie-chart", "counter", "comparison", "timeline", "progress", "scale-comparison", "horse-race"]),
+  type: z.enum(["bar-chart", "line-chart", "pie-chart", "counter", "comparison", "timeline", "scale-comparison", "horse-race", "progress", "quadrant-scatter", "salary-shuffle", "ranking-resort", "calendar-grid", "division-comparison", "end-card", "hook-scene", "horizontal-bar-chart", "split-comparison", "title-card", "composite-phases", "closing-scene"]),
   title: z.string().optional(),
+  subtitle: z.string().optional(),
   items: z.array(dataChartItemSchema).optional(),
   counterValue: z.number().optional(),
   counterPrefix: z.string().optional(),
   counterSuffix: z.string().optional(),
   unit: z.string().optional(),
   colors: z.array(z.string()).optional(),
+  orientation: z.enum(["horizontal", "vertical"]).optional(),
+  duel: z.object({
+    left: z.string(),
+    right: z.string(),
+  }).optional(),
 });
 
 export const dataChartCompositionSchema = z.object({

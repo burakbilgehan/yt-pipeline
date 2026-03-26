@@ -17,11 +17,15 @@ import { AssetParade } from "../templates/voiceover-visuals/AssetParade";
 import { Scoreboard } from "../templates/voiceover-visuals/Scoreboard";
 import { ClosingCTA } from "../templates/voiceover-visuals/ClosingCTA";
 import { SubtitleOverlay } from "../components";
-import type { HorseRaceChartProps, SceneYearRange } from "../types";
+import { loadFontsSync } from "../../fonts/load-fonts";
+import type { SceneYearRange } from "../types";
+import { VibeThemeProvider, getSceneComponent } from "../vibes";
+import type { VibeId, SceneCategory } from "../vibes";
 
 // ─── Scene types enum — each maps to a visual component ──────
+// Legacy scene types (direct component mapping, pre-vibe system)
 
-type SceneType =
+type LegacySceneType =
   | "hook-reveal"
   | "formula-card"
   | "asset-parade"
@@ -33,7 +37,10 @@ type SceneType =
 
 interface VideoConfigScene {
   id: string;
-  type: SceneType;
+  /** Legacy: direct component type. Use `category` with vibe system instead. */
+  type: LegacySceneType;
+  /** Vibe scene category — when set, uses vibe system for component lookup */
+  category?: SceneCategory;
   startTime: number;
   endTime: number;
   voiceover?: string;
@@ -66,6 +73,10 @@ interface VideoConfig {
   brandColor: string;
   fontFamily: string;
   showSubtitles: boolean;
+  /** Vibe ID — determines visual style for category-based scenes */
+  vibe?: VibeId;
+  /** Mono font for dashboard vibe (optional, defaults to JetBrains Mono) */
+  monoFont?: string;
   horseRaceDataFile?: string;
   horseRaceYAxisLabel?: string;
   scenes: VideoConfigScene[];
@@ -94,7 +105,15 @@ export type CustomVideoCompositionProps = z.infer<typeof customVideoCompositionS
  * Reads a video-config.json to determine which scenes to render,
  * what component to use for each scene, and all scene-specific props.
  *
- * Supported scene types:
+ * Supports two routing modes:
+ * 1. **Vibe routing** (new): scene.category + config.vibe → Vibe system component lookup
+ * 2. **Legacy routing**: scene.type → direct component mapping (backward compatible)
+ *
+ * When config.vibe is set and a scene has `category`, the vibe system wraps
+ * all scenes in a VibeThemeProvider and dispatches via getSceneComponent().
+ * Scenes without `category` fall back to legacy routing.
+ *
+ * Supported legacy scene types:
  * - "hook-reveal" → HookReveal component
  * - "formula-card" → FormulaCard component (with optional crossfade to chart)
  * - "asset-parade" → AssetParade component (interactive formula + asset-by-asset)
@@ -113,11 +132,17 @@ const CustomVideoComposition: React.FC<CustomVideoCompositionProps> = ({
   const config = rawConfig as VideoConfig;
   const {
     backgroundColor,
+    brandColor,
     fontFamily,
     showSubtitles,
     scenes,
     horseRaceYAxisLabel,
+    vibe,
+    monoFont,
   } = config;
+
+  // Safety net: ensure fonts are loaded (primary load happens in Root.tsx calculateMetadata)
+  loadFontsSync(fontFamily);
 
   const toFrame = (seconds: number) => Math.round(seconds * fps);
 
@@ -172,7 +197,123 @@ const CustomVideoComposition: React.FC<CustomVideoCompositionProps> = ({
   // ── Resolve audio segments ──
   const audioSegments = audioSegmentsOverride ?? config.audioSegments ?? [];
 
-  return (
+  // ── Determine if vibe system is active ──
+  const vibeActive = !!vibe;
+
+  // ── Helper: render a scene using the vibe system ──
+  const renderVibeScene = (scene: VideoConfigScene, duration: number) => {
+    if (!scene.category || !vibe) return null;
+
+    const SceneComponent = getSceneComponent(vibe, scene.category);
+    const props = (scene.props || {}) as Record<string, unknown>;
+
+    return (
+      <SceneComponent
+        durationInFrames={duration}
+        voiceover={scene.voiceover}
+        {...props}
+      />
+    );
+  };
+
+  // ── Helper: render a scene using legacy direct component mapping ──
+  const renderLegacyScene = (scene: VideoConfigScene) => {
+    const props = (scene.props || {}) as Record<string, unknown>;
+
+    switch (scene.type) {
+      case "hook-reveal":
+        return (
+          <HookReveal
+            bigNumber={props.bigNumber as string}
+            smallNumber={props.smallNumber as string}
+            subtitle={props.subtitle as string | undefined}
+            subLabel={props.subLabel as string | undefined}
+            contextLine={props.contextLine as string | undefined}
+            contextDuration={props.contextDuration as number | undefined}
+            bigColor={props.bigColor as string | undefined}
+            smallColor={props.smallColor as string | undefined}
+            backgroundColor={backgroundColor}
+            fontFamily={fontFamily}
+            bigHoldDuration={props.bigHoldDuration as number | undefined}
+            deflationDuration={props.deflationDuration as number | undefined}
+            subtitleDelay={props.subtitleDelay as number | undefined}
+            variant={props.variant as "classic" | "counting-ticker" | undefined}
+          />
+        );
+
+      case "formula-card":
+        return (
+          <AbsoluteFill style={{ opacity: formulaOpacity }}>
+            <FormulaCard
+              formulaParts={props.formulaParts as string[] | undefined}
+              example={props.example as string | undefined}
+              dataBadge={props.dataBadge as string | undefined}
+              backgroundColor={backgroundColor}
+              accentColor={props.accentColor as string | undefined}
+              fontFamily={fontFamily}
+            />
+          </AbsoluteFill>
+        );
+
+      case "asset-parade":
+        return (
+          <AbsoluteFill style={{ opacity: formulaOpacity }}>
+            <AssetParade
+              formulaParts={props.formulaParts as string[] | undefined}
+              assets={props.assets as Array<{
+                name: string;
+                price: string;
+                ratio: string;
+                color: string;
+              }>}
+              goldPrice={props.goldPrice as string}
+              dataBadge={props.dataBadge as string | undefined}
+              backgroundColor={backgroundColor}
+              accentColor={props.accentColor as string | undefined}
+              fontFamily={fontFamily}
+              formulaDuration={props.formulaDuration as number | undefined}
+              assetDuration={props.assetDuration as number | undefined}
+            />
+          </AbsoluteFill>
+        );
+
+      case "scoreboard":
+        return (
+          <Scoreboard
+            title={props.title as string | undefined}
+            items={props.items as Array<{
+              label: string;
+              value: number;
+              color: string;
+              suffix?: string;
+              period?: string;
+            }>}
+            footerText={props.footerText as string | undefined}
+            backgroundColor={backgroundColor}
+            fontFamily={fontFamily}
+          />
+        );
+
+      case "closing-cta":
+        return (
+          <ClosingCTA
+            message={props.message as string | undefined}
+            channelName={props.channelName as string | undefined}
+            ctaText={props.ctaText as string | undefined}
+            backgroundColor={backgroundColor}
+            accentColor={props.accentColor as string | undefined}
+            fontFamily={fontFamily}
+            showEndScreen={props.showEndScreen as boolean | undefined}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  // ── Wrap content with VibeThemeProvider if vibe is active ──
+  const content = (
     <AbsoluteFill style={{ backgroundColor }}>
       {/* ═══ Render each scene ═══ */}
       {scenes.map((scene) => {
@@ -180,7 +321,9 @@ const CustomVideoComposition: React.FC<CustomVideoCompositionProps> = ({
         const duration = toFrame(scene.endTime - scene.startTime);
         if (duration <= 0) return null;
 
-        const props = (scene.props || {}) as Record<string, unknown>;
+        // Determine routing: vibe category or legacy type
+        const useVibe = vibeActive && !!scene.category;
+        const isHorseRace = scene.type === "horse-race";
 
         return (
           <React.Fragment key={scene.id}>
@@ -189,92 +332,15 @@ const CustomVideoComposition: React.FC<CustomVideoCompositionProps> = ({
               durationInFrames={duration}
               name={`Scene: ${scene.id}`}
             >
-              {/* Scene visual */}
-              {scene.type === "hook-reveal" && (
-                <HookReveal
-                  bigNumber={props.bigNumber as string}
-                  smallNumber={props.smallNumber as string}
-                  subtitle={props.subtitle as string | undefined}
-                  subLabel={props.subLabel as string | undefined}
-                  contextLine={props.contextLine as string | undefined}
-                  contextDuration={props.contextDuration as number | undefined}
-                  bigColor={props.bigColor as string | undefined}
-                  smallColor={props.smallColor as string | undefined}
-                  backgroundColor={backgroundColor}
-                  fontFamily={fontFamily}
-                  bigHoldDuration={props.bigHoldDuration as number | undefined}
-                  deflationDuration={props.deflationDuration as number | undefined}
-                  subtitleDelay={props.subtitleDelay as number | undefined}
-                  variant={props.variant as "classic" | "counting-ticker" | undefined}
-                />
-              )}
-
-              {scene.type === "formula-card" && (
-                <AbsoluteFill style={{ opacity: formulaOpacity }}>
-                  <FormulaCard
-                    formulaParts={props.formulaParts as string[] | undefined}
-                    example={props.example as string | undefined}
-                    dataBadge={props.dataBadge as string | undefined}
-                    backgroundColor={backgroundColor}
-                    accentColor={props.accentColor as string | undefined}
-                    fontFamily={fontFamily}
-                  />
-                </AbsoluteFill>
-              )}
-
-              {scene.type === "asset-parade" && (
-                <AbsoluteFill style={{ opacity: formulaOpacity }}>
-                  <AssetParade
-                    formulaParts={props.formulaParts as string[] | undefined}
-                    assets={props.assets as Array<{
-                      name: string;
-                      price: string;
-                      ratio: string;
-                      color: string;
-                    }>}
-                    goldPrice={props.goldPrice as string}
-                    dataBadge={props.dataBadge as string | undefined}
-                    backgroundColor={backgroundColor}
-                    accentColor={props.accentColor as string | undefined}
-                    fontFamily={fontFamily}
-                    formulaDuration={props.formulaDuration as number | undefined}
-                    assetDuration={props.assetDuration as number | undefined}
-                  />
-                </AbsoluteFill>
-              )}
-
-              {scene.type === "scoreboard" && (
-                <Scoreboard
-                  title={props.title as string | undefined}
-                  items={props.items as Array<{
-                    label: string;
-                    value: number;
-                    color: string;
-                    suffix?: string;
-                    period?: string;
-                  }>}
-                  footerText={props.footerText as string | undefined}
-                  backgroundColor={backgroundColor}
-                  fontFamily={fontFamily}
-                />
-              )}
-
-              {scene.type === "closing-cta" && (
-                <ClosingCTA
-                  message={props.message as string | undefined}
-                  channelName={props.channelName as string | undefined}
-                  ctaText={props.ctaText as string | undefined}
-                  backgroundColor={backgroundColor}
-                  accentColor={props.accentColor as string | undefined}
-                  fontFamily={fontFamily}
-                  showEndScreen={props.showEndScreen as boolean | undefined}
-                />
-              )}
+              {/* Scene visual — vibe or legacy routing */}
+              {useVibe
+                ? renderVibeScene(scene, duration)
+                : !isHorseRace && renderLegacyScene(scene)}
 
               {/* Subtitles for non-horse-race scenes */}
               {showSubtitles &&
                 scene.voiceover &&
-                scene.type !== "horse-race" && (
+                !isHorseRace && (
                   <SubtitleOverlay
                     text={scene.voiceover}
                     fontFamily={fontFamily}
@@ -286,7 +352,7 @@ const CustomVideoComposition: React.FC<CustomVideoCompositionProps> = ({
             {/* Subtitles for horse-race scenes (on their own Sequence) */}
             {showSubtitles &&
               scene.voiceover &&
-              scene.type === "horse-race" && (
+              isHorseRace && (
                 <Sequence
                   from={startFrame}
                   durationInFrames={duration}
@@ -382,6 +448,23 @@ const CustomVideoComposition: React.FC<CustomVideoCompositionProps> = ({
       )}
     </AbsoluteFill>
   );
+
+  // Wrap with VibeThemeProvider if vibe is active
+  if (vibeActive && vibe) {
+    return (
+      <VibeThemeProvider
+        vibeId={vibe}
+        brandColor={brandColor}
+        backgroundColor={backgroundColor}
+        fontFamily={fontFamily}
+        monoFont={monoFont}
+      >
+        {content}
+      </VibeThemeProvider>
+    );
+  }
+
+  return content;
 };
 
 export default CustomVideoComposition;

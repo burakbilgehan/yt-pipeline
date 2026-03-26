@@ -6,7 +6,7 @@ import {
   useVideoConfig,
 } from "remotion";
 // TransitionType is a simple union, define locally to avoid circular deps
-type TransitionType = "fade" | "cut" | "slide" | "zoom";
+type TransitionType = "fade" | "cut" | "slide" | "zoom" | "crossfade" | "morph" | "seamless" | "cross-dissolve" | "fade-to-black";
 
 interface TransitionWrapperProps {
   type: TransitionType;
@@ -29,7 +29,7 @@ export const TransitionWrapper: React.FC<TransitionWrapperProps> = ({
 }) => {
   const frame = useCurrentFrame();
 
-  if (type === "cut") {
+  if (type === "cut" || type === "seamless") {
     return <AbsoluteFill>{children}</AbsoluteFill>;
   }
 
@@ -64,6 +64,12 @@ function getTransitionStyle(
 ): React.CSSProperties {
   switch (type) {
     case "fade":
+    case "crossfade":
+    case "cross-dissolve":
+    case "morph":
+      return { opacity: progress };
+
+    case "fade-to-black":
       return { opacity: progress };
 
     case "slide":

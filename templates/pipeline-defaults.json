@@ -1,0 +1,54 @@
+{
+  "$comment": "Pipeline-wide defaults. Agents read this instead of hardcoding values. Override per-channel in channel-config.json.",
+  "tts": {
+    "defaultWPM": 150,
+    "pauseDurations": {
+      "short": 300,
+      "medium": 500,
+      "long": 1000
+    },
+    "speedRange": { "min": 0.25, "max": 2.0 },
+    "safeSpeedRange": { "min": 0.85, "max": 1.15 },
+    "speedTolerancePercent": 20,
+    "deviationThresholds": {
+      "ok": 3,
+      "postProcess": 10,
+      "regenBlock": 20
+    }
+  },
+  "formats": {
+    "long": {
+      "resolution": { "width": 1920, "height": 1080 },
+      "fps": 30,
+      "aspectRatio": "16:9",
+      "chapters": true,
+      "endScreens": true
+    },
+    "short": {
+      "resolution": { "width": 1080, "height": 1920 },
+      "fps": 30,
+      "aspectRatio": "9:16",
+      "chapters": false,
+      "endScreens": false,
+      "maxTitleChars": 60,
+      "sceneRange": { "min": 3, "max": 5 },
+      "sceneDuration": { "min": 3, "max": 8 },
+      "maxWordCount": 150,
+      "transitionsOnly": "cut"
+    }
+  },
+  "youtube": {
+    "maxTagsTotalChars": 500,
+    "maxSingleTagChars": 100,
+    "multiWordTagQuoteOverhead": 2,
+    "forbiddenTagChars": ["&", "<", ">", "\"", "+"],
+    "apiQuotaUploadsPerDay": 6
+  },
+  "stockMedia": {
+    "minResolution": { "width": 1920, "height": 1080 },
+    "maxClipSeconds": 15
+  },
+  "rendering": {
+    "transitionBufferSeconds": 0.5
+  }
+}

@@ -4,7 +4,7 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { ProjectConfig, PipelineStageName, ChannelConfig } from "../types/index.js";
+import type { ProjectConfig, PipelineStageName, ChannelConfig, Storyboard, Scene } from "../types/index.js";
 
 const CHANNELS_DIR = path.resolve("channels");
 const CHANNEL_CONFIG_TEMPLATE = path.resolve("templates/channel-config.json");
@@ -237,4 +237,75 @@ export function appendAssetLog(
   const newRow = `| ${rowCount + 1} | ${asset.type} | ${asset.source} | ${asset.file} | ${asset.license} | "${asset.query}" |\n`;
 
   fs.appendFileSync(logPath, newRow);
+}
+
+/**
+ * Load a storyboard and resolve scene detail files.
+ *
+ * The storyboard can be in two formats:
+ * 1. **Monolithic**: All scene data inline in `storyboard-v<N>.json`
+ * 2. **Skeleton + detail files**: Each scene has a `sceneFile` reference
+ *    pointing to a detail JSON (e.g. `scenes/scene-001.json`). The loader
+ *    merges the skeleton fields with the detail file, where detail fields
+ *    override skeleton fields (except `id`, `section`, `startTime`, `endTime`,
+ *    `voiceover` which always come from the skeleton).
+ *
+ * Returns a fully resolved Storyboard with all scene details populated.
+ * Returns null if no storyboard file is found.
+ */
+export function loadStoryboardResolved(slug: string, channelSlug?: string): Storyboard | null {
+  const storyboardFile = getLatestVersionedFile(slug, "storyboard", "storyboard", channelSlug);
+  if (!storyboardFile) return null;
+
+  const projectDir = getProjectDir(slug, channelSlug);
+  const storyboardPath = path.join(projectDir, "storyboard", storyboardFile);
+
+  if (!storyboardFile.endsWith(".json")) return null;
+
+  let storyboard: Storyboard;
+  try {
+    storyboard = JSON.parse(fs.readFileSync(storyboardPath, "utf-8"));
+  } catch {
+    return null;
+  }
+
+  if (!storyboard.scenes || storyboard.scenes.length === 0) return storyboard;
+
+  // Resolve scene detail files
+  const storyboardDir = path.join(projectDir, "storyboard");
+  const resolvedScenes: Scene[] = [];
+
+  for (const scene of storyboard.scenes) {
+    if (scene.sceneFile) {
+      const detailPath = path.join(storyboardDir, scene.sceneFile);
+      if (fs.existsSync(detailPath)) {
+        try {
+          const detail = JSON.parse(fs.readFileSync(detailPath, "utf-8"));
+          // Merge: skeleton timing/voiceover fields are authoritative,
+          // detail file provides visual, notes, and other rich data
+          resolvedScenes.push({
+            ...detail,
+            // Skeleton fields always win — these are the "index" truth
+            id: scene.id,
+            section: scene.section,
+            startTime: scene.startTime,
+            endTime: scene.endTime,
+            voiceover: scene.voiceover,
+            transition: scene.transition ?? detail.transition ?? "cut",
+          });
+        } catch {
+          // If detail file is broken, use skeleton as-is
+          resolvedScenes.push(scene);
+        }
+      } else {
+        // Detail file missing — use skeleton as-is
+        resolvedScenes.push(scene);
+      }
+    } else {
+      // No sceneFile reference — this is a monolithic storyboard, use as-is
+      resolvedScenes.push(scene);
+    }
+  }
+
+  return { ...storyboard, scenes: resolvedScenes };
 }

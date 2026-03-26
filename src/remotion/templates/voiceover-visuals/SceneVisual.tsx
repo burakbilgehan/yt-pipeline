@@ -8,6 +8,7 @@ import {
   interpolate,
   spring,
 } from "remotion";
+import { Video } from "@remotion/media";
 import type { SceneVisualInput } from "../../schemas";
 
 interface SceneVisualProps {
@@ -21,7 +22,7 @@ interface SceneVisualProps {
 /**
  * Full-screen scene visual with Ken Burns effect (slow zoom + pan).
  * Shows stock/AI images as backgrounds. Composite scenes get a ranking badge + price tag.
- * Text-overlay scenes get a cinematic title card.
+ * Text-overlay scenes get a cinematic title card with smart line rendering.
  * No placeholder cards — if no image, show a dark cinematic gradient.
  */
 export const SceneVisual: React.FC<SceneVisualProps> = ({
@@ -39,12 +40,13 @@ export const SceneVisual: React.FC<SceneVisualProps> = ({
 
   // ── Text-only scene (title cards, CTAs) ──
   if (isTextOnly) {
+    const textStr = typeof visual.textOverlay === "string" ? visual.textOverlay : undefined;
     return (
       <AbsoluteFill>
         <CinematicGradient brandColor={brandColor} />
-        {visual.textOverlay && (
+        {textStr && (
           <TitleCard
-            text={visual.textOverlay}
+            text={textStr}
             brandColor={brandColor}
             fontFamily={fontFamily}
             frame={frame}
@@ -55,11 +57,17 @@ export const SceneVisual: React.FC<SceneVisualProps> = ({
     );
   }
 
-  // ── Visual scene (stock image / composite / ai-image) ──
+  const isVideo = visual.type === "stock-video" || (visual.assetPath?.match(/\.(mp4|webm|mov)$/i) ?? false);
+
+  // ── Visual scene (stock video / stock image / composite / ai-image) ──
   return (
     <AbsoluteFill>
-      {hasImage ? (
+      {hasImage && isVideo ? (
+        <KenBurnsVideo src={staticFile(visual.assetPath!)} frame={frame} sceneDurationInFrames={durationInFrames} />
+      ) : hasImage ? (
         <KenBurnsImage src={staticFile(visual.assetPath!)} frame={frame} sceneDurationInFrames={durationInFrames} />
+      ) : hasFallback && isVideoFile(fallbackImage!) ? (
+        <KenBurnsVideo src={staticFile(fallbackImage!)} frame={frame} sceneDurationInFrames={durationInFrames} />
       ) : hasFallback ? (
         <KenBurnsImage src={staticFile(fallbackImage!)} frame={frame} sceneDurationInFrames={durationInFrames} />
       ) : (
@@ -89,8 +97,8 @@ export const SceneVisual: React.FC<SceneVisualProps> = ({
         }}
       />
 
-      {/* Ranking badge + price tag from textOverlay */}
-      {visual.textOverlay && (
+      {/* Ranking badge + price tag from textOverlay (only if it's a string) */}
+      {visual.textOverlay && typeof visual.textOverlay === "string" && (
         <RankingOverlay
           text={visual.textOverlay}
           brandColor={brandColor}
@@ -103,6 +111,12 @@ export const SceneVisual: React.FC<SceneVisualProps> = ({
   );
 };
 
+// ─── Helper: detect video file extensions ───────────────────
+
+function isVideoFile(path: string): boolean {
+  return /\.(mp4|webm|mov)$/i.test(path);
+}
+
 // ─── Ken Burns Effect ────────────────────────────────────────
 
 interface KenBurnsImageProps {
@@ -112,8 +126,6 @@ interface KenBurnsImageProps {
 }
 
 const KenBurnsImage: React.FC<KenBurnsImageProps> = ({ src, frame, sceneDurationInFrames }) => {
-  // Slow zoom from 100% to 110% over the actual scene duration
-  // Also slight pan (translateX shifts slightly)
   const duration = Math.max(sceneDurationInFrames, 1);
   const scale = interpolate(frame, [0, duration], [1.0, 1.12], {
     extrapolateRight: "clamp",
@@ -140,6 +152,43 @@ const KenBurnsImage: React.FC<KenBurnsImageProps> = ({ src, frame, sceneDuration
   );
 };
 
+// ─── Ken Burns Video Effect ─────────────────────────────────
+
+interface KenBurnsVideoProps {
+  src: string;
+  frame: number;
+  sceneDurationInFrames: number;
+}
+
+const KenBurnsVideo: React.FC<KenBurnsVideoProps> = ({ src, frame, sceneDurationInFrames }) => {
+  const duration = Math.max(sceneDurationInFrames, 1);
+  const scale = interpolate(frame, [0, duration], [1.0, 1.12], {
+    extrapolateRight: "clamp",
+  });
+  const translateX = interpolate(frame, [0, duration], [0, -15], {
+    extrapolateRight: "clamp",
+  });
+  const translateY = interpolate(frame, [0, duration], [0, -8], {
+    extrapolateRight: "clamp",
+  });
+
+  return (
+    <AbsoluteFill>
+      <Video
+        src={src}
+        muted
+        loop
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
+        }}
+      />
+    </AbsoluteFill>
+  );
+};
+
 // ─── Cinematic Gradient (fallback for no-image scenes) ──────
 
 const CinematicGradient: React.FC<{ brandColor: string }> = ({
@@ -147,7 +196,7 @@ const CinematicGradient: React.FC<{ brandColor: string }> = ({
 }) => (
   <AbsoluteFill
     style={{
-      background: `linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 40%, ${brandColor}22 100%)`,
+      background: "linear-gradient(180deg, #1A1B22 0%, #2D2B3D 100%)",
     }}
   />
 );
@@ -169,21 +218,16 @@ const RankingOverlay: React.FC<RankingOverlayProps> = ({
   frame,
   fps,
 }) => {
-  // Parse the textOverlay to extract ranking number and price
-  // Format: "#10 — Human Blood\n$1,500/gallon" or just plain text
   const lines = text.split("\n");
   const titleLine = lines[0] || "";
   const priceLine = lines[1] || "";
 
-  // Extract ranking number (e.g., "#10", "#1")
   const rankMatch = titleLine.match(/#(\d+)/);
   const rankNumber = rankMatch ? rankMatch[1] : null;
 
-  // Extract item name (after "— " or after "#N ")
   const nameMatch = titleLine.match(/[—–-]\s*(.+)/);
   const itemName = nameMatch ? nameMatch[1].trim() : titleLine.replace(/#\d+\s*/, "").trim();
 
-  // Entrance animation
   const enterSpring = spring({
     fps,
     frame,
@@ -192,13 +236,12 @@ const RankingOverlay: React.FC<RankingOverlayProps> = ({
 
   const priceSpring = spring({
     fps,
-    frame: frame - 8, // Staggered entrance
+    frame: frame - 8,
     config: { damping: 18, stiffness: 80 },
   });
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
-      {/* Ranking badge (top-left corner) */}
       {rankNumber && (
         <div
           style={{
@@ -212,7 +255,7 @@ const RankingOverlay: React.FC<RankingOverlayProps> = ({
           <div
             style={{
               backgroundColor: brandColor,
-              color: "#FFFFFF",
+              color: "#EAE0D5",
               fontSize: 56,
               fontFamily,
               fontWeight: 900,
@@ -222,7 +265,7 @@ const RankingOverlay: React.FC<RankingOverlayProps> = ({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
             }}
           >
             {rankNumber}
@@ -230,7 +273,6 @@ const RankingOverlay: React.FC<RankingOverlayProps> = ({
         </div>
       )}
 
-      {/* Item name + price (bottom-left, above subtitle area) */}
       <div
         style={{
           position: "absolute",
@@ -239,11 +281,10 @@ const RankingOverlay: React.FC<RankingOverlayProps> = ({
           right: 200,
         }}
       >
-        {/* Item name */}
         {itemName && (
           <div
             style={{
-              color: "#FFFFFF",
+              color: "#EAE0D5",
               fontSize: 46,
               fontFamily,
               fontWeight: 700,
@@ -257,13 +298,11 @@ const RankingOverlay: React.FC<RankingOverlayProps> = ({
           </div>
         )}
 
-        {/* Price tag */}
         {priceLine && (
           <div
             style={{
               display: "inline-flex",
-              backgroundColor: "rgba(0,0,0,0.6)",
-              backdropFilter: "blur(8px)",
+              backgroundColor: "rgba(26, 24, 36, 0.75)",
               borderRadius: 8,
               padding: "8px 20px",
               borderLeft: `4px solid ${brandColor}`,
@@ -273,7 +312,7 @@ const RankingOverlay: React.FC<RankingOverlayProps> = ({
           >
             <span
               style={{
-                color: "#FFFFFF",
+                color: "#EAE0D5",
                 fontSize: 30,
                 fontFamily,
                 fontWeight: 600,
@@ -299,6 +338,17 @@ interface TitleCardProps {
   fps: number;
 }
 
+/**
+ * Detect if a line starts with a non-ASCII symbol (emoji) or common bullet char.
+ * Lines shorter than 5 chars (like operators ×, =) are excluded.
+ */
+const isBulletItem = (line: string): boolean => {
+  const trimmed = line.trim();
+  if (trimmed.length < 5) return false;
+  const cp = trimmed.codePointAt(0) || 0;
+  return cp > 127 || /^[✗✓·•☐☑]/.test(trimmed);
+};
+
 const TitleCard: React.FC<TitleCardProps> = ({
   text,
   brandColor,
@@ -306,11 +356,38 @@ const TitleCard: React.FC<TitleCardProps> = ({
   frame,
   fps,
 }) => {
+  const lines = text.split("\n");
+  const nonEmptyLines = lines.filter((l) => l.trim() !== "");
+
+  // Detect bullet-list style (emoji/symbol-prefixed lines)
+  const bulletCount = nonEmptyLines.filter(isBulletItem).length;
+  const isBulletList = nonEmptyLines.length > 1 && bulletCount >= 2;
+
+  if (isBulletList) {
+    return (
+      <BulletListCard
+        lines={nonEmptyLines}
+        brandColor={brandColor}
+        fontFamily={fontFamily}
+        frame={frame}
+        fps={fps}
+      />
+    );
+  }
+
+  // For single or multi-line text, use pre-line to respect \n
   const enterSpring = spring({
     fps,
     frame,
     config: { damping: 15, stiffness: 60 },
   });
+
+  const isMultiLine = nonEmptyLines.length > 1;
+  const fontSize = isMultiLine
+    ? nonEmptyLines.length > 4
+      ? 36
+      : 42
+    : 56;
 
   return (
     <AbsoluteFill
@@ -318,7 +395,7 @@ const TitleCard: React.FC<TitleCardProps> = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: 120,
+        padding: "80px 120px",
       }}
     >
       <div
@@ -326,26 +403,92 @@ const TitleCard: React.FC<TitleCardProps> = ({
           opacity: enterSpring,
           transform: `scale(${interpolate(enterSpring, [0, 1], [0.9, 1])})`,
           textAlign: "center",
+          maxWidth: 1200,
         }}
       >
         <h1
           style={{
-            color: "#FFFFFF",
-            fontSize: 64,
+            color: "#EAE0D5",
+            fontSize,
             fontFamily,
-            fontWeight: 800,
-            lineHeight: 1.2,
-            textShadow: "0 4px 30px rgba(0,0,0,0.5)",
+            fontWeight: 600,
+            lineHeight: 1.4,
+            textShadow: "0 2px 20px rgba(0,0,0,0.4)",
+            whiteSpace: "pre-line",
+            margin: 0,
           }}
         >
           {text}
         </h1>
         <div
           style={{
-            width: 120,
-            height: 4,
+            width: 100,
+            height: 3,
             backgroundColor: brandColor,
             margin: "24px auto 0",
+            borderRadius: 2,
+          }}
+        />
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ─── Bullet List Card (for emoji/symbol-prefixed lines) ─────
+
+const BulletListCard: React.FC<{
+  lines: string[];
+  brandColor: string;
+  fontFamily: string;
+  frame: number;
+  fps: number;
+}> = ({ lines, brandColor, fontFamily, frame, fps }) => {
+  // Auto-size font based on longest line
+  const maxLen = Math.max(...lines.map((l) => l.length));
+  const fontSize =
+    maxLen > 50 ? 30 : maxLen > 40 ? 34 : maxLen > 30 ? 38 : 42;
+
+  return (
+    <AbsoluteFill
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "80px 120px",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: 1400 }}>
+        {lines.map((line, i) => {
+          const lineSpring = spring({
+            fps,
+            frame: frame - i * 6,
+            config: { damping: 15, stiffness: 60 },
+          });
+
+          return (
+            <div
+              key={i}
+              style={{
+                opacity: lineSpring,
+                transform: `translateX(${interpolate(lineSpring, [0, 1], [-20, 0])}px)`,
+                color: "#EAE0D5",
+                fontSize,
+                fontFamily,
+                fontWeight: 500,
+                lineHeight: 1.8,
+                textShadow: "0 2px 16px rgba(0,0,0,0.4)",
+              }}
+            >
+              {line}
+            </div>
+          );
+        })}
+        <div
+          style={{
+            width: 80,
+            height: 3,
+            backgroundColor: brandColor,
+            marginTop: 24,
             borderRadius: 2,
           }}
         />

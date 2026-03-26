@@ -18,6 +18,4 @@ Follow the Multi-Agent Review Protocol at `.ai/protocols/multi-agent-review.md`:
 
 4. **Present Summary** — Show the user a review summary including: Critic grade, specialist confidence score, what was caught and fixed each round, and final state assessment.
 
-5. **Run validation** — After any file changes, run `npm run validate <slug>` and include the output in the summary.
-
-Always read config.json first to determine the current stage version and file paths.
+Always read `channels/<channel>/videos/<slug>/config.json` first to determine the current stage version and file paths.

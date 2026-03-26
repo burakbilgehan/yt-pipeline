@@ -2,6 +2,8 @@ import React from "react";
 import { Composition, staticFile } from "remotion";
 import { videoCompositionSchema, dataChartCompositionSchema, shortsCompositionSchema, horseRaceCompositionSchema, thumbnailCompositionSchema } from "./schemas";
 import { customVideoCompositionSchema } from "./compositions/CustomVideoComposition";
+import { ensureFontsLoaded } from "../fonts/load-fonts";
+import { bridgeAllScenes } from "../utils/storyboard-bridge";
 import type { z } from "zod";
 
 const FPS = 30;
@@ -20,11 +22,133 @@ const horseRaceFallbackProps: z.infer<typeof horseRaceCompositionSchema> = {
 };
 
 /**
+ * Bridge storyboard backgroundMusic format to BackgroundMusicConfig.
+ * Storyboard uses: { tracks: [{ file, duration }], volume, crossfadeDuration }
+ * BackgroundMusicLayer expects: { tracks: [{ src, durationSec }], volume, crossfadeSec }
+ *
+ * bgmPrefix: path prefix for BGM files (e.g. "bgm/")
+ */
+function bridgeBackgroundMusic(raw: any, bgmPrefix: string): any | undefined {
+  if (!raw || !raw.tracks || raw.tracks.length === 0) return undefined;
+  return {
+    tracks: raw.tracks.map((t: any) => ({
+      src: `${bgmPrefix}${t.file || t.src}`,
+      durationSec: t.duration ?? t.durationSec ?? 120,
+    })),
+    volume: raw.volume ?? 0.08,
+    crossfadeSec: raw.crossfadeDuration ?? raw.crossfadeSec ?? 3,
+    fadeInSec: raw.fadeInSec ?? 3,
+    fadeOutSec: raw.fadeOutSec ?? 4,
+  };
+}
+
+/**
+ * Try to load storyboard + audio from publicDir (served as static files).
+ * Returns resolved props for MainVideo if successful, null otherwise.
+ *
+ * Uses project-manifest.json in publicDir root to discover paths.
+ * If no manifest exists, tries convention-based discovery from publicDir root:
+ *   storyboard/ — storyboard skeleton & scene files
+ *   production/audio/ — audio manifest & WAV files
+ *   bgm/ — background music tracks
+ */
+async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSchema> | null> {
+  try {
+    // Try to load project-manifest.json first (preferred)
+    let manifest: any = null;
+    try {
+      const mRes = await fetch(staticFile("project-manifest.json"));
+      if (mRes.ok) manifest = await mRes.json();
+    } catch { /* no manifest — use convention-based discovery */ }
+
+    const storyboardPrefix = manifest?.storyboardPrefix || "storyboard";
+    const audioPrefix = manifest?.audioPrefix || "production/audio";
+    const bgmPrefix = manifest?.bgmPrefix || "bgm/";
+    const brandColor = manifest?.brandColor || "#6C63FF";
+    const fontFamily = manifest?.fontFamily || "Inter, sans-serif";
+
+    // Try to fetch storyboard skeleton — try latest versions first
+    let storyboard: any = null;
+    for (const version of ["storyboard-v5.json", "storyboard-v4.json", "storyboard-v3.json", "storyboard-v2.json", "storyboard-v1.json"]) {
+      try {
+        const storyboardRes = await fetch(staticFile(`${storyboardPrefix}/${version}`));
+        if (storyboardRes.ok) {
+          storyboard = await storyboardRes.json();
+          break;
+        }
+      } catch { /* try next version */ }
+    }
+    if (!storyboard?.scenes || storyboard.scenes.length === 0) return null;
+
+    // Resolve scene detail files
+    const resolvedScenes: any[] = [];
+    for (const scene of storyboard.scenes) {
+      if (scene.sceneFile) {
+        try {
+          const detailRes = await fetch(staticFile(`${storyboardPrefix}/${scene.sceneFile}`));
+          if (detailRes.ok) {
+            const detail: any = await detailRes.json();
+            resolvedScenes.push({
+              ...detail,
+              id: scene.id,
+              section: scene.section,
+              startTime: scene.startTime,
+              endTime: scene.endTime,
+              voiceover: scene.voiceover,
+              transition: scene.transition ?? detail.transition ?? "cut",
+            });
+            continue;
+          }
+        } catch { /* fall through to skeleton */ }
+      }
+      resolvedScenes.push(scene);
+    }
+
+    // Apply dataVisualization → dataChart bridge
+    bridgeAllScenes(resolvedScenes);
+
+    // Try to load audio manifest for timing
+    const audioSegments: Array<{ src: string; startTime: number }> = [];
+    try {
+      const manifestRes = await fetch(staticFile(`${audioPrefix}/audio-manifest.json`));
+      if (manifestRes.ok) {
+        const audioManifest: any = await manifestRes.json();
+        for (const block of audioManifest.blocks) {
+          audioSegments.push({
+            src: `${audioPrefix}/${block.file}`,
+            startTime: block.startTime ?? 0,
+          });
+        }
+      }
+    } catch { /* no audio — that's fine for visual preview */ }
+
+    const lastScene = resolvedScenes[resolvedScenes.length - 1];
+    const totalDuration = lastScene.endTime || storyboard.totalDuration || 60;
+
+    return {
+      title: storyboard.title || "Preview",
+      scenes: resolvedScenes,
+      audioFiles: [],
+      audioSegments,
+      backgroundMusic: bridgeBackgroundMusic(storyboard.backgroundMusic, bgmPrefix),
+      showSubtitles: false,
+      showProgressBar: true,
+      brandColor,
+      fontFamily,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Root component that registers all Remotion compositions.
  *
- * NOTE: Project-specific compositions are NOT registered here.
- * Instead, use the generic "CustomVideo" composition with --props
- * pointing to a video-config.json in the project directory.
+ * All compositions are GENERIC — no project-specific data lives here.
+ * Project data is loaded at runtime via:
+ *   1. --public-dir pointing to a project's asset directory
+ *   2. project-manifest.json in publicDir root (optional, for path overrides)
+ *   3. --props pointing to a video-config.json (for CustomVideo)
  */
 export const RemotionRoot: React.FC = () => {
   return (
@@ -62,6 +186,21 @@ export const RemotionRoot: React.FC = () => {
           brandColor: "#6C63FF",
           fontFamily: "Inter, sans-serif",
         }}
+        calculateMetadata={async ({ props }) => {
+          await ensureFontsLoaded(props.fontFamily);
+          // Try to load real project data from publicDir (for Studio preview)
+          const projectProps = await tryLoadProjectProps();
+          if (projectProps) {
+            await ensureFontsLoaded(projectProps.fontFamily);
+            const lastScene = projectProps.scenes[projectProps.scenes.length - 1];
+            const totalDurationSec = lastScene?.endTime || 60;
+            return {
+              props: projectProps,
+              durationInFrames: Math.ceil(totalDurationSec * FPS),
+            };
+          }
+          return {};
+        }}
       />
 
       {/* Data chart preview - for testing chart animations */}
@@ -87,6 +226,10 @@ export const RemotionRoot: React.FC = () => {
           durationInFrames: 90,
           brandColor: "#6C63FF",
           fontFamily: "Inter, sans-serif",
+        }}
+        calculateMetadata={async ({ props }) => {
+          await ensureFontsLoaded(props.fontFamily);
+          return {};
         }}
       />
 
@@ -122,6 +265,10 @@ export const RemotionRoot: React.FC = () => {
           brandColor: "#6C63FF",
           fontFamily: "Inter, sans-serif",
         }}
+        calculateMetadata={async ({ props }) => {
+          await ensureFontsLoaded(props.fontFamily);
+          return {};
+        }}
       />
 
       {/* Horse Race chart preview — loads real data via calculateMetadata */}
@@ -134,6 +281,10 @@ export const RemotionRoot: React.FC = () => {
         width={WIDTH}
         height={HEIGHT}
         defaultProps={horseRaceFallbackProps}
+        calculateMetadata={async ({ props }) => {
+          await ensureFontsLoaded(props.fontFamily);
+          return {};
+        }}
       />
 
       {/*
@@ -163,6 +314,8 @@ export const RemotionRoot: React.FC = () => {
           },
         }}
         calculateMetadata={async ({ props }) => {
+          // Load fonts before rendering
+          await ensureFontsLoaded(props.videoConfig?.fontFamily);
           const duration = props.videoConfig?.durationSeconds;
           if (duration && typeof duration === "number") {
             return { durationInFrames: Math.ceil(duration * FPS) };
@@ -182,11 +335,11 @@ export const RemotionRoot: React.FC = () => {
         height={720}
         defaultProps={{
           variant: "A" as const,
-          beforeNumber: "26,000%",
-          afterNumber: "132%",
-          topLabel: "THE DOW",
-          bottomLabel: "PRICED IN GOLD",
-          cornerLabel: "100 YEARS OF DATA",
+          beforeNumber: "100%",
+          afterNumber: "50%",
+          topLabel: "BEFORE",
+          bottomLabel: "AFTER",
+          cornerLabel: "DATA STORY",
           cornerPosition: "bottom-left" as const,
         }}
       />

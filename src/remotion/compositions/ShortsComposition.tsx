@@ -11,6 +11,7 @@ import type { ShortsCompositionProps, SceneInput } from "../schemas";
 import { SubtitleOverlay } from "../components";
 import { SceneVisual } from "../templates/voiceover-visuals";
 import { DataChartScene } from "../templates/data-charts";
+import { loadFontsSync } from "../../fonts/load-fonts";
 
 /**
  * Shorts video composition (9:16, 1080x1920).
@@ -32,6 +33,9 @@ const ShortsComposition: React.FC<ShortsCompositionProps> = ({
   fontFamily,
 }) => {
   const { fps } = useVideoConfig();
+
+  // Safety net: ensure fonts are loaded (primary load happens in Root.tsx calculateMetadata)
+  loadFontsSync(fontFamily);
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#000000" }}>

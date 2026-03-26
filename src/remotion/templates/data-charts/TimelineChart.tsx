@@ -8,10 +8,15 @@ interface TimelineChartProps {
   fontFamily: string;
 }
 
+const DEFAULT_PALETTE = ["#90AFC5", "#5BBF8C", "#E06070", "#EAE0D5"];
+const CREAM = "#EAE0D5";
+const MUTED = "rgba(234, 224, 213, 0.6)";
+const LINE_COLOR = "rgba(234, 224, 213, 0.15)";
+
 /**
- * Horizontal timeline with animated markers.
- * Items appear left-to-right with staggered spring animation.
- * Each item shows a label and value at a point on the timeline.
+ * Cinematic horizontal timeline with animated markers.
+ * Flat/transparent — designed to sit on CinematicGradient or stock video.
+ * Items appear left-to-right with staggered spring animations.
  */
 export const TimelineChart: React.FC<TimelineChartProps> = ({
   chart,
@@ -24,17 +29,31 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
   const items = chart.items || [];
   if (items.length === 0) return null;
 
-  const defaultColors = [
-    "#6C63FF", "#FF6584", "#43E97B", "#F9D423",
-    "#FF9A9E", "#A18CD1",
-  ];
-
-  // Line draw progress
+  // Line draws left-to-right
   const lineProgress = spring({
     fps,
     frame,
     config: { damping: 30, stiffness: 30 },
   });
+
+  const palette = [brandColor || "#D8A7B1", ...DEFAULT_PALETTE];
+
+  const getColor = (index: number) =>
+    items[index].color ||
+    chart.colors?.[index] ||
+    palette[index % palette.length];
+
+  const formatValue = (value: number) => {
+    if (chart.unit === "$") return `$${value.toLocaleString()}`;
+    if (chart.unit === "%" ) return `${value.toLocaleString()}%`;
+    return `${value.toLocaleString()}${chart.unit ? ` ${chart.unit}` : ""}`;
+  };
+
+  // Vertical midpoint of the 300px timeline area
+  const MID_Y = 150;
+  const DOT_SIZE = 14;
+  const CONNECTOR_LENGTH = 20;
+  const LABEL_GAP = 6; // gap between connector end and label block
 
   return (
     <div
@@ -44,23 +63,24 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        borderRadius: 20,
-        border: "1px solid rgba(255,255,255,0.08)",
-        padding: "50px 80px",
+        padding: "60px 80px",
       }}
     >
+      {/* Title */}
       {chart.title && (
         <h2
           style={{
-            color: "#FFFFFF",
-            fontSize: 32,
+            color: CREAM,
+            fontSize: 40,
             fontFamily,
-            fontWeight: 700,
-            marginBottom: 50,
+            fontWeight: 600,
             textAlign: "center",
+            marginTop: 0,
+            marginRight: 0,
+            marginBottom: 50,
+            marginLeft: 0,
+            padding: 0,
+            lineHeight: 1.2,
           }}
         >
           {chart.title}
@@ -68,97 +88,173 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
       )}
 
       {/* Timeline container */}
-      <div style={{ position: "relative", width: "100%", height: 200 }}>
-        {/* Horizontal line */}
+      <div style={{ position: "relative", width: "100%", height: 300 }}>
+        {/* Horizontal timeline line — animated left to right */}
         <div
           style={{
             position: "absolute",
-            top: "50%",
+            top: MID_Y,
             left: 0,
             width: `${lineProgress * 100}%`,
-            height: 3,
-            backgroundColor: "rgba(255,255,255,0.3)",
-            transform: "translateY(-50%)",
+            height: 2,
+            backgroundColor: LINE_COLOR,
+            transform: "translateY(-1px)",
           }}
         />
 
         {/* Timeline items */}
         {items.map((item, index) => {
+          const staggerDelay = index * 10 + 10;
+
+          // Marker scales in
           const markerSpring = spring({
             fps,
-            frame: frame - index * 10 - 10,
-            config: { damping: 15, stiffness: 80 },
+            frame: frame - staggerDelay,
+            config: { damping: 14, stiffness: 80 },
           });
 
-          const leftPercent = items.length === 1
-            ? 50
-            : (index / (items.length - 1)) * 100;
-          const color = item.color || chart.colors?.[index] || defaultColors[index % defaultColors.length];
-          const isEven = index % 2 === 0;
+          // Label fades in with subtle Y offset
+          const labelSpring = spring({
+            fps,
+            frame: frame - staggerDelay - 4,
+            config: { damping: 18, stiffness: 60 },
+          });
+
+          const leftPercent =
+            items.length === 1
+              ? 50
+              : (index / (items.length - 1)) * 100;
+
+          const color = getColor(index);
+          const isTop = index % 2 === 0; // even = label on top, odd = bottom
+
+          // Label translateY direction: top labels slide down into place, bottom slide up
+          const labelTranslateY = interpolate(
+            labelSpring,
+            [0, 1],
+            [isTop ? -12 : 12, 0],
+          );
 
           return (
             <div
-              key={item.label}
+              key={`${item.label}-${index}`}
               style={{
                 position: "absolute",
                 left: `${leftPercent}%`,
-                top: "50%",
-                transform: "translateX(-50%)",
+                top: 0,
+                width: 0,
+                height: "100%",
                 display: "flex",
-                flexDirection: "column",
                 alignItems: "center",
-                opacity: markerSpring,
+                justifyContent: "center",
               }}
             >
-              {/* Label (alternating top/bottom) */}
+              {/* Marker dot — centered on the timeline */}
               <div
                 style={{
                   position: "absolute",
-                  [isEven ? "bottom" : "top"]: 24,
-                  whiteSpace: "nowrap",
-                  textAlign: "center",
-                  transform: `translateY(${interpolate(markerSpring, [0, 1], [isEven ? 10 : -10, 0])}px)`,
-                }}
-              >
-                <div
-                  style={{
-                    color: "#FFFFFF",
-                    fontSize: 18,
-                    fontFamily,
-                    fontWeight: 600,
-                  }}
-                >
-                  {item.label}
-                </div>
-                {item.value !== undefined && (
-                  <div
-                    style={{
-                      color: color,
-                      fontSize: 16,
-                      fontFamily,
-                      fontWeight: 700,
-                      marginTop: 4,
-                    }}
-                  >
-                    {chart.unit === "$"
-                      ? `$${item.value.toLocaleString()}`
-                      : `${item.value.toLocaleString()}${chart.unit ? ` ${chart.unit}` : ""}`}
-                  </div>
-                )}
-              </div>
-
-              {/* Marker dot */}
-              <div
-                style={{
-                  width: 16,
-                  height: 16,
+                  top: MID_Y - DOT_SIZE / 2,
+                  left: -DOT_SIZE / 2,
+                  width: DOT_SIZE,
+                  height: DOT_SIZE,
                   borderRadius: "50%",
                   backgroundColor: color,
-                  border: "3px solid rgba(255,255,255,0.9)",
+                  border: `2px solid ${CREAM}`,
                   transform: `scale(${markerSpring})`,
-                  boxShadow: `0 0 12px ${color}80`,
                 }}
               />
+
+              {/* Connector line from dot to label */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  width: 1,
+                  height: CONNECTOR_LENGTH,
+                  backgroundColor: LINE_COLOR,
+                  opacity: labelSpring,
+                  transform: "translateX(-0.5px)",
+                  ...(isTop
+                    ? { top: MID_Y - DOT_SIZE / 2 - CONNECTOR_LENGTH }
+                    : { top: MID_Y + DOT_SIZE / 2 }),
+                }}
+              />
+
+              {/* Label block */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  transform: `translateX(-50%) translateY(${labelTranslateY}px)`,
+                  opacity: labelSpring,
+                  whiteSpace: "nowrap",
+                  textAlign: "center",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  ...(isTop
+                    ? { bottom: 300 - MID_Y + DOT_SIZE / 2 + CONNECTOR_LENGTH + LABEL_GAP }
+                    : { top: MID_Y + DOT_SIZE / 2 + CONNECTOR_LENGTH + LABEL_GAP }),
+                }}
+              >
+                {isTop ? (
+                  <>
+                    {item.value !== undefined && (
+                      <div
+                        style={{
+                          color,
+                          fontSize: 18,
+                          fontFamily,
+                          fontWeight: 700,
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {formatValue(item.value)}
+                      </div>
+                    )}
+                    <div
+                      style={{
+                        color: CREAM,
+                        fontSize: 20,
+                        fontFamily,
+                        fontWeight: 600,
+                        marginTop: 2,
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {item.label}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div
+                      style={{
+                        color: CREAM,
+                        fontSize: 20,
+                        fontFamily,
+                        fontWeight: 600,
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {item.label}
+                    </div>
+                    {item.value !== undefined && (
+                      <div
+                        style={{
+                          color,
+                          fontSize: 18,
+                          fontFamily,
+                          fontWeight: 700,
+                          marginTop: 2,
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {formatValue(item.value)}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           );
         })}

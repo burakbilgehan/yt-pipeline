@@ -10,8 +10,8 @@ YouTube kanali isletmek icin bir framework kurmak. Framework hazir olduktan sonr
 
 - **Dil:** TypeScript (her yerde)
 - **Video Uretim:** Remotion
-- **TTS:** ElevenLabs (free tier ile basla, ~10-20 dk/ay; Creator $11/ay ~100-200 dk/ay)
-- **Gorseller:** Stock API'lar (Pexels/Unsplash) + AI gorsel uretimi (DALL-E)
+- **TTS:** Google Cloud TTS — Chirp 3: HD (LINEAR16/WAV output, free tier 1M chars/month; previously ElevenLabs — deprecated)
+- **Gorseller:** Stock API'lar (Pexels/Unsplash) + AI gorsel uretimi (Gemini primary, DALL-E fallback)
 - **YouTube:** YouTube Data API v3 + Analytics API
 - **Video Formati:** Voiceover + gorseller/text (birincil), Data/grafik agirlikli (ikincil - chart animasyonlari, haritalar, istatistikler)
 - **Thumbnail:** Simdilik oncelik degil
@@ -60,7 +60,7 @@ Framework'un kendisi — agent prompt'lari, slash command'ler, TypeScript tipler
 ### Icerik (Git'te YASAMAZ)
 Video projeleri, arastirma dosyalari, senaryolar, storyboard'lar, renderlar, yayin metadata'si, analitik verileri. Bunlar **kanal-spesifiktir**.
 
-- `projects/`, `channel-config.json`
+- `channels/<channel-slug>/videos/<slug>/` — her video kendi klasorunde
 - `.gitignore` ile git'ten haric tutulur
 - Yerel dosya sisteminde kalir, gerekirse ayri backup stratejisi uygulanir
 
@@ -183,10 +183,11 @@ Bunlar sirasiyla calisir, her biri pipeline'in bir asamasini yonetir.
 
 #### 4. Video Produksiyon
 - **Mod:** Build
-- **Gorev:** Remotion kullanarak storyboard'u videoya cevirir. TTS uretimi (ElevenLabs), gorsel toplama (Pexels/DALL-E), Remotion renderle birlestirir.
+- **Gorev:** Remotion kullanarak storyboard'u videoya cevirir. TTS uretimi (Google Cloud Chirp 3: HD — LINEAR16/WAV), gorsel toplama (Pexels/Gemini), Remotion renderle birlestirir.
 - **Eski roller:** Video Yaratici + Video Editor birlesti
 - **Cikti:** `production/` klasorune render edilmis video
 - **Kullanici etkilesimi:** Preview sunar, duzenleme talepleri alir
+- **ONEMLI:** Full render asla blocking calistirilmaz. Preview icin Remotion Studio veya `remotion still` kullanilir.
 
 #### 5. Yayin (Publisher)
 - **Mod:** Plan -> Build
@@ -268,12 +269,14 @@ Agir isler icin ayri script'ler:
 
 ```
 scripts/
-  tts-generate.ts         - ElevenLabs TTS uretimi
+  tts-generate.ts         - Google Cloud TTS Chirp 3: HD (LINEAR16/WAV output)
   remotion-render.ts      - Remotion video renderle
   youtube-upload.ts       - YouTube API ile video upload
   fetch-analytics.ts      - YouTube Analytics verisi cek
   collect-stock.ts        - Stock foto/video API'lardan topla
-  generate-image.ts       - DALL-E ile gorsel uret
+  generate-image.ts       - Gemini/DALL-E ile gorsel uret
+  audio-probe.ts          - WAV + MP3 duration parsing utility
+  text-utils.ts           - Word count, duration budget, estimation
 ```
 
 ---
@@ -340,9 +343,9 @@ yt-pipeline/
 ## Maliyet ve Gelir Analizi
 
 ### Maliyet (Aylik)
-- **ElevenLabs TTS:** Free ($0) -> Creator ($11/ay)
+- **Google Cloud TTS Chirp 3: HD:** Free tier 1M chars/month (~111 videos), sonra $30/1M chars
 - **Claude API:** Simdilik free
-- **DALL-E:** Kullanima bagli (~$5-15/ay)
+- **Gemini Image Gen:** Kullanima bagli
 - **Stock API'lar:** Pexels/Unsplash free tier'lar
 - **YouTube API:** Free (quota limitleri var)
 - **Toplam baslangic:** ~$0-15/ay
