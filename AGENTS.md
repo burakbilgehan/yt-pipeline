@@ -26,8 +26,28 @@ Agent/command/skill definitions live in `.ai/`. **Only edit files here.**
 
 ## Architecture
 
-**Pipeline** (git): framework code, agent prompts, Remotion templates, scripts — generic, channel-agnostic.
-**Content** (local only): video projects, research, scripts, renders — channel-specific, in `channels/`.
+Two separate git repos, both cloned side-by-side on every workstation:
+
+| Repo | GitHub | Visibility | Root dir | What it holds |
+|------|--------|-----------|----------|---------------|
+| **Infrastructure** | `burakbilgehan/yt-pipeline` | Public | `yt-pipeline/` | Framework code, agent prompts, Remotion templates, scripts — generic, channel-agnostic |
+| **Content** | `burakbilgehan/yt-pipeline-content` | Private | `yt-pipeline/channels/` | Video projects, research, scripts, configs — channel-specific |
+
+### Setup on a new machine
+
+```bash
+git clone https://github.com/burakbilgehan/yt-pipeline.git
+cd yt-pipeline
+git clone https://github.com/burakbilgehan/yt-pipeline-content.git channels
+npm install
+```
+
+### Key points
+
+- `channels/` is gitignored by the infra repo — it's a nested but independent repo.
+- Content repo tracks **text files only** (configs, scripts, research, storyboards). All media (mp4, wav, mp3, png, jpg, etc.) is gitignored in the content repo.
+- `dist/` is regenerable (`npm run build` = `tsc`), not tracked in either repo.
+- Commit and push each repo independently. They have no git-level dependency (no submodules).
 
 ## Project Resolution Protocol
 
