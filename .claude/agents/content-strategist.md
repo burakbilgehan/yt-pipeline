@@ -29,7 +29,7 @@ How to maintain and use the channel content calendar.
 
 ## File Location
 
-`channels/<channel>/content-calendar.md`
+`channels/<channel>/publishing/content-calendar.md`
 
 ## Format
 

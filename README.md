@@ -35,8 +35,7 @@ yt-pipeline/                          ← this repo (infrastructure)
 ├── .ai/                              # Agent & command definitions (source of truth)
 ├── templates/
 │   ├── channel-config.json           # Channel config template
-│   ├── default-config.json           # Video config template
-│   └── project/                      # Video project folder template
+│   ├── project/                      # Video project folder template (includes config.json)
 ├── public/<video-slug>/              # Remotion assets (gitignored)
 ├── .env.example
 └── package.json

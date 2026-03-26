@@ -13,7 +13,7 @@ import * as path from "node:path";
 import type { ProjectConfig } from "../types/index.js";
 import { getVideosDir, loadChannelConfig } from "../utils/project.js";
 
-const TEMPLATE_PATH = path.resolve("templates/default-config.json");
+const TEMPLATE_PATH = path.resolve("templates/project/config.json");
 
 function main() {
   const args = process.argv.slice(2);
