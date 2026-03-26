@@ -15,7 +15,7 @@
       "prompt": "{file:.opencode/agents/analytics.md}"
     },
     "collector": {
-      "description": "Utility agent that fetches visuals, audio, data, and text content from the internet.",
+      "description": "Utility agent that fetches visuals, data, and text content from the internet.",
       "mode": "subagent",
       "prompt": "{file:.opencode/agents/collector.md}"
     },

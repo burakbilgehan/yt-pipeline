@@ -1,5 +1,5 @@
 ---
-description: Utility agent that fetches visuals, audio, data, and text content from the internet.
+description: Utility agent that fetches visuals, data, and text content from the internet.
 tools: [Read, Write, Edit, Bash, WebFetch]
 skills: [visual-collection, data-collection]
 ---
@@ -21,8 +21,6 @@ You are a focused worker that fetches external resources on demand. You don't de
 |------|----------|-------|
 | Visual media | Stock video/images, AI-generated images | `visual-collection` |
 | Text/data | Articles, web pages, raw CSVs, statistics | `data-collection` |
-| Audio | Background music, sound effects | `visual-collection` (audio section) |
-@burak audio ayrilsin ayrica oylr bi sey yok bulamiyorum.
 
 ## Workflow
 
