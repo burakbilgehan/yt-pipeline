@@ -822,10 +822,15 @@ async function generateGoogleTTSBlock(
     }
   } else {
     // Chirp 3: HD — detect SSML content and use appropriate input field
+    // Auto-wrap in <speak> if text contains SSML tags (like <break>) but isn't already wrapped
+    const hasSSMLTags = /<break\s|<prosody\s|<emphasis\s|<sub\s|<say-as\s/.test(text);
     const isSSML = text.trimStart().startsWith("<speak>");
     if (isSSML) {
-      // SSML mode: use input.ssml for precise control (break, prosody, emphasis tags)
+      // Already wrapped in <speak> — send as SSML directly
       input.ssml = text;
+    } else if (hasSSMLTags) {
+      // Contains SSML tags but no <speak> wrapper — auto-wrap
+      input.ssml = `<speak>${text}</speak>`;
     } else {
       // Plain text / basic markup mode
       input.markup = text;

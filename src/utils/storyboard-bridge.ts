@@ -59,6 +59,76 @@ function normalizeClosingSequence(raw: any): any | undefined {
  * Mutates the visual object in place (adds `visual.dataChart`).
  */
 export function bridgeSceneVisual(visual: any): void {
+  // ── Text-overlay with multi-phase pivot (scene-020: lens switch) ──
+  if (visual?.type === "text-overlay" && visual?.textOverlay?.phase1) {
+    visual.dataChart = {
+      type: "lens-switch-pivot",
+      pivotQuestion: visual.textOverlay.phase1.text,
+      rulerQuestion: visual.textOverlay.phase2?.text,
+    };
+    visual.type = "data-chart";
+    return;
+  }
+
+  // ── Text-overlay with sequence array (scene-027: closing sequence) ──
+  if (visual?.type === "text-overlay" && visual?.textOverlay?.sequence) {
+    visual.dataChart = {
+      type: "closing-sequence",
+      textSequence: visual.textOverlay.sequence,
+      channelName: "The World With Numbers",
+      showSubscribe: visual.textOverlay.subscribePrompt ?? false,
+      endScreenSafe: visual.textOverlay.endScreenSafe ?? true,
+    };
+    visual.type = "data-chart";
+    return;
+  }
+
+  // ── ShrinkflationCards: splitCards array with no dataVisualization (scene-014) ──
+  if (visual?.splitCards && Array.isArray(visual.splitCards) && !visual?.dataVisualization) {
+    visual.dataChart = {
+      type: "shrinkflation-cards",
+      cards: visual.splitCards,
+      blsStat: visual.blsStat,
+    };
+    visual.type = "data-chart";
+    return;
+  }
+
+  // ── SkimpflationCard: textOverlay with SKIMPFLATION title, no dataVisualization (scene-015) ──
+  if (
+    visual?.textOverlay?.title === "SKIMPFLATION" &&
+    !visual?.dataVisualization &&
+    !visual?.phases &&
+    !visual?.hookConfig &&
+    !visual?.splitCards
+  ) {
+    visual.dataChart = {
+      type: "skimpflation-card",
+      title: visual.textOverlay?.title,
+      subtitle: visual.textOverlay?.subtitle,
+    };
+    visual.type = "data-chart";
+    return;
+  }
+
+  // ── BLS Shrinkflation Explainer (scene-005) ──
+  if (visual?.type === "remotion-component" && !visual?.dataVisualization) {
+    const desc = (visual.description || "").toLowerCase();
+    if (desc.includes("shrinkflation") || desc.includes("coffee can")) {
+      visual.dataChart = {
+        type: "bls-shrink-explainer",
+        startSize: "16 oz",
+        endSize: "10 oz",
+        stickerPrice: "$4.99",
+        startPerUnit: "$4.99/lb",
+        endPerUnit: "$7.99/lb",
+        blsAttribution: "BLS tracks per-unit price",
+      };
+      visual.type = "data-chart";
+      return;
+    }
+  }
+
   // ── Composite scenes with phases (e.g., scene-003: grocery → title → bar chart) ──
   if (visual?.phases && Array.isArray(visual.phases)) {
     // ── Closing scene detection: phases contain stock-video or end-screen types ──
@@ -136,6 +206,186 @@ export function bridgeSceneVisual(visual: any): void {
 
   const dv = visual?.dataVisualization;
   if (!dv) return;
+
+  // ── Comparison-then-formula (MetricScene) ───────────────────
+  // Storyboard uses type="comparison-then-formula" for two-phase scenes:
+  //   Phase 1: split comparison card (year vs year)
+  //   Phase 2: animated formula build
+  // Bridge normalizes the storyboard shape into MetricScene props.
+  if (dv.type === "comparison-then-formula") {
+    const p1 = dv.phase1 || {};
+    const p2 = dv.phase2 || {};
+
+    // Normalize phase1 — storyboard may use product-specific keys ("eggs")
+    // while the component expects generic { product, price } fields.
+    const normalizePanel = (raw: any): any => {
+      if (!raw) return { year: 0, wage: "$0", product: "Item", price: "$0" };
+      // Find a product key (anything that's not "year" or "wage")
+      let product = raw.product || "";
+      let price = raw.price || "";
+      if (!product || !price) {
+        for (const key of Object.keys(raw)) {
+          if (key !== "year" && key !== "wage") {
+            product = key.charAt(0).toUpperCase() + key.slice(1);
+            price = String(raw[key]);
+            break;
+          }
+        }
+      }
+      return {
+        year: raw.year ?? 0,
+        wage: raw.wage || "$0",
+        product,
+        price,
+      };
+    };
+
+    // Normalize phase2 — formula string → parts array
+    let formulaParts: string[] = [];
+    if (p2.formulaParts && Array.isArray(p2.formulaParts)) {
+      formulaParts = p2.formulaParts;
+    } else if (p2.formula && typeof p2.formula === "string") {
+      // Split "Price Growth ÷ Wage Growth = RUPI" into parts
+      formulaParts = p2.formula
+        .split(/\s+/)
+        .reduce((acc: string[], token: string) => {
+          // Operators stay as single tokens
+          if (token === "÷" || token === "=" || token === "×" || token === "+" || token === "-" || token === "/") {
+            acc.push(token);
+          } else {
+            // Merge consecutive non-operator tokens (e.g. "Price" + "Growth" → "Price Growth")
+            const last = acc[acc.length - 1];
+            if (last && last !== "÷" && last !== "=" && last !== "×" && last !== "+" && last !== "-" && last !== "/") {
+              acc[acc.length - 1] = `${last} ${token}`;
+            } else {
+              acc.push(token);
+            }
+          }
+          return acc;
+        }, []);
+    }
+
+    visual.dataChart = {
+      type: "metric-scene",
+      phase1: {
+        left: normalizePanel(p1.left),
+        right: normalizePanel(p1.right),
+      },
+      phase2: {
+        formulaParts: formulaParts.length > 0
+          ? formulaParts
+          : ["Price Growth", "÷", "Wage Growth", "=", "RUPI"],
+      },
+      phaseSplitSec: dv.phaseSplitSec,
+      blsLogoSrc: dv.blsLogoSrc,
+    };
+    visual.type = "data-chart";
+    return;
+  }
+
+  // ── Race-line-chart (HorseRaceChart) ────────────────────────
+  // Storyboard uses chartType="race-line-chart" with per-scene config.
+  // Bridge produces dataChart.type="horse-race" so DataChartScene routes correctly.
+  // Full series data is injected later by Root.tsx from rupi-data.json.
+  const chartType: string = dv.chartType || "";
+
+  // ── Baseline Reference (scene-004: RUPI legend diagram) ───
+  if (chartType === "baseline-reference") {
+    visual.dataChart = {
+      type: "baseline-reference",
+      baselineValue: dv.baselineValue ?? 1,
+      zones: dv.zones,
+    };
+    visual.type = "data-chart";
+    return;
+  }
+
+  // ── Special case: Shrinkflation Hook (scene-001) ──────────
+  // When state="initial" and allAtBaseline=true, this is the hook scene
+  // that shows shrinking products then product icons at RUPI=1.0 baseline.
+  if (chartType === "race-line-chart" && dv.state === "initial" && dv.allAtBaseline === true) {
+    visual.dataChart = {
+      type: "shrinkflation-hook",
+      title: visual.textOverlay?.title || "Shrinkflation Decoded",
+      products: dv.products,
+      productColors: dv.productColors,
+    };
+    visual.type = "data-chart";
+    return;
+  }
+
+  // ── Special case: Hook Punchline (scene-002) ──────────────
+  // When state="2025-preview-blur", show blurred bar preview + question text.
+  if (chartType === "race-line-chart" && dv.state === "2025-preview-blur") {
+    visual.dataChart = {
+      type: "hook-punchline",
+      questionText: visual.textOverlay?.text,
+      aboveLine: dv.aboveLine,
+      belowLine: dv.belowLine,
+    };
+    visual.type = "data-chart";
+    return;
+  }
+
+  if (chartType === "race-line-chart") {
+    visual.dataChart = {
+      type: "horse-race",
+      yearRange: dv.yearRange,
+      highlightProduct: dv.highlightProduct,
+      keyDataPoints: dv.keyDataPoints,
+      howToReadOverlay: dv.howToReadOverlay,
+      state: dv.state,
+      allProducts: dv.allProducts,
+      finalPositions: dv.finalPositions,
+      labels: dv.labels,
+      greenRedZones: dv.greenRedZones,
+      peanutButterHighlight: dv.peanutButterHighlight,
+      // Deflator switch fields (scenes 021–025)
+      deflator: dv.deflator,
+      previousDeflator: dv.previousDeflator,
+      morphAnimation: dv.morphAnimation,
+      finalPositionsCPI: dv.finalPositionsCPI,
+      finalPositionsMinWage: dv.finalPositionsMinWage,
+      finalPositionsGold: dv.finalPositionsGold,
+      crossings: dv.crossings,
+      sideStat: dv.sideStat,
+      // Preview/starting states
+      showGreenRedZones: dv.showGreenRedZones,
+      aboveLine: dv.aboveLine,
+      belowLine: dv.belowLine,
+      allAtBaseline: dv.allAtBaseline,
+      baselineValue: dv.baselineValue,
+      baselinePulse: dv.baselinePulse,
+      startGlow: dv.startGlow,
+      products: dv.products,
+      lineStyles: dv.lineStyles,
+      // Summary chart (scene 026)
+      layout: dv.layout,
+      charts: dv.charts,
+      // Annotation / event marker fields (for Root.tsx annotation extraction)
+      eventMarker: dv.eventMarker,
+      annotation: dv.annotation,
+      annotations: dv.annotations,
+      highlightProducts: dv.highlightProducts,
+      dimProducts: dv.dimProducts,
+      overlays: dv.overlays,
+    };
+    // Normalize visual.type so MainComposition picks it up
+    visual.type = "data-chart";
+    return;
+  }
+
+  // ── Grouped-bar-summary (scene 026) ─────────────────────────
+  if (chartType === "grouped-bar-summary") {
+    visual.dataChart = {
+      type: "deflator-summary-grid",
+      title: visual.textOverlay?.title || "Same Data. Different Ruler.",
+      charts: dv.charts,
+      source: "BLS, FRED, DOL, LBMA",
+    };
+    visual.type = "data-chart";
+    return;
+  }
 
   const component: string = dv.component;
   const cfg = dv.config || {};

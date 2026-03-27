@@ -107,6 +107,207 @@ async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSch
     // Apply dataVisualization → dataChart bridge
     bridgeAllScenes(resolvedScenes);
 
+    // ── Inject HorseRaceChart data into horse-race scenes ──
+    // Load RUPI series data and attach to each horse-race scene's dataChart
+    try {
+      const rupiRes = await fetch(staticFile("production/rupi-data.json"));
+      if (rupiRes.ok) {
+        const rupiData = (await rupiRes.json()) as Record<string, any[]>;
+        // Map storyboard deflator names → rupi-data.json keys
+        const deflatorKeyMap: Record<string, string> = {
+          "Median Wage": "wage",
+          "median wage": "wage",
+          "wage": "wage",
+          "CPI": "cpi",
+          "cpi": "cpi",
+          "Federal Minimum Wage": "minWage",
+          "Minimum Wage": "minWage",
+          "minWage": "minWage",
+          "Gold": "gold",
+          "gold": "gold",
+        };
+
+        // ── Pass 1: Inject series data + per-scene defaults ──
+        const horseRaceScenes: Array<{ scene: any; dc: any }> = [];
+
+        for (const scene of resolvedScenes) {
+          const dc = scene.visual?.dataChart;
+          if (!dc || dc.type !== "horse-race") continue;
+
+          horseRaceScenes.push({ scene, dc });
+
+          // Determine which deflator's series to use
+          const deflatorName: string = dc.deflator || "Median Wage";
+          const dataKey = deflatorKeyMap[deflatorName] || "wage";
+          const series = rupiData[dataKey];
+          if (series && Array.isArray(series)) {
+            dc.series = series;
+          }
+
+          // Set time range from scene's yearRange or full range
+          const yr = dc.yearRange;
+          dc.timeRange = {
+            start: yr?.[0] ?? 2000,
+            end: yr?.[1] ?? 2025,
+          };
+
+          // Defaults for camera/annotations (per-scene overrides can be added later)
+          if (!dc.cameraKeyframes) {
+            dc.cameraKeyframes = [{ year: dc.timeRange.start, zoom: 1.0, speed: 1.0 }];
+          }
+
+          // Use transparent background so SceneVisual layer shows through
+          dc.backgroundColor = "transparent";
+
+          // Linear scale for RUPI (0–3.5 range) — log scale not appropriate here
+          if (dc.logScale === undefined) {
+            dc.logScale = false;
+          }
+
+          // Y-axis label based on deflator
+          if (!dc.yAxisLabel) {
+            const yLabels: Record<string, string> = {
+              wage: "RUPI (Wage-Deflated)",
+              cpi: "RUPI (CPI-Deflated)",
+              minWage: "RUPI (Min Wage-Deflated)",
+              gold: "RUPI (Gold-Deflated)",
+            };
+            dc.yAxisLabel = yLabels[dataKey] || "RUPI";
+          }
+        }
+
+        // ── Pass 2: Build per-scene sceneYearRanges ──
+        // MainComposition renders each scene inside its own <Sequence from={startFrame}>,
+        // so useCurrentFrame() in HorseRaceChart returns scene-local frames (0..sceneDuration).
+        // Each scene therefore needs a single-entry sceneYearRanges covering 0..sceneDurationSec
+        // mapped to the appropriate yearStart..yearEnd for that scene.
+        if (horseRaceScenes.length > 0) {
+          let lastYearEnd = 2000;
+
+          for (const { scene, dc } of horseRaceScenes) {
+            const sceneDurationSec = (scene.endTime || 0) - (scene.startTime || 0);
+            const yr = dc.yearRange;
+            const state: string = dc.state || "";
+
+            let yearStart: number;
+            let yearEnd: number;
+
+            if (state === "start-position") {
+              yearStart = 2000;
+              yearEnd = 2000;
+            } else if (state.startsWith("frozen") || state.startsWith("paused")) {
+              const frozenYear = parseInt(state.replace(/\D/g, "")) || lastYearEnd;
+              yearStart = frozenYear;
+              yearEnd = frozenYear;
+            } else if (dc.deflator && dc.deflator !== "Median Wage" && dc.deflator !== "median wage" && dc.deflator !== "wage") {
+              // Deflator switch scenes (021–025): chart at full extent, lines morph
+              yearStart = 2025;
+              yearEnd = 2025;
+            } else if (yr && Array.isArray(yr) && yr.length === 2) {
+              yearStart = yr[0];
+              yearEnd = yr[1];
+            } else {
+              yearStart = lastYearEnd;
+              yearEnd = lastYearEnd;
+            }
+
+            // Single-entry range: scene-local time 0 → sceneDuration maps to yearStart → yearEnd
+            dc.sceneYearRanges = [{
+              sceneStartSec: 0,
+              sceneEndSec: sceneDurationSec,
+              yearStart,
+              yearEnd,
+            }];
+            lastYearEnd = yearEnd;
+          }
+        }
+
+        // ── Pass 3: Build annotations from storyboard data ──
+        if (horseRaceScenes.length > 0) {
+          const allAnnotations: Array<{
+            year: number;
+            text: string;
+            style: string;
+            asset?: string;
+            duration?: number;
+            icon?: string;
+          }> = [];
+
+          for (const { dc } of horseRaceScenes) {
+            // eventMarker → annotation
+            if (dc.eventMarker) {
+              const em = dc.eventMarker;
+              const textStr: string = (em.title || em.text || "").toLowerCase();
+              const isMajor = textStr.includes("avian") ||
+                              textStr.includes("covid") ||
+                              (em.type || "") === "covid-annotation";
+              allAnnotations.push({
+                year: em.year,
+                text: em.title || em.text,
+                style: isMajor ? "major-crisis-flash" : "crisis-flash",
+                duration: 2,
+              });
+            }
+
+            // annotation (singular object, e.g. scene-008)
+            if (dc.annotation && typeof dc.annotation === "object" && !Array.isArray(dc.annotation)) {
+              allAnnotations.push({
+                year: dc.annotation.year,
+                text: dc.annotation.text,
+                style: "milestone-flash",
+                asset: dc.annotation.product,
+                duration: 2,
+              });
+            }
+
+            // annotations (array from storyboard, e.g. scene-018)
+            // Only process raw storyboard annotation arrays (objects with `near` field),
+            // not the final HorseRaceAnnotation[] which have `style` field
+            if (dc.annotations && Array.isArray(dc.annotations)) {
+              for (const a of dc.annotations) {
+                if (a.near && a.year && a.text) {
+                  allAnnotations.push({
+                    year: a.year,
+                    text: a.text,
+                    style: "leader-callout",
+                    asset: a.near,
+                    duration: 2,
+                  });
+                }
+              }
+            }
+
+            // crossings (from deflator switch scenes)
+            if (dc.crossings && Array.isArray(dc.crossings)) {
+              for (const c of dc.crossings) {
+                allAnnotations.push({
+                  year: 2025, // crossings happen at final position
+                  text: `${c.product} crosses 1.0`,
+                  style: "crossing-alert",
+                  asset: c.product,
+                  duration: 2,
+                });
+              }
+            }
+          }
+
+          // Deduplicate by year+text
+          const seen = new Set<string>();
+          const uniqueAnnotations = allAnnotations.filter((a) => {
+            const key = `${a.year}-${a.text}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+
+          // Inject into all horse-race scenes
+          for (const { dc } of horseRaceScenes) {
+            dc.annotations = uniqueAnnotations;
+          }
+        }
+      }
+    } catch { /* no RUPI data — horse-race scenes show placeholder */ }
+
     // Try to load audio manifest for timing
     const audioSegments: Array<{ src: string; startTime: number }> = [];
     try {

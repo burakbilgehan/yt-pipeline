@@ -28,6 +28,7 @@ export type ChartType =
   | "progress"
   | "scale-comparison"
   | "quadrant-scatter"
+  | "deflator-summary-grid"
   | "horse-race";
 
 // ─── Scene Input ──────────────────────────────────────────────

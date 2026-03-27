@@ -10,6 +10,7 @@ export const sceneVisualInputSchema = z.object({
   type: z.enum([
     "stock-video", "stock-image", "ai-image",
     "text-overlay", "data-chart", "map", "composite",
+    "data-visualization", "remotion-component",
   ]),
   description: z.string(),
   searchQuery: z.string().optional(),
@@ -88,7 +89,7 @@ export const dataChartItemSchema = z.object({
 });
 
 export const dataChartInputSchema = z.object({
-  type: z.enum(["bar-chart", "line-chart", "pie-chart", "counter", "comparison", "timeline", "scale-comparison", "horse-race", "progress", "quadrant-scatter", "salary-shuffle", "ranking-resort", "calendar-grid", "division-comparison", "end-card", "hook-scene", "horizontal-bar-chart", "split-comparison", "title-card", "composite-phases", "closing-scene"]),
+  type: z.enum(["bar-chart", "line-chart", "pie-chart", "counter", "comparison", "timeline", "scale-comparison", "horse-race", "progress", "quadrant-scatter", "salary-shuffle", "ranking-resort", "calendar-grid", "division-comparison", "end-card", "hook-scene", "horizontal-bar-chart", "split-comparison", "title-card", "composite-phases", "closing-scene", "deflator-summary-grid", "metric-scene", "shrinkflation-hook", "hook-punchline", "lens-switch-pivot", "closing-sequence", "shrinkflation-cards", "skimpflation-card", "baseline-reference", "bls-shrink-explainer"]),
   title: z.string().optional(),
   subtitle: z.string().optional(),
   items: z.array(dataChartItemSchema).optional(),

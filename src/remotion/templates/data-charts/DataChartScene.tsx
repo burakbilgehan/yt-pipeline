@@ -1,5 +1,6 @@
 import React from "react";
 import type { DataChartInput } from "../../schemas";
+import type { HorseRaceChartProps } from "../../types";
 import { BarChart } from "./BarChart";
 import { Counter } from "./Counter";
 import { ComparisonTable } from "./ComparisonTable";
@@ -20,6 +21,17 @@ import { SplitComparison } from "./SplitComparison";
 import { TitleCard } from "./TitleCard";
 import { CompositePhases } from "./CompositePhases";
 import { ClosingScene } from "./ClosingScene";
+import { DeflatorSummaryGrid } from "./DeflatorSummaryGrid";
+import { MetricScene } from "./MetricScene";
+import { ShrinkflationHook } from "./ShrinkflationHook";
+import { HookPunchline } from "./HookPunchline";
+import { ShrinkflationCards } from "./ShrinkflationCards";
+import { SkimpflationCard } from "./SkimpflationCard";
+import { LensSwitchPivot } from "./LensSwitchPivot";
+import { ClosingSequence } from "./ClosingSequence";
+import { BaselineReference } from "./BaselineReference";
+import { BLSShrinkExplainer } from "./BLSShrinkExplainer";
+import { HorseRaceChart } from "./HorseRaceChart";
 
 interface DataChartSceneProps {
   chart: DataChartInput;
@@ -140,10 +152,92 @@ export const DataChartScene: React.FC<DataChartSceneProps> = ({
         <ClosingScene chart={chart} brandColor={brandColor} fontFamily={fontFamily} />
       );
 
-    case "horse-race":
-      // HorseRaceChart has its own composition with specialized props.
-      // Use the HorseRacePreview composition directly in Root.tsx.
-      return null;
+    case "metric-scene":
+      return (
+        <MetricScene chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "deflator-summary-grid":
+      return (
+        <DeflatorSummaryGrid chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "shrinkflation-hook":
+      return (
+        <ShrinkflationHook chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "hook-punchline":
+      return (
+        <HookPunchline chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "shrinkflation-cards":
+      return (
+        <ShrinkflationCards chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "skimpflation-card":
+      return (
+        <SkimpflationCard chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "lens-switch-pivot":
+      return (
+        <LensSwitchPivot chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "closing-sequence":
+      return (
+        <ClosingSequence chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "baseline-reference":
+      return (
+        <BaselineReference chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "bls-shrink-explainer":
+      return (
+        <BLSShrinkExplainer chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "horse-race": {
+      // Extract HorseRaceChartProps from the chart object.
+      // These fields are injected by Root.tsx after bridgeAllScenes().
+      const hrChart = chart as DataChartInput & Partial<HorseRaceChartProps>;
+      const hrProps: HorseRaceChartProps = {
+        series: hrChart.series || [],
+        cameraKeyframes: hrChart.cameraKeyframes || [{ year: 2000, zoom: 1.0, speed: 1.0 }],
+        annotations: hrChart.annotations || [],
+        timeRange: hrChart.timeRange || { start: 2000, end: 2025 },
+        sceneYearRanges: hrChart.sceneYearRanges,
+        backgroundColor: hrChart.backgroundColor || "transparent",
+        brandColor: brandColor,
+        fontFamily: fontFamily,
+        logScale: hrChart.logScale,
+        yAxisLabel: hrChart.yAxisLabel,
+      };
+      // If no series data yet (not injected), render a placeholder
+      if (hrProps.series.length === 0) {
+        return (
+          <div style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#EAE0D5",
+            fontFamily,
+            fontSize: 24,
+            opacity: 0.5,
+          }}>
+            Horse Race Chart — awaiting data
+          </div>
+        );
+      }
+      return <HorseRaceChart {...hrProps} />;
+    }
 
     default:
       return null;

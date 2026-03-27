@@ -21,7 +21,7 @@ export function getVideosDir(channelSlug?: string): string {
   }
   if (fs.existsSync(CHANNELS_DIR)) {
     const entries = fs.readdirSync(CHANNELS_DIR, { withFileTypes: true });
-    const first = entries.find((e) => e.isDirectory());
+    const first = entries.find((e) => e.isDirectory() && !e.name.startsWith("."));
     if (first) {
       return path.join(CHANNELS_DIR, first.name, "videos");
     }
@@ -41,7 +41,7 @@ export function getChannelConfigPath(channelSlug?: string): string {
   }
   if (fs.existsSync(CHANNELS_DIR)) {
     const entries = fs.readdirSync(CHANNELS_DIR, { withFileTypes: true });
-    const first = entries.find((e) => e.isDirectory());
+    const first = entries.find((e) => e.isDirectory() && !e.name.startsWith("."));
     if (first) {
       return path.join(CHANNELS_DIR, first.name, "channel-config.json");
     }
