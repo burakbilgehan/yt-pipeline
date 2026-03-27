@@ -344,7 +344,7 @@ function CTAPreview({ config, colors, vibeId }: { config: VibeVisualConfig; colo
         display: 'inline-block',
         fontSize: 8,
         fontWeight: 600,
-        color: isDashboard ? '#000' : colors.text === '#E8E0D4' ? '#000' : '#fff',
+        color: isDashboard ? '#000' : colors.text === '#F0EDE8' ? '#000' : '#fff',
         background: colors.accent1,
         padding: '3px 12px',
         borderRadius: vibeId === 'editorial' ? 20 : config.cornerRadius,
