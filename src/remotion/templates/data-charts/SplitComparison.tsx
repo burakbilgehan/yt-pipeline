@@ -5,6 +5,7 @@ import {
   spring,
   interpolate,
 } from "remotion";
+import { TEXT, BG, ACCENT_PINK } from "../../palette";
 
 /**
  * SplitComparison — Scene 003 Phase 1
@@ -13,7 +14,7 @@ import {
  * Left: Zurich (expensive), Right: Mexico City (cheap)
  * Same items, different prices → visual PPP explanation.
  *
- * Dark-cozy theme: #1A1B22 bg, #D8A7B1 divider, #EAE0D5 text
+ * Dark-cozy theme: #2A2A32 bg, #E88CA5 divider, #F0EDE8 text
  */
 
 interface GroceryItem {
@@ -40,9 +41,9 @@ interface SplitComparisonProps {
   fontFamily: string;
 }
 
-const TEXT_COLOR = "#EAE0D5";
-const MUTED_TEXT = "rgba(234, 224, 213, 0.6)";
-const BG_COLOR = "#1A1B22";
+const TEXT_COLOR = TEXT;
+const MUTED_TEXT = "rgba(240, 237, 232, 0.6)"; // derived from TEXT (0.6 opacity, not in palette)
+const BG_COLOR = BG;
 
 // Grocery item icons (text-based, no emoji)
 const ITEM_ICONS: Record<string, string> = {
@@ -159,7 +160,7 @@ const CityPanel: React.FC<{
         style={{
           width: "100%",
           height: 1,
-          backgroundColor: "rgba(234,224,213,0.15)",
+          backgroundColor: "rgba(240,237,232,0.15)",
           margin: "20px 0",
         }}
       />
@@ -195,7 +196,7 @@ const CityPanel: React.FC<{
                 fontFamily: fontFamily || "Inter, sans-serif",
                 fontSize: 30,
                 fontWeight: 700,
-                color: brandColor || "#D8A7B1",
+                color: brandColor || ACCENT_PINK,
               }}
             >
               {data.total}
@@ -228,7 +229,7 @@ export const SplitComparison: React.FC<SplitComparisonProps> = ({
     total: "$0",
   };
   const comparisonLabel = chart.comparisonLabel as string || "";
-  const dividerColor = chart.dividerColor || brandColor || "#D8A7B1";
+  const dividerColor = chart.dividerColor || brandColor || ACCENT_PINK;
 
   // Divider line animation
   const dividerSpring = spring({

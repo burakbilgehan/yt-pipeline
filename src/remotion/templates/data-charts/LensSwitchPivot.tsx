@@ -5,6 +5,7 @@ import {
   spring,
   interpolate,
 } from "remotion";
+import { BG, TEXT, POSITIVE, SAGE } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -28,10 +29,9 @@ interface LensSwitchPivotProps {
 
 // ─── Design tokens ────────────────────────────────────────────
 
-const BG_COLOR = "#1A1B22";
-const TEXT_COLOR = "#EAE0D5";
-const GREEN = "#5BBF8C";
-const SAGE = "#A3B18A";
+const BG_COLOR = BG;
+const TEXT_COLOR = TEXT;
+const GREEN = POSITIVE;
 
 // Phase boundaries (in seconds)
 const PHASE1_END = 6;

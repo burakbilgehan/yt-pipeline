@@ -10,6 +10,7 @@ import {
 } from "remotion";
 import { Video } from "@remotion/media";
 import type { SceneVisualInput } from "../../schemas";
+import { BG, TEXT } from "../../palette";
 
 interface SceneVisualProps {
   visual: SceneVisualInput;
@@ -74,28 +75,31 @@ export const SceneVisual: React.FC<SceneVisualProps> = ({
         <CinematicGradient brandColor={brandColor} />
       )}
 
-      {/* Dark vignette overlay for readability */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%)",
-        }}
-      />
-
-      {/* Bottom gradient for text area */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: "40%",
-          background:
-            "linear-gradient(transparent, rgba(0,0,0,0.7))",
-        }}
-      />
+      {/* Dark vignette + bottom gradient — only over real images/videos,
+          never over CinematicGradient (flat solid bg) */}
+      {(hasImage || hasFallback) && (
+        <>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: "40%",
+              background:
+                "linear-gradient(transparent, rgba(0,0,0,0.7))",
+            }}
+          />
+        </>
+      )}
 
       {/* Ranking badge + price tag from textOverlay (only if it's a string) */}
       {visual.textOverlay && typeof visual.textOverlay === "string" && (
@@ -196,7 +200,7 @@ const CinematicGradient: React.FC<{ brandColor: string }> = ({
 }) => (
   <AbsoluteFill
     style={{
-      background: "linear-gradient(180deg, #1A1B22 0%, #2D2B3D 100%)",
+      backgroundColor: BG,
     }}
   />
 );
@@ -255,7 +259,7 @@ const RankingOverlay: React.FC<RankingOverlayProps> = ({
           <div
             style={{
               backgroundColor: brandColor,
-              color: "#EAE0D5",
+              color: TEXT,
               fontSize: 56,
               fontFamily,
               fontWeight: 900,
@@ -284,7 +288,7 @@ const RankingOverlay: React.FC<RankingOverlayProps> = ({
         {itemName && (
           <div
             style={{
-              color: "#EAE0D5",
+              color: TEXT,
               fontSize: 46,
               fontFamily,
               fontWeight: 700,
@@ -312,7 +316,7 @@ const RankingOverlay: React.FC<RankingOverlayProps> = ({
           >
             <span
               style={{
-                color: "#EAE0D5",
+                color: TEXT,
                 fontSize: 30,
                 fontFamily,
                 fontWeight: 600,
@@ -408,7 +412,7 @@ const TitleCard: React.FC<TitleCardProps> = ({
       >
         <h1
           style={{
-            color: "#EAE0D5",
+            color: TEXT,
             fontSize,
             fontFamily,
             fontWeight: 600,
@@ -471,7 +475,7 @@ const BulletListCard: React.FC<{
               style={{
                 opacity: lineSpring,
                 transform: `translateX(${interpolate(lineSpring, [0, 1], [-20, 0])}px)`,
-                color: "#EAE0D5",
+                color: TEXT,
                 fontSize,
                 fontFamily,
                 fontWeight: 500,

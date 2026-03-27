@@ -6,6 +6,7 @@ import {
   interpolate,
   Easing,
 } from "remotion";
+import { TEXT, SAGE, ACCENT_BLUE } from "../../palette";
 
 /**
  * ShrinkflationHook — Scene 001 (20s)
@@ -18,7 +19,7 @@ import {
  * ~10s: Shrink props dissolve, 6 product icons emerge at RUPI=1.0 baseline
  *       with stagger. Baseline pulses gently.
  *
- * Background: #1A1B22 + dot grid (2px #A3B18A dots, 40px spacing, 10% opacity)
+ * Background: #2A2A32 + dot grid (2px #8A9A7A dots, 40px spacing, 10% opacity)
  */
 
 interface ShrinkflationHookProps {
@@ -33,20 +34,20 @@ interface ShrinkflationHookProps {
   fontFamily: string;
 }
 
-const BG_COLOR = "#1A1B22";
-const ACCENT_CREAM = "#EAE0D5";
-const SAGE_SILVER = "#A3B18A";
+const BG_COLOR = "#232328"; // intentionally different from palette BG
+const ACCENT_CREAM = TEXT;
+const SAGE_SILVER = SAGE;
 const DOT_SPACING = 40;
 const DOT_SIZE = 2;
 
 const DEFAULT_PRODUCTS = ["Eggs", "Coffee", "Chips", "Milk", "Peanut Butter", "Ice Cream"];
 const DEFAULT_PRODUCT_COLORS: Record<string, string> = {
-  Eggs: "#D8A7B1",
-  Coffee: "#90AFC5",
-  Chips: "rgba(234,224,213,0.9)",
-  Milk: "rgba(234,224,213,0.7)",
-  "Peanut Butter": "rgba(234,224,213,0.55)",
-  "Ice Cream": "rgba(234,224,213,0.4)",
+  Eggs: "#E8828A",
+  Coffee: "#7BA3C4",
+  Chips: "rgba(240,237,232,0.9)",
+  Milk: "rgba(240,237,232,0.7)",
+  "Peanut Butter": "rgba(240,237,232,0.55)",
+  "Ice Cream": "rgba(240,237,232,0.4)",
 };
 
 /** Dot grid background — SVG pattern, no emoji. */
@@ -326,7 +327,7 @@ export const ShrinkflationHook: React.FC<ShrinkflationHookProps> = ({
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
             <ProductBox
               label="COFFEE"
-              color={productColors["Coffee"] || "#90AFC5"}
+              color={productColors["Coffee"] || ACCENT_BLUE}
               scale={coffeeScale}
               opacity={coffeeOpacity}
               width={120}

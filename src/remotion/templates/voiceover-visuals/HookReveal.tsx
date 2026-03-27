@@ -7,6 +7,7 @@ import {
   spring,
   Easing,
 } from "remotion";
+import { TEXT_SECONDARY } from "../../palette";
 
 interface HookRevealProps {
   /** The big "before" number (e.g. "26,000%") */
@@ -121,9 +122,9 @@ const CountingTickerVariant: React.FC<HookRevealProps> = ({
     }
     return backgroundColor.startsWith("#0") || backgroundColor.startsWith("#1") || backgroundColor.startsWith("#2") || backgroundColor.startsWith("#3");
   })();
-  const mutedColor = isDarkBg ? "rgba(232,224,212,0.7)" : "rgba(0,0,0,0.35)";
-  const subtitleColor = isDarkBg ? "rgba(232,224,212,0.85)" : "rgba(0,0,0,0.5)";
-  const contextTextColor = isDarkBg ? "rgba(232,224,212,0.75)" : "rgba(0,0,0,0.4)";
+  const mutedColor = isDarkBg ? TEXT_SECONDARY : "rgba(0,0,0,0.35)";
+  const subtitleColor = isDarkBg ? "rgba(240,237,232,0.85)" : "rgba(0,0,0,0.5)";
+  const contextTextColor = isDarkBg ? "rgba(240,237,232,0.75)" : "rgba(0,0,0,0.4)";
 
   // Parse target values
   const bigVal = parseDisplayNumber(bigNumber);
@@ -482,9 +483,9 @@ const ClassicVariant: React.FC<HookRevealProps> = ({
     }
     return backgroundColor.startsWith("#0") || backgroundColor.startsWith("#1") || backgroundColor.startsWith("#2") || backgroundColor.startsWith("#3");
   })();
-  const mutedColor = isDarkBg ? "rgba(232,224,212,0.7)" : "rgba(0,0,0,0.35)";
-  const subtitleColor = isDarkBg ? "rgba(232,224,212,0.85)" : "rgba(0,0,0,0.5)";
-  const contextTextColor = isDarkBg ? "rgba(232,224,212,0.75)" : "rgba(0,0,0,0.4)";
+  const mutedColor = isDarkBg ? TEXT_SECONDARY : "rgba(0,0,0,0.35)";
+  const subtitleColor = isDarkBg ? "rgba(240,237,232,0.85)" : "rgba(0,0,0,0.5)";
+  const contextTextColor = isDarkBg ? "rgba(240,237,232,0.75)" : "rgba(0,0,0,0.4)";
 
   // ── Phase 0: Context line ──
   const contextFrames = fps * contextDuration;

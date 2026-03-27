@@ -5,6 +5,7 @@ import {
   spring,
   interpolate,
 } from "remotion";
+import { BG, TEXT, ACCENT_PINK } from "../../palette";
 
 /**
  * TitleCard — Scene 003 Phase 2
@@ -29,7 +30,7 @@ interface TitleCardProps {
   fontFamily: string;
 }
 
-const BG_COLOR = "#1A1B22";
+const BG_COLOR = BG;
 
 export const TitleCard: React.FC<TitleCardProps> = ({
   chart,
@@ -41,8 +42,8 @@ export const TitleCard: React.FC<TitleCardProps> = ({
 
   const title = chart.title || "Title";
   const subtitle = chart.subtitle || "";
-  const titleColor = chart.titleColor || "#EAE0D5";
-  const subtitleColor = chart.subtitleColor || "rgba(234,224,213,0.6)";
+  const titleColor = chart.titleColor || TEXT;
+  const subtitleColor = chart.subtitleColor || "rgba(240,237,232,0.6)";
 
   // Title entrance
   const titleSpring = spring({
@@ -104,7 +105,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({
         style={{
           width: interpolate(lineSpring, [0, 1], [0, 120]),
           height: 2,
-          backgroundColor: brandColor || "#D8A7B1",
+          backgroundColor: brandColor || ACCENT_PINK,
           margin: "24px 0",
           opacity: lineSpring * 0.6,
         }}
@@ -138,7 +139,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({
             fontFamily: fontFamily || "Inter, sans-serif",
             fontSize: 14,
             fontWeight: 500,
-            color: "rgba(234,224,213,0.3)",
+            color: "rgba(240,237,232,0.3)",
             letterSpacing: "0.1em",
             textTransform: "uppercase",
             opacity: subtitleSpring,

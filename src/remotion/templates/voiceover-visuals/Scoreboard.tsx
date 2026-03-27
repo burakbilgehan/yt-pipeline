@@ -7,6 +7,7 @@ import {
   spring,
   Easing,
 } from "remotion";
+import { TEXT, TEXT_MUTED, TEXT_FAINT } from "../../palette";
 
 interface ScoreboardItem {
   label: string;
@@ -59,9 +60,9 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
     }
     return backgroundColor.startsWith("#0") || backgroundColor.startsWith("#1") || backgroundColor.startsWith("#2") || backgroundColor.startsWith("#3");
   })();
-  const textPrimary = isDarkBg ? "#E8E0D4" : "#1a1a1a";
-  const textMuted = isDarkBg ? "rgba(232,224,212,0.5)" : "rgba(0,0,0,0.25)";
-  const textSubtle = isDarkBg ? "rgba(232,224,212,0.4)" : "rgba(0,0,0,0.18)";
+  const textPrimary = isDarkBg ? TEXT : "#1a1a1a";
+  const textMuted = isDarkBg ? TEXT_MUTED : "rgba(0,0,0,0.25)";
+  const textSubtle = isDarkBg ? TEXT_FAINT : "rgba(0,0,0,0.18)";
   const barTrackBg = isDarkBg ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)";
 
   const maxAbsValue = Math.max(...items.map((item) => Math.abs(item.value)));

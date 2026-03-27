@@ -5,6 +5,7 @@ import {
   spring,
   interpolate,
 } from "remotion";
+import { BG, TEXT, NEGATIVE, POSITIVE, SAGE, TRACK } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -28,12 +29,11 @@ interface DeflatorSummaryGridProps {
 
 // ─── Design tokens ────────────────────────────────────────────
 
-const BG_COLOR = "#1A1B22";
-const TEXT_COLOR = "#EAE0D5";
-const RED = "#E06070";
-const GREEN = "#5BBF8C";
-const SAGE = "#A3B18A";
-const TRACK_COLOR = "rgba(234, 224, 213, 0.06)";
+const BG_COLOR = BG;
+const TEXT_COLOR = TEXT;
+const RED = NEGATIVE;
+const GREEN = POSITIVE;
+const TRACK_COLOR = TRACK;
 
 const DOT_SIZE = 2;
 const DOT_SPACING = 40;
@@ -104,7 +104,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
         flexDirection: "column",
         padding: "16px 20px",
         borderRadius: 12,
-        backgroundColor: "rgba(234, 224, 213, 0.03)",
+        backgroundColor: "rgba(240, 237, 232, 0.03)",
         border: `1px solid rgba(163, 177, 138, 0.15)`,
         flex: 1,
         minWidth: 0,
@@ -191,7 +191,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
                   fontFamily: fontFamily || "Inter, sans-serif",
                   fontSize: 14,
                   fontWeight: 500,
-                  color: "rgba(234, 224, 213, 0.7)",
+                  color: "rgba(240, 237, 232, 0.7)",
                   textAlign: "right",
                   paddingRight: 10,
                   opacity: textOpacity,

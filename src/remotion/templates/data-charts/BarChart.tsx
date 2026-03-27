@@ -1,6 +1,7 @@
 import React from "react";
 import { spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import type { DataChartInput, DataChartItem } from "../../schemas";
+import { TEXT, ACCENT_PINK, ACCENT_BLUE, POSITIVE, NEGATIVE, TRACK } from "../../palette";
 
 interface BarChartProps {
   chart: DataChartInput;
@@ -17,24 +18,24 @@ interface BarChartProps {
  * accent colors for emphasis.
  */
 const getSemanticColors = (brandColor: string) => ({
-  positive: "#5BBF8C",
-  negative: "#E06070",
-  accent1: brandColor || "#D8A7B1",
-  accent2: "#90AFC5",
-  neutral: "#EAE0D5",
+  positive: POSITIVE,
+  negative: NEGATIVE,
+  accent1: brandColor || ACCENT_PINK,
+  accent2: ACCENT_BLUE,
+  neutral: TEXT,
 });
 
 const DEFAULT_COLORS = [
-  "#90AFC5",  // Blue — default for most bars
-  "#90AFC5",
-  "#90AFC5",
-  "#90AFC5",
-  "#90AFC5",
+  ACCENT_BLUE,
+  ACCENT_BLUE,
+  ACCENT_BLUE,
+  ACCENT_BLUE,
+  ACCENT_BLUE,
 ];
 
-const TEXT_COLOR = "#EAE0D5";
-const MUTED_TEXT = "rgba(234, 224, 213, 0.6)";
-const TRACK_COLOR = "rgba(234, 224, 213, 0.06)";
+const TEXT_COLOR = TEXT;
+const MUTED_TEXT = "rgba(240, 237, 232, 0.6)"; // derived from TEXT, opacity 0.6
+const TRACK_COLOR = TRACK;
 
 const formatValue = (value: number, unit?: string): string => {
   if (unit === "$") {
@@ -85,7 +86,7 @@ const HorizontalBars: React.FC<BarChartProps> = ({
       {chart.subtitle && (
         <div
           style={{
-            color: "rgba(234, 224, 213, 0.45)",
+            color: "rgba(240, 237, 232, 0.45)",
             fontSize: 16,
             fontFamily,
             marginBottom: 20,

@@ -8,6 +8,7 @@ import {
   Easing,
   Sequence,
 } from "remotion";
+import { BG, TEXT, ACCENT_PINK } from "../../palette";
 
 /**
  * HookScene — Scene 001: "What is one hour of your life worth?"
@@ -145,7 +146,7 @@ export const HookScene: React.FC<HookSceneProps> = ({
       style={{
         width: 1920,
         height: 1080,
-        backgroundColor: "#1A1B22",
+        backgroundColor: BG,
         position: "relative",
         overflow: "hidden",
         fontFamily: fontFamily || "Inter, sans-serif",
@@ -175,7 +176,7 @@ export const HookScene: React.FC<HookSceneProps> = ({
               style={{
                 fontFamily: fontFamily || "Inter, sans-serif",
                 fontSize: 52,
-                color: "#EAE0D5",
+                color: TEXT,
                 fontWeight: 500,
                 letterSpacing: "0.02em",
                 lineHeight: 1.3,
@@ -186,7 +187,7 @@ export const HookScene: React.FC<HookSceneProps> = ({
             </div>
           </div>
           <div style={{ marginTop: 30, opacity: clockOpacity }}>
-            <ClockIcon progress={clockProgress} color={brandColor || "#D8A7B1"} size={70} />
+            <ClockIcon progress={clockProgress} color={brandColor || ACCENT_PINK} size={70} />
           </div>
         </div>
       )}

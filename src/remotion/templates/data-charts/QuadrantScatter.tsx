@@ -1,6 +1,7 @@
 import React from "react";
 import { spring, useCurrentFrame, useVideoConfig, interpolate, Easing } from "remotion";
 import type { DataChartInput } from "../../schemas";
+import { BG, TEXT, TEXT_FAINT, POSITIVE, NEGATIVE, ACCENT_PINK, ACCENT_BLUE } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -182,17 +183,15 @@ interface QuadrantScatterProps {
 
 // ─── Default Theme Colors ─────────────────────────────────────
 
-const BG = "#1A1B22";
-const TEXT = "#EAE0D5";
-const MUTED = "rgba(234, 224, 213, 0.4)";
-const GRID = "rgba(163, 177, 138, 0.12)";
-const ORIGIN_LINE = "rgba(163, 177, 138, 0.4)";
+const MUTED = TEXT_FAINT;
+const GRID = "rgba(163, 177, 138, 0.12)"; // sage-based grid, differs from palette GRID
+const ORIGIN_LINE = "rgba(163, 177, 138, 0.4)"; // derived from SAGE
 
 const QUADRANT_COLORS = {
-  dream: { bg: "rgba(91, 191, 140, 0.06)", dot: "#5BBF8C", label: "rgba(91, 191, 140, 0.35)" },
-  grind: { bg: "rgba(216, 167, 177, 0.06)", dot: "#D8A7B1", label: "rgba(216, 167, 177, 0.35)" },
-  chill: { bg: "rgba(144, 175, 197, 0.06)", dot: "#90AFC5", label: "rgba(144, 175, 197, 0.35)" },
-  trap:  { bg: "rgba(224, 96, 112, 0.06)",  dot: "#E06070", label: "rgba(224, 96, 112, 0.35)" },
+  dream: { bg: "rgba(91, 191, 140, 0.06)", dot: POSITIVE, label: "rgba(91, 191, 140, 0.35)" },
+  grind: { bg: "rgba(232, 140, 165, 0.06)", dot: ACCENT_PINK, label: "rgba(232, 140, 165, 0.35)" },
+  chill: { bg: "rgba(123, 167, 201, 0.06)", dot: ACCENT_BLUE, label: "rgba(123, 167, 201, 0.35)" },
+  trap:  { bg: "rgba(224, 96, 112, 0.06)",  dot: NEGATIVE, label: "rgba(224, 96, 112, 0.35)" },
 };
 
 // ─── Chart Dimensions ─────────────────────────────────────────
@@ -394,7 +393,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
   brandColor,
   fontFamily,
 }) => {
-  const accent = brandColor || "#D8A7B1";
+  const accent = brandColor || ACCENT_PINK;
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -886,7 +885,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
 
           {/* Chart border */}
           <rect x={CHART_LEFT} y={CHART_TOP} width={CHART_W} height={CHART_H}
-            fill="none" stroke="rgba(234, 224, 213, 0.08)" strokeWidth={1} opacity={gridIn} />
+            fill="none" stroke="rgba(240, 237, 232, 0.08)" strokeWidth={1} opacity={gridIn} />
 
           {/* Connector lines from spotlight dots to labels */}
           {points.map((point, i) => {
@@ -1232,8 +1231,8 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                 {/* Country header */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                   <span style={{
-                    fontSize: 12, fontWeight: 700, color: "#1A1B22",
-                    backgroundColor: "rgba(234, 224, 213, 0.85)",
+                    fontSize: 12, fontWeight: 700, color: BG,
+                    backgroundColor: "rgba(240, 237, 232, 0.85)",
                     borderRadius: 4, padding: "3px 7px", letterSpacing: 1,
                   }}>
                     {spotlightCard.label.slice(0, 3).toUpperCase()}
@@ -1243,7 +1242,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   </span>
                   {spotlightCard.rankBadge && (
                     <span style={{
-                      color: "#5BBF8C",
+                      color: POSITIVE,
                       fontSize: 16,
                       fontWeight: 800,
                       marginLeft: "auto",
@@ -1258,7 +1257,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   <div key={si} style={{
                     display: "flex", justifyContent: "space-between",
                     padding: "6px 0",
-                    borderBottom: si < spotlightCard.stats.length - 1 ? "1px solid rgba(234, 224, 213, 0.06)" : "none",
+                    borderBottom: si < spotlightCard.stats.length - 1 ? "1px solid rgba(240, 237, 232, 0.06)" : "none",
                   }}>
                     <span style={{ color: MUTED, fontSize: 12, fontWeight: 500 }}>{stat.key}</span>
                     <span style={{
@@ -1288,7 +1287,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
         {/* ── Data Source ── */}
         <div style={{
           position: "absolute", bottom: 12, right: 20,
-          color: "rgba(234, 224, 213, 0.2)", fontSize: 10,
+          color: "rgba(240, 237, 232, 0.2)", fontSize: 10,
           fontWeight: 400, opacity: gridIn,
         }}>
           OECD Wages 2024 (PPP-adjusted) · OECD Hours 2022
@@ -1331,7 +1330,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
               padding: "8px 16px",
               backgroundColor: "rgba(26, 27, 34, 0.8)",
               borderRadius: 8,
-              border: "1px solid rgba(234, 224, 213, 0.1)",
+              border: "1px solid rgba(240, 237, 232, 0.1)",
             }}>
               {counterLabel}
             </span>
@@ -1391,7 +1390,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   x1={dotPx} y1={dotPy}
                   x2={dotPx + (connEdgeX - dotPx) * ttIn}
                   y2={dotPy + (connEdgeY - dotPy) * ttIn}
-                  stroke="rgba(234, 224, 213, 0.25)"
+                  stroke="rgba(240, 237, 232, 0.25)"
                   strokeWidth={1.5}
                   strokeDasharray="4,3"
                   opacity={ttIn * 0.8}
@@ -1399,7 +1398,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                 <circle
                   cx={dotPx} cy={dotPy} r={4}
                   fill="none"
-                  stroke="rgba(234, 224, 213, 0.4)"
+                  stroke="rgba(240, 237, 232, 0.4)"
                   strokeWidth={1.5}
                   opacity={ttIn}
                 />
@@ -1422,13 +1421,13 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   backgroundColor: "rgba(26, 27, 34, 0.94)",
                   borderRadius: Math.round(10 * tooltipScale),
                   padding: `${Math.round(16 * tooltipScale)}px ${Math.round(22 * tooltipScale)}px`,
-                  border: "1px solid rgba(234, 224, 213, 0.18)",
+                  border: "1px solid rgba(240, 237, 232, 0.18)",
                   backdropFilter: "blur(10px)",
-                  boxShadow: "0 4px 24px rgba(0,0,0,0.5), 0 0 1px rgba(234,224,213,0.1)",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.5), 0 0 1px rgba(240,237,232,0.1)",
                 }}>
                   <div style={{
-                    fontSize: Math.round(24 * tooltipScale), fontWeight: 700, color: "#1A1B22",
-                    backgroundColor: "rgba(234, 224, 213, 0.85)",
+                    fontSize: Math.round(24 * tooltipScale), fontWeight: 700, color: BG,
+                    backgroundColor: "rgba(240, 237, 232, 0.85)",
                     borderRadius: 4, padding: `${Math.round(5 * tooltipScale)}px ${Math.round(14 * tooltipScale)}px`, letterSpacing: 1.5,
                     display: "inline-block", marginBottom: Math.round(12 * tooltipScale),
                   }}>
@@ -1438,7 +1437,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                     <div key={di} style={{
                       display: "flex", justifyContent: "space-between",
                       padding: `${Math.round(6 * tooltipScale)}px 0`,
-                      borderBottom: di < dataEntries.length - 1 ? "1px solid rgba(234, 224, 213, 0.06)" : "none",
+                      borderBottom: di < dataEntries.length - 1 ? "1px solid rgba(240, 237, 232, 0.06)" : "none",
                     }}>
                       <span style={{ color: MUTED, fontSize: Math.round(20 * tooltipScale), fontWeight: 500 }}>{key}</span>
                       <span style={{
@@ -1450,7 +1449,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                     </div>
                   ))}
                   {sourceOrNote && (
-                    <div style={{ color: "rgba(234, 224, 213, 0.3)", fontSize: Math.round(16 * tooltipScale), marginTop: Math.round(8 * tooltipScale), fontStyle: "italic" as const }}>
+                    <div style={{ color: "rgba(240, 237, 232, 0.3)", fontSize: Math.round(16 * tooltipScale), marginTop: Math.round(8 * tooltipScale), fontStyle: "italic" as const }}>
                       {sourceOrNote}
                     </div>
                   )}
@@ -1497,8 +1496,8 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                 transform: `translateX(${interpolate(annIn, [0, 1], [10, 0])}px)`,
               }}>
                 <span style={{
-                  backgroundColor: annStyle.backgroundColor || "rgba(144,175,197,0.2)",
-                  border: `1px solid ${annStyle.borderColor || "#90AFC5"}`,
+                  backgroundColor: annStyle.backgroundColor || "rgba(123,167,201,0.2)",
+                  border: `1px solid ${annStyle.borderColor || ACCENT_BLUE}`,
                   color: annStyle.color || TEXT,
                   fontSize: annStyle.fontSize || 13,
                   fontWeight: 600,
@@ -1526,8 +1525,8 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                 <div style={{
                   width: 28, height: 28,
                   borderRadius: annStyle.shape === "circle" ? "50%" : 4,
-                  backgroundColor: annStyle.backgroundColor || "rgba(144,175,197,0.3)",
-                  border: `1px solid ${annStyle.borderColor || "#90AFC5"}`,
+                  backgroundColor: annStyle.backgroundColor || "rgba(123,167,201,0.3)",
+                  border: `1px solid ${annStyle.borderColor || ACCENT_BLUE}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   color: annStyle.color || TEXT,
                   fontSize: annStyle.fontSize || 16,
@@ -1552,7 +1551,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                 transform: `translateY(${interpolate(annIn, [0, 1], [6, 0])}px)`,
               }}>
                 <span style={{
-                  color: annStyle.color || "#90AFC5",
+                   color: annStyle.color || ACCENT_BLUE,
                   fontSize: annStyle.fontSize || 15,
                   fontStyle: (annStyle.fontStyle as any) || "italic",
                   fontWeight: 500,
@@ -1670,7 +1669,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
               zIndex: 46, pointerEvents: "none" as const,
               opacity: axisIn,
               transform: "translate(-50%, -50%) rotate(-90deg)",
-              color: "rgba(234, 224, 213, 0.55)",
+              color: "rgba(240, 237, 232, 0.55)",
               fontSize: 28, fontWeight: 600, letterSpacing: 3,
               textTransform: "uppercase" as const,
               whiteSpace: "nowrap",
@@ -1687,7 +1686,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
               textAlign: "center",
               zIndex: 46, pointerEvents: "none" as const,
               opacity: axisIn,
-              color: "rgba(234, 224, 213, 0.65)",
+              color: "rgba(240, 237, 232, 0.65)",
               fontSize: 22, fontWeight: 600, letterSpacing: 2,
               textTransform: "uppercase" as const,
             }}>
@@ -1706,7 +1705,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   left: sx - 55,
                   width: 110,
                   textAlign: "center",
-                  color: "rgba(234, 224, 213, 0.6)",
+                  color: "rgba(240, 237, 232, 0.6)",
                   fontSize: 22, fontWeight: 500, opacity: gridIn,
                   zIndex: 46, pointerEvents: "none" as const,
                   fontFamily: "JetBrains Mono, monospace",
@@ -1728,7 +1727,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   left: Y_TITLE_W,
                   width: Y_TICK_W - 6,
                   textAlign: "right",
-                  color: "rgba(234, 224, 213, 0.6)",
+                  color: "rgba(240, 237, 232, 0.6)",
                   fontSize: 22, fontWeight: 500, opacity: gridIn,
                   zIndex: 46, pointerEvents: "none" as const,
                   fontFamily: "JetBrains Mono, monospace",
@@ -1745,10 +1744,10 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
             }}>
               {/* Left border */}
               <line x1={CHART_LEFT} y1={CHART_TOP} x2={CHART_LEFT} y2={CHART_BOTTOM}
-                stroke="rgba(234, 224, 213, 0.15)" strokeWidth={1.5} opacity={gridIn} />
+                stroke="rgba(240, 237, 232, 0.15)" strokeWidth={1.5} opacity={gridIn} />
               {/* Bottom border */}
               <line x1={CHART_LEFT} y1={CHART_BOTTOM} x2={CHART_RIGHT} y2={CHART_BOTTOM}
-                stroke="rgba(234, 224, 213, 0.15)" strokeWidth={1.5} opacity={gridIn} />
+                stroke="rgba(240, 237, 232, 0.15)" strokeWidth={1.5} opacity={gridIn} />
               {/* Tick marks on X axis */}
               {xTicks.map((val) => {
                 const sx = dataToScreenX(val);
@@ -1757,7 +1756,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   <line key={`fxtm-${val}`}
                     x1={sx} y1={CHART_BOTTOM}
                     x2={sx} y2={CHART_BOTTOM + 6}
-                    stroke="rgba(234, 224, 213, 0.35)" strokeWidth={1} opacity={gridIn} />
+                    stroke="rgba(240, 237, 232, 0.35)" strokeWidth={1} opacity={gridIn} />
                 );
               })}
               {/* Tick marks on Y axis */}
@@ -1768,7 +1767,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   <line key={`fytm-${val}`}
                     x1={CHART_LEFT - 6} y1={sy}
                     x2={CHART_LEFT} y2={sy}
-                    stroke="rgba(234, 224, 213, 0.35)" strokeWidth={1} opacity={gridIn} />
+                    stroke="rgba(240, 237, 232, 0.35)" strokeWidth={1} opacity={gridIn} />
                 );
               })}
             </svg>
@@ -1958,13 +1957,13 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                                   backgroundColor: "rgba(26, 27, 34, 0.92)",
                                   borderRadius: 10,
                                   padding: "14px 20px",
-                                  border: `1px solid ${sd.glowColor || "rgba(234, 224, 213, 0.15)"}`,
+                                  border: `1px solid ${sd.glowColor || "rgba(240, 237, 232, 0.15)"}`,
                                   boxShadow: `0 4px 24px rgba(0,0,0,0.5), 0 0 16px ${sd.glowColor || "transparent"}30`,
                                 }}>
                                   {Object.entries(sd.tooltip).map(([k, v], ti) => (
                                     <div key={ti} style={{
                                       display: "flex", justifyContent: "space-between", padding: "5px 0",
-                                      borderBottom: ti < Object.entries(sd.tooltip!).length - 1 ? "1px solid rgba(234,224,213,0.06)" : "none",
+                                      borderBottom: ti < Object.entries(sd.tooltip!).length - 1 ? "1px solid rgba(240,237,232,0.06)" : "none",
                                     }}>
                                       <span style={{ color: MUTED, fontSize: 15, fontWeight: 500 }}>{k}</span>
                                       <span style={{ color: TEXT, fontSize: 20, fontWeight: 700, fontFamily: "JetBrains Mono, monospace" }}>{v}</span>
@@ -2013,13 +2012,13 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                                   backgroundColor: "rgba(26, 27, 34, 0.92)",
                                   borderRadius: 10,
                                   padding: "14px 20px",
-                                  border: `1px solid ${sd.glowColor || "rgba(234, 224, 213, 0.15)"}`,
+                                  border: `1px solid ${sd.glowColor || "rgba(240, 237, 232, 0.15)"}`,
                                   boxShadow: `0 4px 24px rgba(0,0,0,0.5), 0 0 16px ${sd.glowColor || "transparent"}30`,
                                 }}>
                                   {Object.entries(sd.tooltip).map(([k, v], ti) => (
                                     <div key={ti} style={{
                                       display: "flex", justifyContent: "space-between", padding: "5px 0",
-                                      borderBottom: ti < Object.entries(sd.tooltip!).length - 1 ? "1px solid rgba(234,224,213,0.06)" : "none",
+                                      borderBottom: ti < Object.entries(sd.tooltip!).length - 1 ? "1px solid rgba(240,237,232,0.06)" : "none",
                                     }}>
                                       <span style={{ color: MUTED, fontSize: 15, fontWeight: 500 }}>{k}</span>
                                       <span style={{ color: TEXT, fontSize: 20, fontWeight: 700, fontFamily: "JetBrains Mono, monospace" }}>{v}</span>
@@ -2160,7 +2159,7 @@ const DivisionOverlayPanel: React.FC<DivisionOverlayPanelProps> = ({
           backgroundColor: CARD_BG,
           borderRadius: 14,
           padding: "24px 32px",
-          border: `1px solid rgba(234, 224, 213, 0.1)`,
+          border: `1px solid rgba(240, 237, 232, 0.1)`,
           backdropFilter: "blur(12px)",
           display: "flex",
           flexDirection: "column" as const,
@@ -2175,8 +2174,8 @@ const DivisionOverlayPanel: React.FC<DivisionOverlayPanelProps> = ({
           <div style={{ flex: 1, textAlign: "center" as const }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 8 }}>
               <span style={{
-                fontSize: 12, fontWeight: 700, color: "#1A1B22",
-                backgroundColor: "rgba(234, 224, 213, 0.85)",
+                fontSize: 12, fontWeight: 700, color: BG,
+                backgroundColor: "rgba(240, 237, 232, 0.85)",
                 borderRadius: 3, padding: "2px 6px", letterSpacing: 1,
               }}>
                 {overlay.left.code || overlay.left.label?.slice(0, 3).toUpperCase()}
@@ -2205,8 +2204,8 @@ const DivisionOverlayPanel: React.FC<DivisionOverlayPanelProps> = ({
           <div style={{ flex: 1, textAlign: "center" as const }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 8 }}>
               <span style={{
-                fontSize: 12, fontWeight: 700, color: "#1A1B22",
-                backgroundColor: "rgba(234, 224, 213, 0.85)",
+                fontSize: 12, fontWeight: 700, color: BG,
+                backgroundColor: "rgba(240, 237, 232, 0.85)",
                 borderRadius: 3, padding: "2px 6px", letterSpacing: 1,
               }}>
                 {overlay.right.code || overlay.right.label?.slice(0, 3).toUpperCase()}

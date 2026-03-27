@@ -6,6 +6,7 @@ import {
   interpolate,
   spring,
 } from "remotion";
+import { BG, TEXT, SAGE, TEXT_MUTED, NEGATIVE, POSITIVE } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -36,10 +37,10 @@ export interface BaselineReferenceProps {
 
 // ─── Design Tokens (from brand-guide.md) ──────────────────────
 
-const BG_COLOR = "#1A1B22";
-const TEXT_COLOR = "#EAE0D5"; // Accent Cream
-const SAGE_SILVER = "#A3B18A"; // Grid/Detail
-const MUTED_TEXT = "rgba(234, 224, 213, 0.55)";
+const BG_COLOR = BG;
+const TEXT_COLOR = TEXT;
+const SAGE_SILVER = SAGE;
+const MUTED_TEXT = TEXT_MUTED;
 
 const FONT_HEADING = "Montserrat, sans-serif";
 const FONT_MONO = "'JetBrains Mono', monospace";
@@ -75,13 +76,13 @@ export const BaselineReference: React.FC<BaselineReferenceProps> = ({
   // ── Destructure with defensive defaults ──
   const baselineValue = chart.baselineValue ?? 1;
   const zones = chart.zones ?? {
-    above: { color: "#E06070", label: "More expensive relative to wages", opacity: 0.15 },
-    below: { color: "#5BBF8C", label: "Cheaper relative to wages", opacity: 0.15 },
+    above: { color: NEGATIVE, label: "More expensive relative to wages", opacity: 0.15 },
+    below: { color: POSITIVE, label: "Cheaper relative to wages", opacity: 0.15 },
     at: { label: "= Same as 2000" },
   };
 
-  const aboveZone = zones.above ?? { color: "#E06070", label: "More expensive relative to wages", opacity: 0.15 };
-  const belowZone = zones.below ?? { color: "#5BBF8C", label: "Cheaper relative to wages", opacity: 0.15 };
+  const aboveZone = zones.above ?? { color: NEGATIVE, label: "More expensive relative to wages", opacity: 0.15 };
+  const belowZone = zones.below ?? { color: POSITIVE, label: "Cheaper relative to wages", opacity: 0.15 };
   const atZone = zones.at ?? { label: "= Same as 2000" };
 
   // ── Layout constants ──

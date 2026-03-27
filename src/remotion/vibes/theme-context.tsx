@@ -9,6 +9,9 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import type { VibeId, VibeTheme, VibeAnimationConfig, VibeLayoutConfig, VibeColorConfig, VibeTypographyConfig } from './types';
 import { isDarkColor, PALETTE_CINEMATIC, PALETTE_DASHBOARD, PALETTE_EDITORIAL, SPRING_PRESETS } from './shared/utils';
+import {
+  TEXT, TEXT_MUTED, SURFACE, SURFACE_BORDER, POSITIVE, NEGATIVE,
+} from '../palette';
 
 // ─── Default Vibe Configs ─────────────────────────────────────
 
@@ -104,12 +107,12 @@ function buildColorConfig(vibeId: VibeId, backgroundColor: string): VibeColorCon
 
   return {
     isDark: dark,
-    textPrimary: dark ? '#E8E0D4' : '#1a1a1a',
-    textMuted: dark ? 'rgba(232,224,212,0.55)' : 'rgba(26,26,26,0.55)',
-    surface: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-    surfaceBorder: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-    positive: '#2D8B4E',
-    negative: '#C0392B',
+    textPrimary: dark ? TEXT : '#1a1a1a',
+    textMuted: dark ? TEXT_MUTED : 'rgba(26,26,26,0.55)',
+    surface: dark ? SURFACE : 'rgba(0,0,0,0.04)',
+    surfaceBorder: dark ? SURFACE_BORDER : 'rgba(0,0,0,0.1)',
+    positive: POSITIVE,
+    negative: NEGATIVE,
     dataPalette: palettes[vibeId],
   };
 }

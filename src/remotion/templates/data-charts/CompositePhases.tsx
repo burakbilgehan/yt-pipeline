@@ -9,6 +9,7 @@ import {
 import { HorizontalBarChart } from "./HorizontalBarChart";
 import { SplitComparison } from "./SplitComparison";
 import { TitleCard } from "./TitleCard";
+import { BG } from "../../palette";
 
 /**
  * CompositePhases — Renders sequential phases within a single scene.
@@ -104,7 +105,7 @@ export const CompositePhases: React.FC<CompositePhasesProps> = ({
   };
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#1A1B22" }}>
+    <AbsoluteFill style={{ backgroundColor: BG }}>
       {phaseLayouts.map((layout, index) => {
         // Crossfade: phase fades out in last CROSSFADE_FRAMES
         const phaseLocalFrame = frame - layout.startFrame;

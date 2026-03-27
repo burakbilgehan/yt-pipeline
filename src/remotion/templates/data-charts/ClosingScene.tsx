@@ -11,6 +11,7 @@ import {
 import { QuadrantScatter } from "./QuadrantScatter";
 import { EndCardScene } from "./EndCardScene";
 import type { DataChartInput } from "../../schemas";
+import { BG } from "../../palette";
 
 /**
  * ClosingScene — Three-phase closing for Time vs Earnings.
@@ -117,14 +118,14 @@ export const ClosingScene: React.FC<ClosingSceneProps> = ({
   const endCardProps: DataChartInput = {
     type: "end-card",
     fadeToBlack: true,
-    backgroundColor: "#1A1B22",
+    backgroundColor: BG,
     watermark: true,
     youtubeEndScreen: { enabled: true },
     ...(cfg.endCardConfig || {}),
   };
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#1A1B22" }}>
+    <AbsoluteFill style={{ backgroundColor: BG }}>
       {/* ── Phase A: QuadrantScatter chart ── */}
       {frame < chartEndFrame + crossfadeFrames && (
         <AbsoluteFill style={{ opacity: chartOpacity }}>

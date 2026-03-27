@@ -3,6 +3,7 @@ import { AbsoluteFill } from "remotion";
 import type { DataChartCompositionProps } from "../schemas";
 import { DataChartScene } from "../templates/data-charts";
 import { loadFontsSync } from "../../fonts/load-fonts";
+import { BG } from "../palette";
 
 /**
  * Standalone data chart preview composition.
@@ -19,7 +20,7 @@ const DataChartPreview: React.FC<DataChartCompositionProps> = ({
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: "#0a0a0a",
+        backgroundColor: BG,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

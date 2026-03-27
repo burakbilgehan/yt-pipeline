@@ -6,6 +6,7 @@ import {
   interpolate,
 } from "remotion";
 import type { DataChartInput } from "../../schemas";
+import { BG, TEXT, TEXT_FAINT, POSITIVE, NEGATIVE, CARD_BORDER, ACCENT_PINK } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -41,13 +42,8 @@ interface RankingResortSceneProps {
 
 // ─── Theme ────────────────────────────────────────────────────
 
-const BG = "#1A1B22";
-const TEXT = "#EAE0D5";
-const MUTED = "rgba(234, 224, 213, 0.4)";
-const POSITIVE = "#5BBF8C";
-const NEGATIVE = "#E06070";
-const CARD_BG = "rgba(234, 224, 213, 0.04)";
-const CARD_BORDER = "rgba(234, 224, 213, 0.08)";
+const MUTED = TEXT_FAINT;
+const CARD_BG = "rgba(240, 237, 232, 0.04)"; // not palette CARD_BG (different base)
 
 /** Country code badge (replaces emoji flags which render black in headless Chrome) */
 const CountryBadge: React.FC<{ label: string }> = ({ label }) => {
@@ -61,8 +57,8 @@ const CountryBadge: React.FC<{ label: string }> = ({ label }) => {
   const code = COUNTRY_CODES[label] || label.slice(0, 3).toUpperCase();
   return (
     <span style={{
-      fontSize: 12, fontWeight: 700, color: "#1A1B22",
-      backgroundColor: "rgba(234, 224, 213, 0.85)",
+      fontSize: 12, fontWeight: 700, color: BG,
+      backgroundColor: "rgba(240, 237, 232, 0.85)",
       borderRadius: 4, padding: "3px 6px", letterSpacing: 1,
       minWidth: 36, textAlign: "center" as const,
     }}>
@@ -82,7 +78,7 @@ export const RankingResortScene: React.FC<RankingResortSceneProps> = ({
   const { fps } = useVideoConfig();
 
   const cfg = chart as unknown as RankingResortConfig;
-  const accent = brandColor || "#D8A7B1";
+  const accent = brandColor || ACCENT_PINK;
   const source = cfg.source || "";
   const leftItems = cfg.leftColumn?.items || [];
   const rightItems = cfg.rightColumn?.items || [];
@@ -537,7 +533,7 @@ export const RankingResortScene: React.FC<RankingResortSceneProps> = ({
           position: "absolute",
           bottom: 20,
           right: 30,
-          color: "rgba(234, 224, 213, 0.15)",
+          color: "rgba(240, 237, 232, 0.15)",
           fontSize: 11,
           fontWeight: 400,
           opacity: leftColIn,

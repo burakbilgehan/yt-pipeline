@@ -1,6 +1,7 @@
 import React from "react";
 import type { DataChartInput } from "../../schemas";
 import type { HorseRaceChartProps } from "../../types";
+import { TEXT } from "../../palette";
 import { BarChart } from "./BarChart";
 import { Counter } from "./Counter";
 import { ComparisonTable } from "./ComparisonTable";
@@ -227,7 +228,7 @@ export const DataChartScene: React.FC<DataChartSceneProps> = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#EAE0D5",
+            color: TEXT,
             fontFamily,
             fontSize: 24,
             opacity: 0.5,

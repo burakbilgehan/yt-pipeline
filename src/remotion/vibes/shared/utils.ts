@@ -1,7 +1,14 @@
 /**
  * Shared utilities for vibe components.
  * Extracted from duplicated logic across 5+ components.
+ *
+ * Color values are imported from the central palette (../palette.ts).
  */
+
+import {
+  TEXT, TEXT_MUTED, TEXT_SECONDARY, SURFACE, SURFACE_BORDER,
+  SURFACE_HOVER, SURFACE_BORDER_STRONG, DATA_PALETTE,
+} from '../../palette';
 
 /**
  * Detect if a hex color is dark (luminance < 128).
@@ -16,6 +23,9 @@ export function isDarkColor(hex: string): boolean {
   return (r * 299 + g * 587 + b * 114) / 1000 < 128;
 }
 
+/** Light-theme text color */
+const TEXT_LIGHT = '#1a1a1a';
+
 /**
  * Derive adaptive text colors from a background color.
  */
@@ -23,23 +33,20 @@ export function getAdaptiveColors(backgroundColor: string) {
   const dark = isDarkColor(backgroundColor);
   return {
     isDark: dark,
-    textPrimary: dark ? '#E8E0D4' : '#1a1a1a',
-    textMuted: dark ? 'rgba(232,224,212,0.55)' : 'rgba(26,26,26,0.55)',
-    textSecondary: dark ? 'rgba(232,224,212,0.7)' : 'rgba(26,26,26,0.7)',
-    surface: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-    surfaceBorder: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-    cardBg: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-    cardBorder: dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
+    textPrimary: dark ? TEXT : TEXT_LIGHT,
+    textMuted: dark ? TEXT_MUTED : 'rgba(26,26,26,0.55)',
+    textSecondary: dark ? TEXT_SECONDARY : 'rgba(26,26,26,0.7)',
+    surface: dark ? SURFACE : 'rgba(0,0,0,0.04)',
+    surfaceBorder: dark ? SURFACE_BORDER : 'rgba(0,0,0,0.1)',
+    cardBg: dark ? SURFACE_HOVER : 'rgba(0,0,0,0.06)',
+    cardBorder: dark ? SURFACE_BORDER_STRONG : 'rgba(0,0,0,0.12)',
   };
 }
 
 // ─── Default Data Palettes ────────────────────────────────────
 
-/** Warm palette — used by cinematic vibe (data charts) */
-export const PALETTE_CINEMATIC = [
-  '#D47FA6', '#5BBF8C', '#E06070', '#C97B9F', '#E8E0D4',
-  '#7EC8E3', '#F4A261', '#9B59B6',
-];
+/** Warm palette — used by cinematic vibe (data charts). Derived from central palette. */
+export const PALETTE_CINEMATIC = [...DATA_PALETTE];
 
 /** Vivid palette — used by dashboard vibe */
 export const PALETTE_DASHBOARD = [

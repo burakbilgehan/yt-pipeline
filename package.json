@@ -30,6 +30,7 @@
     "text-utils": "tsx src/scripts/text-utils.ts",
     "validate": "tsx src/scripts/validate.ts",
     "sync-ai": "tsx .ai/sync.ts",
+    "sync-palette": "tsx src/scripts/sync-palette.ts",
     "design-system": "npm run dev --prefix src/tools/design-system"
   },
   "dependencies": {

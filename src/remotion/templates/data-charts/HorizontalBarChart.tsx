@@ -5,6 +5,7 @@ import {
   spring,
   interpolate,
 } from "remotion";
+import { TEXT, BG, TRACK, ACCENT_BLUE } from "../../palette";
 
 /**
  * HorizontalBarChart — Scene 002 (Nominal USD) and Scene 003 Phase 3 (PPP-Adjusted)
@@ -46,9 +47,9 @@ interface HorizontalBarChartProps {
   fontFamily: string;
 }
 
-const TEXT_COLOR = "#EAE0D5";
-const MUTED_TEXT = "rgba(234, 224, 213, 0.6)";
-const BG_COLOR = "#1A1B22";
+const TEXT_COLOR = TEXT;
+const MUTED_TEXT = "rgba(240, 237, 232, 0.6)"; // derived from TEXT (0.6 opacity, not in palette)
+const BG_COLOR = BG;
 
 function interpolateColor(
   color1: string,
@@ -85,7 +86,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
   const bars = chart.bars || [];
   const barHeight = chart.barHeight || 36;
   const barGap = chart.barGap || 12;
-  const barColor = chart.barColor || "#90AFC5";
+  const barColor = chart.barColor || ACCENT_BLUE;
   const labelColor = chart.labelColor || TEXT_COLOR;
   const valueColor = chart.valueColor || MUTED_TEXT;
   const staggerDelayFrames = parseFloat(chart.staggerDelay || "0.3") * fps;
@@ -194,7 +195,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                 style={{
                   flex: 1,
                   height: barHeight,
-                  backgroundColor: "rgba(234,224,213,0.06)",
+                  backgroundColor: TRACK,
                   borderRadius: 4,
                   overflow: "hidden",
                   position: "relative",

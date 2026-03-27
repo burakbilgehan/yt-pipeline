@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
+import { BG, ACCENT_PINK, TEXT, POSITIVE } from "../palette";
 
 export interface ChannelBrandingProps {
   /** Type of branding asset */
@@ -21,9 +22,9 @@ export interface ChannelBrandingProps {
 }
 
 const defaults = {
-  bgColor: "#1A1824",
-  accentColor: "#D47FA6",
-  textColor: "#E8E0D4",
+  bgColor: BG,
+  accentColor: ACCENT_PINK,
+  textColor: TEXT,
   fontFamily: "Inter, sans-serif",
 };
 
@@ -207,11 +208,11 @@ const ChannelBanner: React.FC<ChannelBrandingProps> = ({
           <path d={bannerChartPath} fill="none" stroke={accentColor} strokeWidth={2} opacity={0.1} />
           <path
             d="M 0 950 L 300 920 L 600 880 L 800 900 L 1000 830 L 1200 850 L 1400 770 L 1600 740 L 1800 680 L 2000 620 L 2200 560 L 2560 500"
-            fill="none" stroke="#5BBF8C" strokeWidth={2} opacity={0.08}
+            fill="none" stroke={POSITIVE} strokeWidth={2} opacity={0.08}
           />
           <path
             d="M 0 1000 L 250 980 L 500 950 L 750 970 L 1000 920 L 1250 940 L 1500 880 L 1750 850 L 2000 800 L 2250 750 L 2560 700"
-            fill="none" stroke="#C97B9F" strokeWidth={2} opacity={0.06}
+            fill="none" stroke={ACCENT_PINK} strokeWidth={2} opacity={0.06}
           />
         </svg>
 

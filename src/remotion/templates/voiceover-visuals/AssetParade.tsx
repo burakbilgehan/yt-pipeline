@@ -7,6 +7,7 @@ import {
   spring,
   Easing,
 } from "remotion";
+import { TEXT, TEXT_SECONDARY, TEXT_MUTED } from "../../palette";
 
 interface AssetItem {
   /** Asset name (e.g. "Oil (WTI)") */
@@ -73,12 +74,12 @@ export const AssetParade: React.FC<AssetParadeProps> = ({
     }
     return backgroundColor.startsWith("#0") || backgroundColor.startsWith("#1") || backgroundColor.startsWith("#2") || backgroundColor.startsWith("#3");
   })();
-  const textPrimary = isDarkBg ? "#E8E0D4" : "#1a1a1a";
-  const textSecondary = isDarkBg ? "rgba(232,224,212,0.7)" : "rgba(0,0,0,0.4)";
-  const textMuted = isDarkBg ? "rgba(232,224,212,0.5)" : "rgba(0,0,0,0.25)";
-  const operatorColor = isDarkBg ? "rgba(232,224,212,0.55)" : "rgba(0,0,0,0.25)";
+  const textPrimary = isDarkBg ? TEXT : "#1a1a1a";
+  const textSecondary = isDarkBg ? TEXT_SECONDARY : "rgba(0,0,0,0.4)";
+  const textMuted = isDarkBg ? TEXT_MUTED : "rgba(0,0,0,0.25)";
+  const operatorColor = isDarkBg ? TEXT_MUTED : "rgba(0,0,0,0.25)";
   const cardBg = isDarkBg ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)";
-  const cardBorder = isDarkBg ? "rgba(232,224,212,0.15)" : "rgba(0,0,0,0.08)";
+  const cardBorder = isDarkBg ? "rgba(240,237,232,0.15)" : "rgba(0,0,0,0.08)";
   const accentBg = isDarkBg ? `${accentColor}22` : `${accentColor}18`;
   const accentBorder = isDarkBg ? `${accentColor}66` : `${accentColor}55`;
 

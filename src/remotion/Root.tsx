@@ -4,6 +4,7 @@ import { videoCompositionSchema, dataChartCompositionSchema, shortsCompositionSc
 import { customVideoCompositionSchema } from "./compositions/CustomVideoComposition";
 import { ensureFontsLoaded } from "../fonts/load-fonts";
 import { bridgeAllScenes } from "../utils/storyboard-bridge";
+import { BG } from "./palette";
 import type { z } from "zod";
 
 const FPS = 30;
@@ -506,7 +507,7 @@ export const RemotionRoot: React.FC = () => {
           videoConfig: {
             title: "Untitled",
             durationSeconds: 60,
-            backgroundColor: "#0a0a0a",
+  backgroundColor: BG,
             brandColor: "#6C63FF",
             fontFamily: "Inter, sans-serif",
             showSubtitles: true,

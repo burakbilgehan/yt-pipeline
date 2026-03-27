@@ -5,6 +5,7 @@ import {
   spring,
   interpolate,
 } from "remotion";
+import { BG, TEXT, ACCENT_PINK, SURFACE, SURFACE_HOVER } from "../../palette";
 
 /**
  * SkimpflationCard — Scene 015 Phase 1
@@ -13,7 +14,7 @@ import {
  * side by side. Same package, same price, but decreasing quality
  * (5 stars → 4 → 3). Uses filled/unfilled circle dots for quality.
  *
- * Design: #1A1B22 bg, #EAE0D5 text, #D8A7B1 accent
+ * Design: #2A2A32 bg, #F0EDE8 text, #E88CA5 accent
  */
 
 interface SkimpflationCardProps {
@@ -27,12 +28,11 @@ interface SkimpflationCardProps {
   fontFamily: string;
 }
 
-const BG_COLOR = "#1A1B22";
-const TEXT_COLOR = "#EAE0D5";
-const MUTED_TEXT = "rgba(234, 224, 213, 0.5)";
-const ACCENT_PINK = "#D8A7B1";
-const SURFACE_BG = "rgba(255, 255, 255, 0.06)";
-const SURFACE_BORDER = "rgba(255, 255, 255, 0.08)";
+const BG_COLOR = BG;
+const TEXT_COLOR = TEXT;
+const MUTED_TEXT = "rgba(240, 237, 232, 0.5)"; // derived from TEXT (0.5 opacity, not in palette)
+const SURFACE_BG = SURFACE;
+const SURFACE_BORDER = SURFACE_HOVER;
 
 const CARD_STAGGER = 15; // frames between each card entrance
 
@@ -56,7 +56,7 @@ const QualityDot: React.FC<{
         height: 12,
         borderRadius: "50%",
         backgroundColor: filled ? ACCENT_PINK : "transparent",
-        border: `2px solid ${filled ? ACCENT_PINK : "rgba(234, 224, 213, 0.25)"}`,
+        border: `2px solid ${filled ? ACCENT_PINK : "rgba(240, 237, 232, 0.25)"}`,
         transform: `scale(${dotSpring})`,
         opacity: dotSpring,
       }}

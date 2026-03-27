@@ -7,6 +7,7 @@ import {
   spring,
   Easing,
 } from "remotion";
+import { TEXT, TEXT_SECONDARY } from "../../palette";
 
 interface ClosingCTAProps {
   /** Main closing message */
@@ -54,12 +55,12 @@ export const ClosingCTA: React.FC<ClosingCTAProps> = ({
     }
     return backgroundColor.startsWith("#0") || backgroundColor.startsWith("#1") || backgroundColor.startsWith("#2") || backgroundColor.startsWith("#3");
   })();
-  const textPrimary = isDarkBg ? "#E8E0D4" : "#1a1a1a";
-  const textMuted = isDarkBg ? "rgba(232,224,212,0.65)" : "rgba(0,0,0,0.35)";
+  const textPrimary = isDarkBg ? TEXT : "#1a1a1a";
+  const textMuted = isDarkBg ? "rgba(240,237,232,0.65)" : "rgba(0,0,0,0.35)";
   const ctaBg = isDarkBg ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)";
-  const ctaBorder = isDarkBg ? "rgba(232,224,212,0.18)" : "rgba(0,0,0,0.1)";
-  const ctaTextColor = isDarkBg ? "rgba(232,224,212,0.7)" : "rgba(0,0,0,0.4)";
-  const iconStroke = isDarkBg ? "rgba(232,224,212,0.7)" : "rgba(0,0,0,0.35)";
+  const ctaBorder = isDarkBg ? "rgba(240,237,232,0.18)" : "rgba(0,0,0,0.1)";
+  const ctaTextColor = isDarkBg ? TEXT_SECONDARY : "rgba(0,0,0,0.4)";
+  const iconStroke = isDarkBg ? TEXT_SECONDARY : "rgba(0,0,0,0.35)";
 
   // ── Phase 1: Main message ──
   const messageEntrance = spring({

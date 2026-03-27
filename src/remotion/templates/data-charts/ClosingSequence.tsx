@@ -5,6 +5,7 @@ import {
   spring,
   interpolate,
 } from "remotion";
+import { BG, TEXT, ACCENT_PINK, SAGE } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -32,10 +33,9 @@ interface ClosingSequenceProps {
 
 // ─── Design tokens ────────────────────────────────────────────
 
-const BG_COLOR = "#1A1B22";
-const TEXT_COLOR = "#EAE0D5";
-const MUTED_PINK = "#D8A7B1";
-const SAGE = "#A3B18A";
+const BG_COLOR = BG;
+const TEXT_COLOR = TEXT;
+const MUTED_PINK = ACCENT_PINK;
 
 // Timing constants (seconds)
 const STEP1_START = 0;

@@ -1,6 +1,7 @@
 import React from "react";
 import { spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import type { DataChartInput } from "../../schemas";
+import { TEXT, ACCENT_BLUE, ACCENT_PINK, POSITIVE, NEGATIVE, TRACK } from "../../palette";
 
 interface ComparisonTableProps {
   chart: DataChartInput;
@@ -9,18 +10,18 @@ interface ComparisonTableProps {
 }
 
 const DEFAULT_COLORS = [
-  "#90AFC5",  // Blue — neutral default; brandColor used for accent positions
-  "#90AFC5",
-  "#5BBF8C",
-  "#E06070",
-  "#EAE0D5",
+  ACCENT_BLUE,
+  ACCENT_BLUE,
+  POSITIVE,
+  NEGATIVE,
+  TEXT,
 ];
 
-const TEXT_COLOR = "#EAE0D5";
-const MUTED_TEXT = "rgba(234, 224, 213, 0.6)";
-const TRACK_COLOR = "rgba(234, 224, 213, 0.06)";
+const TEXT_COLOR = TEXT;
+const MUTED_TEXT = "rgba(240, 237, 232, 0.6)"; // derived from TEXT, opacity 0.6
+const TRACK_COLOR = TRACK;
 
-const DEFAULT_ACCENT_RIGHT = "#90AFC5";
+const DEFAULT_ACCENT_RIGHT = ACCENT_BLUE;
 
 /** Format a value with optional unit prefix/suffix. */
 const formatValue = (value: number, unit?: string): string => {
@@ -71,7 +72,7 @@ const TugOfWar: React.FC<ComparisonTableProps> = ({
     config: { damping: 200 },
   });
 
-  const leftColor = left.color || brandColor || "#D8A7B1";
+  const leftColor = left.color || brandColor || ACCENT_PINK;
   const rightColor = right.color || DEFAULT_ACCENT_RIGHT;
 
   return (
@@ -406,7 +407,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
   const duel = chart.duel!;
 
   // Use explicit item colors, fall back to entity colors from first pair
-  const leftColor = items[0]?.color || brandColor || "#D8A7B1";
+  const leftColor = items[0]?.color || brandColor || ACCENT_PINK;
   const rightColor = items[1]?.color || DEFAULT_ACCENT_RIGHT;
 
   // Pair items: [0,1] = pair 1, [2,3] = pair 2, etc.
@@ -658,7 +659,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                   style={{
                     width: 4,
                     height: 44,
-                    backgroundColor: "rgba(234, 224, 213, 0.12)",
+                    backgroundColor: "rgba(240, 237, 232, 0.12)",
                     borderRadius: 2,
                     marginLeft: 8,
                     marginRight: 8,

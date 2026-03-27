@@ -1,6 +1,7 @@
 import React from "react";
 import { spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import type { DataChartInput } from "../../schemas";
+import { TEXT, ACCENT_BLUE, ACCENT_PINK, POSITIVE, NEGATIVE, GRID } from "../../palette";
 
 interface TimelineChartProps {
   chart: DataChartInput;
@@ -8,10 +9,10 @@ interface TimelineChartProps {
   fontFamily: string;
 }
 
-const DEFAULT_PALETTE = ["#90AFC5", "#5BBF8C", "#E06070", "#EAE0D5"];
-const CREAM = "#EAE0D5";
-const MUTED = "rgba(234, 224, 213, 0.6)";
-const LINE_COLOR = "rgba(234, 224, 213, 0.15)";
+const DEFAULT_PALETTE = [ACCENT_BLUE, POSITIVE, NEGATIVE, TEXT];
+const CREAM = TEXT;
+const MUTED = "rgba(240, 237, 232, 0.6)"; // derived from TEXT (0.6 opacity, not in palette)
+const LINE_COLOR = GRID;
 
 /**
  * Cinematic horizontal timeline with animated markers.
@@ -36,7 +37,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
     config: { damping: 30, stiffness: 30 },
   });
 
-  const palette = [brandColor || "#D8A7B1", ...DEFAULT_PALETTE];
+  const palette = [brandColor || ACCENT_PINK, ...DEFAULT_PALETTE];
 
   const getColor = (index: number) =>
     items[index].color ||

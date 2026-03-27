@@ -5,6 +5,7 @@ import {
   spring,
   interpolate,
 } from "remotion";
+import { BG, TEXT, NEGATIVE, SURFACE, SURFACE_HOVER } from "../../palette";
 
 /**
  * ShrinkflationCards — Scene 014
@@ -14,7 +15,7 @@ import {
  * Two cards stacked vertically with staggered entrance + red badge bounce.
  * Optional BLS stat callout fades in at bottom after a configurable delay.
  *
- * Design: #1A1B22 bg, #EAE0D5 text, #E06070 badge, surface cards
+ * Design: #2A2A32 bg, #F0EDE8 text, #E06070 badge, surface cards
  */
 
 interface ShrinkflationCardData {
@@ -37,12 +38,12 @@ interface ShrinkflationCardsProps {
   fontFamily: string;
 }
 
-const BG_COLOR = "#1A1B22";
-const TEXT_COLOR = "#EAE0D5";
-const MUTED_TEXT = "rgba(234, 224, 213, 0.5)";
-const BADGE_COLOR = "#E06070";
-const SURFACE_BG = "rgba(255, 255, 255, 0.06)";
-const SURFACE_BORDER = "rgba(255, 255, 255, 0.08)";
+const BG_COLOR = BG;
+const TEXT_COLOR = TEXT;
+const MUTED_TEXT = "rgba(240, 237, 232, 0.5)"; // derived from TEXT (0.5 opacity, not in palette)
+const BADGE_COLOR = NEGATIVE;
+const SURFACE_BG = SURFACE;
+const SURFACE_BORDER = SURFACE_HOVER;
 
 /** Simple package rectangle icon — larger = bigger rect */
 const PackageIcon: React.FC<{ size: "large" | "small"; color: string }> = ({

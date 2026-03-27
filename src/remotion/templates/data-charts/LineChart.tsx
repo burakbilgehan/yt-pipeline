@@ -1,6 +1,7 @@
 import React from "react";
 import { spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import type { DataChartInput } from "../../schemas";
+import { TEXT } from "../../palette";
 
 interface LineChartProps {
   chart: DataChartInput;
@@ -116,7 +117,7 @@ export const LineChart: React.FC<LineChartProps> = ({
       {chart.title && (
         <h2
           style={{
-            color: "#E8E0D4",
+            color: TEXT,
             fontSize: 40,
             fontFamily,
             fontWeight: 600,
@@ -145,13 +146,13 @@ export const LineChart: React.FC<LineChartProps> = ({
                 y1={y}
                 x2={padding.left + plotWidth}
                 y2={y}
-                stroke="rgba(232, 224, 212, 0.08)"
+                stroke="rgba(240, 237, 232, 0.08)"
                 strokeWidth={1}
               />
               <text
                 x={padding.left - 14}
                 y={y + 5}
-                fill="rgba(232, 224, 212, 0.5)"
+                fill="rgba(240, 237, 232, 0.5)"
                 fontSize={16}
                 fontFamily={fontFamily}
                 textAnchor="end"
@@ -197,13 +198,13 @@ export const LineChart: React.FC<LineChartProps> = ({
                 cy={p.y}
                 r={6 * pointSpring}
                 fill={lineColor}
-                stroke="#E8E0D4"
+                stroke={TEXT}
                 strokeWidth={2}
               />
               <text
                 x={p.x}
                 y={padding.top + plotHeight + 30}
-                fill="rgba(232, 224, 212, 0.6)"
+                fill="rgba(240, 237, 232, 0.6)"
                 fontSize={16}
                 fontFamily={fontFamily}
                 textAnchor="middle"

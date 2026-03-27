@@ -1,6 +1,7 @@
 import React from "react";
 import { spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import type { DataChartInput } from "../../schemas";
+import { TEXT, ACCENT_BLUE, POSITIVE, NEGATIVE, TRACK } from "../../palette";
 
 interface CounterProps {
   chart: DataChartInput;
@@ -9,16 +10,16 @@ interface CounterProps {
 }
 
 const DEFAULT_FALLBACK_COLORS = [
-  "#90AFC5",  // Blue — neutral default; brandColor used for primary accent via props
-  "#90AFC5",
-  "#5BBF8C",
-  "#E06070",
-  "#EAE0D5",
+  ACCENT_BLUE,
+  ACCENT_BLUE,
+  POSITIVE,
+  NEGATIVE,
+  TEXT,
 ];
 
-const TEXT_COLOR = "#EAE0D5";
-const MUTED_TEXT = "rgba(234, 224, 213, 0.6)";
-const TRACK_COLOR = "rgba(234, 224, 213, 0.06)";
+const TEXT_COLOR = TEXT;
+const MUTED_TEXT = "rgba(240, 237, 232, 0.6)"; // derived from TEXT, opacity 0.6
+const TRACK_COLOR = TRACK;
 
 /**
  * Animated counter with contextual title, accent line, and breakdown bars.
@@ -118,7 +119,7 @@ export const Counter: React.FC<CounterProps> = ({
           style={{
             opacity: titleOpacity,
             transform: `translateY(${titleTranslateY}px)`,
-            color: "rgba(234, 224, 213, 0.6)",
+            color: "rgba(240, 237, 232, 0.6)",
             fontSize: 22,
             fontFamily,
             fontWeight: 500,
@@ -137,7 +138,7 @@ export const Counter: React.FC<CounterProps> = ({
         <div
           style={{
             opacity: titleOpacity,
-            color: "rgba(234, 224, 213, 0.45)",
+            color: "rgba(240, 237, 232, 0.45)",
             fontSize: 16,
             fontFamily,
             fontWeight: 400,
@@ -175,7 +176,7 @@ export const Counter: React.FC<CounterProps> = ({
         )}
         <span
           style={{
-            color: "#EAE0D5",
+            color: TEXT,
             fontSize: 140,
             fontFamily,
             fontWeight: 700,
@@ -186,7 +187,7 @@ export const Counter: React.FC<CounterProps> = ({
         {suffix && (
           <span
             style={{
-              color: "rgba(234, 224, 213, 0.5)",
+              color: "rgba(240, 237, 232, 0.5)",
               fontSize: 48,
               fontFamily,
               fontWeight: 500,

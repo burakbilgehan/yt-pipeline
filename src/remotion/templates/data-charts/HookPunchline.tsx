@@ -6,6 +6,7 @@ import {
   interpolate,
   Easing,
 } from "remotion";
+import { BG, TEXT, NEGATIVE, POSITIVE } from "../../palette";
 
 /**
  * HookPunchline — Scene 002 (5.7s)
@@ -17,7 +18,7 @@ import {
  * ~3s: Text fades in center: "So why doesn't it feel that way?"
  * 3–5.7s: Text holds, breathing room.
  *
- * Background: #1A1B22
+ * Background: #2A2A32
  */
 
 interface HookPunchlineProps {
@@ -32,10 +33,10 @@ interface HookPunchlineProps {
   fontFamily: string;
 }
 
-const BG_COLOR = "#1A1B22";
-const ACCENT_CREAM = "#EAE0D5";
-const MUTED_RED = "#E06070";
-const MUTED_GREEN = "#5BBF8C";
+const BG_COLOR = BG;
+const ACCENT_CREAM = TEXT;
+const MUTED_RED = NEGATIVE;
+const MUTED_GREEN = POSITIVE;
 
 const DEFAULT_ABOVE = ["Eggs", "Coffee"];
 const DEFAULT_BELOW = ["Chips", "Milk", "Peanut Butter", "Ice Cream"];

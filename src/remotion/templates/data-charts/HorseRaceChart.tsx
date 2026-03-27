@@ -10,6 +10,7 @@ import type {
   HorseRaceSeries,
   SceneYearRange,
 } from "../../types";
+import { TEXT, GRID, TRACK } from "../../palette";
 
 // ─── Constants ────────────────────────────────────────────────
 
@@ -363,13 +364,13 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
 
   const useLogScale = logScaleProp !== false;
 
-  // ── Theme colors — dark-cozy hardcoded ──
-  const gridColor = "rgba(232,224,212,0.15)";
-  const tickLabelColor = "#E8E0D4";
-  const yearBgColor = "rgba(232,224,212,0.06)";
-  const nowLineColor = "rgba(232,224,212,0.35)";
-  const yAxisLabelColor = "#E8E0D4";
-  const yearDisplayColor = "#E8E0D4";
+  // ── Theme colors — dark-cozy ──
+  const gridColor = GRID;
+  const tickLabelColor = TEXT;
+  const yearBgColor = TRACK;
+  const nowLineColor = "rgba(240,237,232,0.35)"; // derived from TEXT
+  const yAxisLabelColor = TEXT;
+  const yearDisplayColor = TEXT;
   const labelBgColor = "rgba(0,0,0,0.6)";
 
   // ── Process series data — pre-compute year values once ──
@@ -915,7 +916,7 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
                 style={{
                   fontSize: LABEL_VALUE_FONT_SIZE,
                   fontWeight: 500,
-                  color: "rgba(232,224,212,0.65)",
+                  color: "rgba(240,237,232,0.65)",
                   fontFamily,
                   lineHeight: 1.1,
                   padding: "0 4px",

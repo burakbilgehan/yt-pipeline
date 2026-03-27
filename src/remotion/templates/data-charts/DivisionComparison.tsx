@@ -6,6 +6,7 @@ import {
   interpolate,
 } from "remotion";
 import type { DataChartInput } from "../../schemas";
+import { BG, TEXT, TEXT_FAINT, CARD_BORDER, ACCENT_PINK } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -36,10 +37,8 @@ interface DivisionComparisonProps {
 
 // ─── Theme (defaults — brandColor prop overrides accent) ──────
 
-const BG = "#1A1B22";
-const TEXT = "#EAE0D5";
-const MUTED = "rgba(234, 224, 213, 0.4)";
-const CARD_BG = "rgba(234, 224, 213, 0.04)";
+const MUTED = TEXT_FAINT;
+const CARD_BG = "rgba(240, 237, 232, 0.04)"; // not palette CARD_BG (different base)
 
 // ─── Component ────────────────────────────────────────────────
 
@@ -52,7 +51,7 @@ export const DivisionComparison: React.FC<DivisionComparisonProps> = ({
   const { fps } = useVideoConfig();
 
   const cfg = chart as unknown as DivisionComparisonConfig;
-  const accent = brandColor || "#D8A7B1";
+  const accent = brandColor || ACCENT_PINK;
   const title = cfg.title || "";
   const source = cfg.source || "";
   const left = cfg.left;
@@ -244,7 +243,7 @@ export const DivisionComparison: React.FC<DivisionComparisonProps> = ({
           position: "absolute",
           bottom: 20,
           right: 30,
-          color: "rgba(234, 224, 213, 0.15)",
+          color: "rgba(240, 237, 232, 0.15)",
           fontSize: 11,
         }}
       >
@@ -292,7 +291,7 @@ const DivisionCard: React.FC<{
         backgroundColor: CARD_BG,
         borderRadius: 16,
         padding: "32px 40px",
-        border: `1px solid rgba(234, 224, 213, 0.08)`,
+        border: `1px solid ${CARD_BORDER}`,
         display: "flex",
         flexDirection: "column" as const,
         alignItems: "center",
@@ -311,8 +310,8 @@ const DivisionCard: React.FC<{
         <span style={{ 
           fontSize: 14, 
           fontWeight: 700,
-          color: "#1A1B22",
-          backgroundColor: "rgba(234, 224, 213, 0.85)",
+          color: BG,
+          backgroundColor: "rgba(240, 237, 232, 0.85)",
           borderRadius: 4,
           padding: "4px 8px",
           letterSpacing: 1,
@@ -339,7 +338,7 @@ const DivisionCard: React.FC<{
       >
         <div
           style={{
-            color: "rgba(234, 224, 213, 0.35)",
+            color: "rgba(240, 237, 232, 0.35)",
             fontSize: 12,
             fontWeight: 500,
             letterSpacing: 2,
@@ -383,7 +382,7 @@ const DivisionCard: React.FC<{
       >
         <div
           style={{
-            color: "rgba(234, 224, 213, 0.35)",
+            color: "rgba(240, 237, 232, 0.35)",
             fontSize: 12,
             fontWeight: 500,
             letterSpacing: 2,
@@ -428,7 +427,7 @@ const DivisionCard: React.FC<{
       >
         <div
           style={{
-            color: "rgba(234, 224, 213, 0.35)",
+            color: "rgba(240, 237, 232, 0.35)",
             fontSize: 12,
             fontWeight: 500,
             letterSpacing: 2,

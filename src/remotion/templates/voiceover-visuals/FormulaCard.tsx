@@ -39,7 +39,7 @@ export const FormulaCard: React.FC<FormulaCardProps> = ({
   formulaParts = ["Asset Price", "÷", "Gold Price", "=", "Gold Ratio"],
   example,
   dataBadge,
-  backgroundColor = "#0a0a0a",
+  backgroundColor = "#0a0a0a", // intentionally different from palette BG — dark formula-card theme
   accentColor = "#FFD700",
   fontFamily = "Inter, sans-serif",
 }) => {

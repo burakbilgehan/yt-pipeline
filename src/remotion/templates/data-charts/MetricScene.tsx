@@ -7,6 +7,14 @@ import {
   spring,
   Img,
 } from "remotion";
+import {
+  BG,
+  TEXT,
+  TEXT_MUTED,
+  ACCENT_PINK,
+  ACCENT_BLUE,
+  SAGE,
+} from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -39,12 +47,10 @@ interface MetricSceneProps {
 
 // ─── Design Tokens ────────────────────────────────────────────
 
-const BG_COLOR = "#1A1B22";
-const TEXT_COLOR = "#EAE0D5";
-const MUTED_TEXT = "rgba(234, 224, 213, 0.55)";
-const ACCENT_PINK = "#D8A7B1";
-const ACCENT_BLUE = "#90AFC5";
-const SAGE_SILVER = "#A3B18A";
+const BG_COLOR = BG;
+const TEXT_COLOR = TEXT;
+const MUTED_TEXT = TEXT_MUTED;
+const SAGE_SILVER = SAGE;
 
 const FONT_HEADING = "Montserrat, sans-serif";
 const FONT_MONO = "'JetBrains Mono', monospace";
@@ -401,10 +407,10 @@ export const MetricScene: React.FC<MetricSceneProps> = ({
                       style={{
                         backgroundColor: isResultTerm
                           ? `${SAGE_SILVER}22`
-                          : "rgba(234, 224, 213, 0.06)",
+                          : "rgba(240, 237, 232, 0.06)",
                         border: isResultTerm
                           ? `2px solid ${SAGE_SILVER}66`
-                          : "1px solid rgba(234, 224, 213, 0.12)",
+                          : "1px solid rgba(240, 237, 232, 0.12)",
                         borderRadius: 12,
                         padding: "16px 28px",
                       }}

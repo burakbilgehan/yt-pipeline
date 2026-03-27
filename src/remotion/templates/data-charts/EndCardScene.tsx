@@ -6,6 +6,7 @@ import {
   interpolate,
 } from "remotion";
 import type { DataChartInput } from "../../schemas";
+import { BG, TEXT, TEXT_FAINT, ACCENT_PINK } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -36,9 +37,9 @@ interface EndCardSceneProps {
 
 // ─── Theme (defaults — overridden by brandColor prop) ─────────
 
-const DEFAULT_BG = "#1A1B22";
-const DEFAULT_TEXT = "#EAE0D5";
-const DEFAULT_MUTED = "rgba(234, 224, 213, 0.4)";
+const DEFAULT_BG = BG;
+const DEFAULT_TEXT = TEXT;
+const DEFAULT_MUTED = TEXT_FAINT;
 
 // ─── Component ────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
   const { fps, durationInFrames } = useVideoConfig();
 
   const cfg = chart as unknown as EndCardConfig;
-  const accent = brandColor || "#D8A7B1";
+  const accent = brandColor || ACCENT_PINK;
   const finalQuestion = cfg.finalQuestion || "";
   const finalQuestionColor = cfg.finalQuestionColor || DEFAULT_TEXT;
   const gapLabel = cfg.gapLabel || "";
@@ -229,7 +230,7 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
               width: 200,
               height: 200,
               borderRadius: "50%",
-              border: `2px dashed rgba(234, 224, 213, 0.15)`,
+              border: `2px dashed rgba(240, 237, 232, 0.15)`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -243,7 +244,7 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
           >
             <span
               style={{
-                color: "rgba(234, 224, 213, 0.2)",
+                color: "rgba(240, 237, 232, 0.2)",
                 fontSize: 12,
                 fontWeight: 500,
                 letterSpacing: 1,
@@ -263,7 +264,7 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
               width: 320,
               height: 180,
               borderRadius: 12,
-              border: `2px dashed rgba(234, 224, 213, 0.15)`,
+              border: `2px dashed rgba(240, 237, 232, 0.15)`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -277,7 +278,7 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
           >
             <span
               style={{
-                color: "rgba(234, 224, 213, 0.2)",
+                color: "rgba(240, 237, 232, 0.2)",
                 fontSize: 12,
                 fontWeight: 500,
                 letterSpacing: 1,

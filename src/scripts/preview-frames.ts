@@ -192,10 +192,10 @@ async function createContactSheet(
 <style>
   body {
     margin: 0; padding: 16px;
-    background: #1A1B22; color: #EAE0D5;
+    background: #2A2A32; color: #F0EDE8;
     font-family: Inter, system-ui, sans-serif;
   }
-  h1 { font-size: 18px; font-weight: 500; margin-bottom: 16px; color: #D8A7B1; }
+  h1 { font-size: 18px; font-weight: 500; margin-bottom: 16px; color: #E88CA5; }
   .grid {
     display: grid;
     grid-template-columns: repeat(${cols}, ${THUMB_WIDTH}px);
@@ -215,18 +215,18 @@ async function createContactSheet(
   .cell .label {
     padding: 4px 8px;
     font-size: 11px;
-    color: rgba(234,224,213,0.7);
+    color: rgba(240,237,232,0.7);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .cell .label .scene-id { color: #D8A7B1; font-weight: 600; }
+  .cell .label .scene-id { color: #E88CA5; font-weight: 600; }
   .cell .label .scene-type { color: #5BBF8C; }
-  .cell .label .timestamp { color: #EAE0D5; float: right; }
+  .cell .label .timestamp { color: #F0EDE8; float: right; }
   .stats {
     margin-bottom: 12px;
     font-size: 13px;
-    color: rgba(234,224,213,0.5);
+    color: rgba(240,237,232,0.5);
   }
 </style>
 </head>
@@ -287,14 +287,19 @@ async function main() {
 
   const videoConfig: VideoConfig = JSON.parse(fs.readFileSync(videoConfigPath, "utf-8"));
 
-  // ── Remap colors from legacy palette to brand-guide v2.0 ──
+  // ── Remap colors from legacy palettes to dusty-editorial theme ──
   // This remaps at runtime without modifying the original video-config.json
   const COLOR_REMAP: Record<string, string> = {
-    "#1A1824": "#1A1B22",  // Background
-    "#D47FA6": "#D8A7B1",  // Data Set A (old pink → muted pink)
-    "#C97B9F": "#90AFC5",  // Data Set B (old secondary → muted blue)
-    "#E8E0D4": "#EAE0D5",  // Text (old cream → accent cream)
-    "#2D2B3D": "#1A1B22",  // Old gradient end → solid bg
+    "#1A1824": "#2A2A32",  // Legacy background → dusty editorial bg
+    "#1A1B22": "#2A2A32",  // Old dark bg → dusty editorial bg
+    "#2D2B3D": "#2A2A32",  // Old gradient end → solid bg
+    "#D47FA6": "#E88CA5",  // Legacy pink → new accent1
+    "#C97B9F": "#E88CA5",  // Legacy secondary pink → new accent1
+    "#D8A7B1": "#E88CA5",  // Old muted pink → new accent1
+    "#90AFC5": "#7BA7C9",  // Old muted blue → new accent2
+    "#E8E0D4": "#F0EDE8",  // Legacy cream → new text
+    "#EAE0D5": "#F0EDE8",  // Old accent cream → new text
+    "#A3B18A": "#8A9A7A",  // Old sage/grid → new grid
   };
 
   function remapColor(hex: string | undefined): string | undefined {
@@ -324,7 +329,7 @@ async function main() {
     }
   }
 
-  console.log(`🎨 Color remap: ${remappedCount} item colors + top-level bg/brand updated to brand-guide v2.0`);
+  console.log(`🎨 Color remap: ${remappedCount} item colors + top-level bg/brand updated to dusty-editorial v3`);
   const fps = videoConfig.fps || 30;
   const width = videoConfig.width || 1920;
   const height = videoConfig.height || 1080;

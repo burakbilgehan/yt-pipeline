@@ -6,6 +6,7 @@ import {
   interpolate,
   spring,
 } from "remotion";
+import { BG, TEXT, ACCENT_PINK, NEGATIVE, SAGE, TEXT_MUTED } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -26,12 +27,12 @@ export interface BLSShrinkExplainerProps {
 
 // ─── Design Tokens (from brand-guide.md) ──────────────────────
 
-const BG_COLOR = "#1A1B22";
-const TEXT_COLOR = "#EAE0D5";     // Accent Cream
-const MUTED_PINK = "#D8A7B1";    // Primary data / coffee can fill
-const MUTED_RED = "#E06070";     // Negative change / per-unit price
-const SAGE_SILVER = "#A3B18A";   // Grid/Detail / BLS attribution
-const MUTED_TEXT = "rgba(234, 224, 213, 0.55)";
+const BG_COLOR = BG;
+const TEXT_COLOR = TEXT;
+const MUTED_PINK = ACCENT_PINK;
+const MUTED_RED = NEGATIVE;
+const SAGE_SILVER = SAGE;
+const MUTED_TEXT = TEXT_MUTED;
 
 const FONT_HEADING = "Montserrat, sans-serif";
 const FONT_MONO = "'JetBrains Mono', monospace";
@@ -114,7 +115,7 @@ const CoffeeCan: React.FC<{
           position: "absolute",
           top: 0,
           zIndex: 2,
-          border: `2px solid rgba(234, 224, 213, 0.15)`,
+          border: `2px solid rgba(240, 237, 232, 0.15)`,
         }}
       />
       {/* Body cylinder */}
@@ -125,8 +126,8 @@ const CoffeeCan: React.FC<{
           backgroundColor: fillColor,
           position: "absolute",
           top: ellipseH,
-          borderLeft: `2px solid rgba(234, 224, 213, 0.15)`,
-          borderRight: `2px solid rgba(234, 224, 213, 0.15)`,
+          borderLeft: `2px solid rgba(240, 237, 232, 0.15)`,
+          borderRight: `2px solid rgba(240, 237, 232, 0.15)`,
         }}
       />
       {/* Bottom ellipse */}
@@ -139,7 +140,7 @@ const CoffeeCan: React.FC<{
           position: "absolute",
           bottom: 0,
           zIndex: 1,
-          border: `2px solid rgba(234, 224, 213, 0.1)`,
+          border: `2px solid rgba(240, 237, 232, 0.1)`,
           // Slightly darker bottom for depth
           filter: "brightness(0.85)",
         }}
@@ -216,10 +217,10 @@ const PriceTag: React.FC<{
         fontFeatureSettings: '"tnum"',
         padding: "12px 28px",
         borderRadius: 12,
-        border: `2px solid rgba(234, 224, 213, ${0.15 + glowIntensity * 0.3})`,
-        backgroundColor: `rgba(234, 224, 213, ${0.04 + glowIntensity * 0.08})`,
+        border: `2px solid rgba(240, 237, 232, ${0.15 + glowIntensity * 0.3})`,
+        backgroundColor: `rgba(240, 237, 232, ${0.04 + glowIntensity * 0.08})`,
         boxShadow: glowIntensity > 0
-          ? `0 0 ${20 * glowIntensity}px rgba(234, 224, 213, ${0.15 * glowIntensity})`
+          ? `0 0 ${20 * glowIntensity}px rgba(240, 237, 232, ${0.15 * glowIntensity})`
           : "none",
         transition: "box-shadow 0.1s",
       }}

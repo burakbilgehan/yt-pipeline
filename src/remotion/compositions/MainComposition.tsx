@@ -11,6 +11,7 @@ import { TransitionWrapper, SubtitleOverlay, BackgroundMusicLayer } from "../com
 import { SceneVisual } from "../templates/voiceover-visuals";
 import { DataChartScene } from "../templates/data-charts";
 import { loadFontsSync } from "../../fonts/load-fonts";
+import { BG } from "../palette";
 
 /**
  * Main video composition.
@@ -39,7 +40,7 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
   loadFontsSync(fontFamily);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#1A1B22" }}>
+    <AbsoluteFill style={{ backgroundColor: BG }}>
       {/* ── Scene sequences ── */}
       {scenes.map((scene, index) => {
         const startFrame = Math.round(scene.startTime * fps);

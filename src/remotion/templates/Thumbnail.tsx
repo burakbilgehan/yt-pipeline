@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
+import { BG, TEXT, ACCENT_PINK, TEXT_SECONDARY, TEXT_FAINT } from "../palette";
 
 export interface ThumbnailProps {
   /** Layout variant */
@@ -43,16 +44,16 @@ export interface ThumbnailProps {
 }
 
 const defaults = {
-  bgTop: "#1A1824",
-  bgBottom: "#2D2B3D",
-  beforeColor: "#E8E0D4",
-  strikethroughColor: "#D47FA6",
-  afterColor: "#D47FA6",
-  glowColor: "rgba(212, 127, 166, 0.35)",
-  cornerLabelColor: "rgba(232, 224, 212, 0.6)",
+  bgTop: BG,
+  bgBottom: BG,
+  beforeColor: TEXT,
+  strikethroughColor: ACCENT_PINK,
+  afterColor: ACCENT_PINK,
+  glowColor: "rgba(232, 140, 165, 0.35)",
+  cornerLabelColor: "rgba(240, 237, 232, 0.6)",
   fontFamily: "Inter, sans-serif",
-  dividerColor: "#C97B9F",
-  connectorColor: "rgba(232, 224, 212, 0.4)",
+  dividerColor: ACCENT_PINK,
+  connectorColor: TEXT_FAINT,
 };
 
 /**
@@ -211,7 +212,7 @@ const VariantA: React.FC<{
       <path
         d={generateChartPath(1280, 720)}
         fill="none"
-        stroke="#C97B9F"
+        stroke={ACCENT_PINK}
         strokeWidth={2.5}
         opacity={0.15}
         strokeLinecap="round"
@@ -219,8 +220,8 @@ const VariantA: React.FC<{
       />
       <defs>
         <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#C97B9F" stopOpacity={0.3} />
-          <stop offset="100%" stopColor="#C97B9F" stopOpacity={0} />
+          <stop offset="0%" stopColor={ACCENT_PINK} stopOpacity={0.3} />
+          <stop offset="100%" stopColor={ACCENT_PINK} stopOpacity={0} />
         </linearGradient>
       </defs>
     </svg>
@@ -233,7 +234,7 @@ const VariantA: React.FC<{
         right: "10%",
         width: 600,
         height: 350,
-        background: `radial-gradient(ellipse, rgba(212, 127, 166, 0.15) 0%, transparent 70%)`,
+        background: `radial-gradient(ellipse, rgba(232, 140, 165, 0.15) 0%, transparent 70%)`,
         pointerEvents: "none",
       }}
     />
@@ -318,7 +319,7 @@ const VariantA: React.FC<{
           color: afterColor,
           letterSpacing: -7,
           lineHeight: 1,
-          textShadow: `0 0 50px ${glowColor}, 0 0 100px ${glowColor}, 0 0 150px rgba(212, 127, 166, 0.2)`,
+          textShadow: `0 0 50px ${glowColor}, 0 0 100px ${glowColor}, 0 0 150px rgba(232, 140, 165, 0.2)`,
         }}
       >
         {afterNumber}
@@ -330,7 +331,7 @@ const VariantA: React.FC<{
           style={{
             fontSize: 28,
             fontWeight: 600,
-            color: "#C97B9F",
+            color: ACCENT_PINK,
             letterSpacing: 6,
             textTransform: "uppercase",
             marginTop: 5,
@@ -352,7 +353,7 @@ const VariantA: React.FC<{
           left: 60,
           fontSize: 30,
           fontWeight: 700,
-          color: "rgba(232, 224, 212, 0.6)",
+          color: "rgba(240, 237, 232, 0.6)",
           letterSpacing: 5,
           textTransform: "uppercase",
         }}
@@ -406,7 +407,7 @@ const VariantB: React.FC<{
         style={{
           fontSize: 32,
           fontWeight: 700,
-          color: "rgba(232, 224, 212, 0.7)",
+          color: TEXT_SECONDARY,
           letterSpacing: 5,
           textTransform: "uppercase",
           marginBottom: 20,
@@ -553,7 +554,7 @@ const VariantC: React.FC<{
         style={{
           fontSize: 32,
           fontWeight: 700,
-          color: "rgba(232, 224, 212, 0.7)",
+          color: TEXT_SECONDARY,
           letterSpacing: 5,
           textTransform: "uppercase",
           marginBottom: 15,
@@ -571,7 +572,7 @@ const VariantC: React.FC<{
         color: afterColor,
         letterSpacing: -8,
         lineHeight: 1,
-        textShadow: `0 0 50px ${glowColor}, 0 0 100px ${glowColor}, 0 0 150px rgba(212, 127, 166, 0.15)`,
+        textShadow: `0 0 50px ${glowColor}, 0 0 100px ${glowColor}, 0 0 150px rgba(232, 140, 165, 0.15)`,
       }}
     >
       {afterNumber}

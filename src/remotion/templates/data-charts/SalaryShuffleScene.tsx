@@ -6,6 +6,7 @@ import {
   interpolate,
 } from "remotion";
 import type { DataChartInput } from "../../schemas";
+import { BG, TEXT, TEXT_FAINT, POSITIVE, ACCENT_PINK, NEGATIVE } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -38,10 +39,7 @@ interface SalaryShuffleSceneProps {
 
 // ─── Theme ────────────────────────────────────────────────────
 
-const BG = "#1A1B22";
-const TEXT = "#EAE0D5";
-const MUTED = "rgba(234, 224, 213, 0.4)";
-const POSITIVE = "#5BBF8C";
+const MUTED = TEXT_FAINT;
 
 // ─── Component ────────────────────────────────────────────────
 
@@ -54,7 +52,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
   const { fps } = useVideoConfig();
 
   const cfg = chart as unknown as SalaryShuffleConfig;
-  const accent = brandColor || "#D8A7B1";
+  const accent = brandColor || ACCENT_PINK;
   const countries = cfg.countries || [];
   const resortTrigger = cfg.resortTriggerFrame ?? Math.round(fps * 12); // default: 12 seconds in
   const resortLabel = cfg.resortLabel || "Value per Hour";
@@ -206,7 +204,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
           left: LEFT_X - 20,
           right: 200,
           height: 1,
-          backgroundColor: "rgba(234, 224, 213, 0.08)",
+          backgroundColor: "rgba(240, 237, 232, 0.08)",
           opacity: titleIn,
         }}
       />
@@ -234,7 +232,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
 
         // Glow effect during movement
         const isMoving = resortProgress > 0.05 && resortProgress < 0.95;
-        const glowColor = movedUp ? POSITIVE : movedDown ? "#E06070" : "transparent";
+        const glowColor = movedUp ? POSITIVE : movedDown ? NEGATIVE : "transparent";
 
         // Hourly rate value fade in (appears with resort)
         const bmValueIn = spring({
@@ -269,8 +267,8 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
               <span style={{ 
                 fontSize: 14, 
                 fontWeight: 700,
-                color: "#1A1B22",
-                backgroundColor: "rgba(234, 224, 213, 0.85)",
+                color: BG,
+                backgroundColor: "rgba(240, 237, 232, 0.85)",
                 borderRadius: 4,
                 padding: "4px 8px",
                 letterSpacing: 1,
@@ -325,7 +323,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
             >
               <span
                 style={{
-                  color: isMoving && movedUp ? POSITIVE : isMoving && movedDown ? "#E06070" : accent,
+                  color: isMoving && movedUp ? POSITIVE : isMoving && movedDown ? NEGATIVE : accent,
                   fontSize: 32,
                   fontWeight: 700,
                   fontFamily: "JetBrains Mono, monospace",
@@ -359,7 +357,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
               >
                 <span
                   style={{
-                    color: movedUp ? POSITIVE : "#E06070",
+                    color: movedUp ? POSITIVE : NEGATIVE,
                     fontSize: 22,
                     fontWeight: 700,
                   }}
@@ -378,7 +376,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
           position: "absolute",
           bottom: 20,
           right: 30,
-          color: "rgba(234, 224, 213, 0.15)",
+          color: "rgba(240, 237, 232, 0.15)",
           fontSize: 11,
           fontWeight: 400,
           opacity: titleIn,

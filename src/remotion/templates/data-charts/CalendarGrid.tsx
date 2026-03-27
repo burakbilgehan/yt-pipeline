@@ -6,6 +6,7 @@ import {
   interpolate,
 } from "remotion";
 import type { DataChartInput } from "../../schemas";
+import { BG, TEXT, TEXT_FAINT, TRACK, CARD_BORDER, ACCENT_PINK, NEGATIVE } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -48,11 +49,9 @@ interface CalendarGridProps {
 
 // ─── Theme ────────────────────────────────────────────────────
 
-const BG = "#1A1B22";
-const TEXT = "#EAE0D5";
-const MUTED = "rgba(234, 224, 213, 0.4)";
-const CELL_DEFAULT = "rgba(234, 224, 213, 0.06)";
-const CELL_BORDER = "rgba(234, 224, 213, 0.04)";
+const MUTED = TEXT_FAINT;
+const CELL_DEFAULT = TRACK;
+const CELL_BORDER = "rgba(240, 237, 232, 0.04)"; // derived from TEXT
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -70,10 +69,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   const { fps } = useVideoConfig();
 
   const cfg = chart as unknown as CalendarGridConfig;
-  const accent = brandColor || "#D8A7B1";
+  const accent = brandColor || ACCENT_PINK;
   const months = cfg.months || 12;
   const highlightedDays = cfg.highlightedDays || 55;
-  const highlightColor = cfg.highlightColor || "#E06070";
+  const highlightColor = cfg.highlightColor || NEGATIVE;
   const labels = cfg.labels || [];
   const source = cfg.source || "";
   const comparisonCard = cfg.comparisonCard;
@@ -386,7 +385,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           position: "absolute",
           bottom: 20,
           right: 30,
-          color: "rgba(234, 224, 213, 0.15)",
+          color: "rgba(240, 237, 232, 0.15)",
           fontSize: 11,
         }}
       >
@@ -423,10 +422,10 @@ const ComparisonSide: React.FC<{
   return (
     <div
       style={{
-        backgroundColor: "rgba(234, 224, 213, 0.04)",
+        backgroundColor: "rgba(240, 237, 232, 0.04)",
         borderRadius: 12,
         padding: "16px 20px",
-        border: "1px solid rgba(234, 224, 213, 0.08)",
+        border: `1px solid ${CARD_BORDER}`,
         opacity: cardSpring,
       }}
     >
@@ -441,8 +440,8 @@ const ComparisonSide: React.FC<{
         <span style={{ 
           fontSize: 12, 
           fontWeight: 700,
-          color: "#1A1B22",
-          backgroundColor: "rgba(234, 224, 213, 0.85)",
+          color: BG,
+          backgroundColor: "rgba(240, 237, 232, 0.85)",
           borderRadius: 4,
           padding: "3px 6px",
           letterSpacing: 1,
