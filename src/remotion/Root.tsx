@@ -1,10 +1,11 @@
 import React from "react";
 import { Composition, staticFile } from "remotion";
-import { videoCompositionSchema, dataChartCompositionSchema, shortsCompositionSchema, horseRaceCompositionSchema, thumbnailCompositionSchema } from "./schemas";
+import { videoCompositionSchema, dataChartCompositionSchema, shortsCompositionSchema, horseRaceCompositionSchema, thumbnailCompositionSchema, thumbnailOverlayCompositionSchema } from "./schemas";
 import { customVideoCompositionSchema } from "./compositions/CustomVideoComposition";
 import { ensureFontsLoaded } from "../fonts/load-fonts";
 import { bridgeAllScenes } from "../utils/storyboard-bridge";
 import { BG } from "./palette";
+import { START_PADDING_SEC, END_PADDING_SEC } from "./compositions/MainComposition";
 import type { z } from "zod";
 
 const FPS = 30;
@@ -194,8 +195,15 @@ async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSch
             let yearEnd: number;
 
             if (state === "start-position") {
-              yearStart = 2000;
-              yearEnd = 2000;
+              // Use explicit yearRange if provided (e.g. [1999,2003] for wider chart window),
+              // otherwise default to frozen at year 2000.
+              if (yr && Array.isArray(yr) && yr.length === 2) {
+                yearStart = yr[0];
+                yearEnd = yr[1];
+              } else {
+                yearStart = 2000;
+                yearEnd = 2000;
+              }
             } else if (state.startsWith("frozen") || state.startsWith("paused")) {
               const frozenYear = parseInt(state.replace(/\D/g, "")) || lastYearEnd;
               yearStart = frozenYear;
@@ -223,7 +231,7 @@ async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSch
           }
         }
 
-        // ── Pass 3: Build annotations from storyboard data ──
+        // ── Pass 3: Build annotations + shrinkflation markers from storyboard data ──
         if (horseRaceScenes.length > 0) {
           const allAnnotations: Array<{
             year: number;
@@ -233,6 +241,10 @@ async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSch
             duration?: number;
             icon?: string;
           }> = [];
+
+          // Separate collection for shrinkflation markers (vertical dashed lines)
+          const shrinkMarkers: Array<{ year: number; label: string; color?: string }> = [];
+          const seenMarkers = new Set<string>();
 
           for (const { dc } of horseRaceScenes) {
             // eventMarker → annotation
@@ -261,19 +273,45 @@ async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSch
               });
             }
 
-            // annotations (array from storyboard, e.g. scene-018)
-            // Only process raw storyboard annotation arrays (objects with `near` field),
-            // not the final HorseRaceAnnotation[] which have `style` field
+            // annotations (array from storyboard)
             if (dc.annotations && Array.isArray(dc.annotations)) {
               for (const a of dc.annotations) {
-                if (a.near && a.year && a.text) {
-                  allAnnotations.push({
-                    year: a.year,
-                    text: a.text,
-                    style: "leader-callout",
-                    asset: a.near,
-                    duration: 2,
-                  });
+                if (a.year && a.text) {
+                  // Shrinkflation annotations → both general annotations AND shrinkflation markers
+                  if (a.type === "shrinkflation") {
+                    const markerKey = `${a.year}-${a.text}`;
+                    if (!seenMarkers.has(markerKey)) {
+                      seenMarkers.add(markerKey);
+                      shrinkMarkers.push({
+                        year: a.year,
+                        label: a.text,
+                      });
+                    }
+                    allAnnotations.push({
+                      year: a.year,
+                      text: a.text,
+                      style: "shrinkflation-callout",
+                      asset: a.product,
+                      duration: 2,
+                    });
+                  } else if (a.near || a.product) {
+                    // Regular product annotations (with near or product field)
+                    allAnnotations.push({
+                      year: a.year,
+                      text: a.text,
+                      style: "leader-callout",
+                      asset: a.near || a.product,
+                      duration: 2,
+                    });
+                  } else {
+                    // Event-type annotations (no product/near, e.g. "Global commodity boom")
+                    allAnnotations.push({
+                      year: a.year,
+                      text: a.text,
+                      style: "event-flash",
+                      duration: 2,
+                    });
+                  }
                 }
               }
             }
@@ -282,7 +320,7 @@ async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSch
             if (dc.crossings && Array.isArray(dc.crossings)) {
               for (const c of dc.crossings) {
                 allAnnotations.push({
-                  year: 2025, // crossings happen at final position
+                  year: 2025,
                   text: `${c.product} crosses 1.0`,
                   style: "crossing-alert",
                   asset: c.product,
@@ -290,9 +328,25 @@ async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSch
                 });
               }
             }
+
+            // overlays with type "shrinkflation" (from overlays array)
+            if (dc.overlays && Array.isArray(dc.overlays)) {
+              for (const o of dc.overlays) {
+                if (o.type === "shrinkflation" && o.year && o.text) {
+                  const markerKey = `${o.year}-${o.text}`;
+                  if (!seenMarkers.has(markerKey)) {
+                    seenMarkers.add(markerKey);
+                    shrinkMarkers.push({
+                      year: o.year,
+                      label: o.text,
+                    });
+                  }
+                }
+              }
+            }
           }
 
-          // Deduplicate by year+text
+          // Deduplicate annotations by year+text
           const seen = new Set<string>();
           const uniqueAnnotations = allAnnotations.filter((a) => {
             const key = `${a.year}-${a.text}`;
@@ -301,9 +355,12 @@ async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSch
             return true;
           });
 
-          // Inject into all horse-race scenes
+          // Inject annotations + shrinkflation markers into all horse-race scenes
           for (const { dc } of horseRaceScenes) {
             dc.annotations = uniqueAnnotations;
+            if (shrinkMarkers.length > 0) {
+              dc.shrinkflationMarkers = shrinkMarkers;
+            }
           }
         }
       }
@@ -316,9 +373,11 @@ async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSch
       if (manifestRes.ok) {
         const audioManifest: any = await manifestRes.json();
         for (const block of audioManifest.blocks) {
+          // Use storyboard scene startTime for sync (audio manifest times may drift)
+          const matchingScene = resolvedScenes.find((s: any) => s.id === block.id);
           audioSegments.push({
             src: `${audioPrefix}/${block.file}`,
-            startTime: block.startTime ?? 0,
+            startTime: matchingScene?.startTime ?? block.startTime ?? 0,
           });
         }
       }
@@ -395,7 +454,8 @@ export const RemotionRoot: React.FC = () => {
           if (projectProps) {
             await ensureFontsLoaded(projectProps.fontFamily);
             const lastScene = projectProps.scenes[projectProps.scenes.length - 1];
-            const totalDurationSec = lastScene?.endTime || 60;
+            const contentDurationSec = lastScene?.endTime || 60;
+            const totalDurationSec = START_PADDING_SEC + contentDurationSec + END_PADDING_SEC;
             return {
               props: projectProps,
               durationInFrames: Math.ceil(totalDurationSec * FPS),
@@ -543,6 +603,24 @@ export const RemotionRoot: React.FC = () => {
           bottomLabel: "AFTER",
           cornerLabel: "DATA STORY",
           cornerPosition: "bottom-left" as const,
+        }}
+      />
+
+      {/* Thumbnail Overlay — overlay logo on existing thumbnail image */}
+      <Composition
+        id="ThumbnailOverlay"
+        lazyComponent={() => import("./compositions/ThumbnailOverlayComposition")}
+        schema={thumbnailOverlayCompositionSchema}
+        durationInFrames={1}
+        fps={FPS}
+        width={1280}
+        height={720}
+        defaultProps={{
+          baseImage: "thumbnail.png",
+          logoImage: "logo.png",
+          logoSize: 100,
+          logoPadding: 20,
+          logoPosition: "bottom-right" as const,
         }}
       />
     </>

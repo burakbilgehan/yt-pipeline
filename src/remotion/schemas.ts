@@ -163,6 +163,8 @@ export const horseRaceAnnotationSchema = z.object({
     "milestone-flash",
     "leader-callout",
     "crossing-alert",
+    "shrinkflation-callout",
+    "event-flash",
   ]),
   asset: z.string().optional(),
   duration: z.number().optional(),
@@ -208,3 +210,15 @@ export const thumbnailCompositionSchema = z.object({
 });
 
 export type ThumbnailCompositionProps = z.infer<typeof thumbnailCompositionSchema>;
+
+// ─── Thumbnail overlay composition schema ────────────────────
+
+export const thumbnailOverlayCompositionSchema = z.object({
+  baseImage: z.string(),
+  logoImage: z.string(),
+  logoSize: z.number().optional(),
+  logoPadding: z.number().optional(),
+  logoPosition: z.enum(["bottom-right", "bottom-left", "top-right", "top-left"]).optional(),
+});
+
+export type ThumbnailOverlayCompositionProps = z.infer<typeof thumbnailOverlayCompositionSchema>;

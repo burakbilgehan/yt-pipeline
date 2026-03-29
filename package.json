@@ -21,9 +21,7 @@
     "video-status": "tsx src/scripts/video-status.ts",
     "suggest": "tsx src/scripts/youtube-suggest.ts",
     "collect": "tsx src/scripts/collect-stock.ts",
-    "generate-image": "tsx src/scripts/generate-image.ts",
-    "generate-image:gemini": "tsx src/scripts/generate-image.ts --provider gemini",
-    "generate-image:dalle": "tsx src/scripts/generate-image.ts --provider dalle",
+
     "new-channel": "tsx src/scripts/new-channel.ts",
     "new-video": "tsx src/scripts/new-video.ts",
     "new-project": "tsx src/scripts/new-video.ts",

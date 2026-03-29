@@ -47,15 +47,8 @@ How to fetch and organize visual assets for video production.
 # Stock images/video from Pexels
 npm run collect <slug> <image|video> "<query>"
 
-# AI images (Gemini — primary)
-npm run generate-image <slug> "<prompt>"
-
-# AI images (DALL-E — alternate)
-npm run generate-image <slug> "<prompt>" --provider dalle
-
 # Shorts format (9:16)
 npm run collect <slug> image "<query>" --format short
-npm run generate-image <slug> "<prompt>" --format short
 ```
 
 ## Where Assets Go

@@ -162,7 +162,6 @@ npm run render <slug>
 npm run upload <slug>
 npm run analytics [slug|channel]
 npm run collect <slug> <type> <query>
-npm run generate-image <slug> <prompt>
 npm run studio -- --public-dir <project-path>
 npm run sync-ai
 ```

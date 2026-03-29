@@ -63,8 +63,10 @@ export function bridgeSceneVisual(visual: any): void {
   if (visual?.type === "text-overlay" && visual?.textOverlay?.phase1) {
     visual.dataChart = {
       type: "lens-switch-pivot",
+      summaryText: visual.textOverlay.summaryText,
       pivotQuestion: visual.textOverlay.phase1.text,
       rulerQuestion: visual.textOverlay.phase2?.text,
+      deflators: visual.textOverlay.deflators,
     };
     visual.type = "data-chart";
     return;
@@ -309,6 +311,8 @@ export function bridgeSceneVisual(visual: any): void {
       title: visual.textOverlay?.title || "Shrinkflation Decoded",
       products: dv.products,
       productColors: dv.productColors,
+      showLineup: dv.showLineup !== false, // default true for backward compat
+      baselinePulse: dv.baselinePulse !== false, // default true
     };
     visual.type = "data-chart";
     return;
@@ -380,7 +384,20 @@ export function bridgeSceneVisual(visual: any): void {
     visual.dataChart = {
       type: "deflator-summary-grid",
       title: visual.textOverlay?.title || "Same Data. Different Ruler.",
-      charts: dv.charts,
+      charts: dv.charts.map((c: any) => {
+        if (c.above && c.below) return c; // already in correct format
+        const above: Array<string | { name: string; value: number }> = [];
+        const below: Array<string | { name: string; value: number }> = [];
+        if (c.products) {
+          for (const [name, info] of Object.entries(c.products)) {
+            const val = (info as any).value ?? (info as any).rupi;
+            const item = val != null ? { name, value: Number(val) } : name;
+            if ((info as any).above) above.push(item);
+            else below.push(item);
+          }
+        }
+        return { deflator: c.deflator, above, below };
+      }),
       source: "BLS, FRED, DOL, LBMA",
     };
     visual.type = "data-chart";

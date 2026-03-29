@@ -165,7 +165,7 @@ export interface HorseRaceAnnotation {
   /** Text to display */
   text: string;
   /** Visual style */
-  style: "crisis-flash" | "major-crisis-flash" | "policy-banner" | "milestone-flash" | "leader-callout" | "crossing-alert";
+  style: "crisis-flash" | "major-crisis-flash" | "policy-banner" | "milestone-flash" | "leader-callout" | "crossing-alert" | "shrinkflation-callout" | "event-flash";
   /** Optional: which asset this annotation belongs to */
   asset?: string;
   /** Duration in seconds to show */
@@ -186,6 +186,16 @@ export interface SceneYearRange {
   yearEnd: number;
 }
 
+/** Shrinkflation event marker — vertical line on horse-race chart */
+export interface ShrinkflationMarker {
+  /** Year the event occurred */
+  year: number;
+  /** Short label, e.g. "Skippy 18oz→16.3oz" */
+  label: string;
+  /** Optional color (defaults to a warning/orange color) */
+  color?: string;
+}
+
 /** Full props for the HorseRaceChart composition */
 export interface HorseRaceChartProps {
   /** All asset series */
@@ -198,6 +208,8 @@ export interface HorseRaceChartProps {
   timeRange: { start: number; end: number };
   /** Scene-to-year mapping for voiceover sync (takes priority over cameraKeyframes speed) */
   sceneYearRanges?: SceneYearRange[];
+  /** Shrinkflation event markers — vertical lines on the chart */
+  shrinkflationMarkers?: ShrinkflationMarker[];
   /** Background color */
   backgroundColor: string;
   /** Brand color for accents */
@@ -208,6 +220,8 @@ export interface HorseRaceChartProps {
   logScale?: boolean;
   /** Y-axis label (e.g. "Asset / Gold Ratio") */
   yAxisLabel?: string;
+  /** Deflator label displayed next to the year counter (e.g. "RUPI (Wage-Deflated)") */
+  deflatorLabel?: string;
 }
 
 /** Props for the shorts video composition (9:16) */

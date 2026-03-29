@@ -83,7 +83,7 @@ export interface Storyboard {
   scenes: Scene[];
   /** Background music configuration — multi-track sequential playback */
   backgroundMusic?: {
-    tracks: Array<{ src: string; durationSec: number }>;
+    tracks: Array<{ src?: string; file?: string; durationSec?: number; duration?: number }>;
     volume?: number;
     crossfadeSec?: number;
     fadeInSec?: number;

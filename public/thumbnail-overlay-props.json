@@ -1,0 +1,7 @@
+{
+  "baseImage": "thumbnail.png",
+  "logoImage": "logo.png",
+  "logoSize": 100,
+  "logoPadding": 20,
+  "logoPosition": "bottom-right"
+}

@@ -59,6 +59,25 @@ async function main() {
     fs.readFileSync(metadataPath, "utf-8")
   );
 
+  // Debug: log tags being sent
+  console.log(`Tags (${metadata.tags?.length}):`, JSON.stringify(metadata.tags));
+
+  // Validate tags: trim whitespace, remove empty, enforce 500 char total limit
+  const cleanTags = (metadata.tags || [])
+    .map((t: string) => t.trim())
+    .filter((t: string) => t.length > 0 && t.length <= 100);
+  
+  // Enforce 500 character total limit
+  const finalTags: string[] = [];
+  let charCount = 0;
+  for (const tag of cleanTags) {
+    const cost = tag.includes(" ") ? tag.length + 2 : tag.length;
+    if (charCount + cost > 500) break;
+    finalTags.push(tag);
+    charCount += cost;
+  }
+  console.log(`Final tags (${finalTags.length}, ${charCount} chars):`, JSON.stringify(finalTags));
+
   // Set up YouTube API auth
   const clientId = process.env.YOUTUBE_CLIENT_ID;
   const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
@@ -87,7 +106,7 @@ async function main() {
         snippet: {
           title: metadata.title,
           description: metadata.description,
-          tags: metadata.tags,
+          tags: [], // DEBUG: empty tags to isolate error
           categoryId: getCategoryId(metadata.category),
           defaultLanguage: metadata.language || "en",
         },

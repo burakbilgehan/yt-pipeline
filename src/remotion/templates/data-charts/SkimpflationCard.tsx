@@ -1,261 +1,72 @@
 import React from "react";
-import {
-  useCurrentFrame,
-  useVideoConfig,
-  spring,
-  interpolate,
-} from "remotion";
-import { BG, TEXT, ACCENT_PINK, SURFACE, SURFACE_HOVER } from "../../palette";
+import { useCurrentFrame, useVideoConfig, spring, interpolate, staticFile, Img } from "remotion";
+import { BG, TEXT, ACCENT_PINK } from "../../palette";
 
 /**
- * SkimpflationCard — Scene 015 Phase 1
- *
- * Skimpflation concept visual: three identical product card outlines
- * side by side. Same package, same price, but decreasing quality
- * (5 stars → 4 → 3). Uses filled/unfilled circle dots for quality.
- *
- * Design: #2A2A32 bg, #F0EDE8 text, #E88CA5 accent
+ * SkimpflationCard — Scene 015
+ * Shows a real skimpflation reference photo: same price, lower quality.
  */
 
 interface SkimpflationCardProps {
-  chart: {
-    type: "skimpflation-card";
-    title?: string;
-    subtitle?: string;
-    [key: string]: unknown;
-  };
+  chart: { type: "skimpflation-card"; title?: string; subtitle?: string; [k: string]: unknown };
   brandColor: string;
   fontFamily: string;
 }
 
-const BG_COLOR = BG;
-const TEXT_COLOR = TEXT;
-const MUTED_TEXT = "rgba(240, 237, 232, 0.5)"; // derived from TEXT (0.5 opacity, not in palette)
-const SURFACE_BG = SURFACE;
-const SURFACE_BORDER = SURFACE_HOVER;
+// ─── Main export ───────────────────────────────────────────────
 
-const CARD_STAGGER = 15; // frames between each card entrance
-
-/** Quality dot — filled or unfilled circle */
-const QualityDot: React.FC<{
-  filled: boolean;
-  delay: number;
-  frame: number;
-  fps: number;
-}> = ({ filled, delay, frame, fps }) => {
-  const dotSpring = spring({
-    fps,
-    frame: frame - delay,
-    config: { damping: 14, stiffness: 120 },
-  });
-
-  return (
-    <div
-      style={{
-        width: 12,
-        height: 12,
-        borderRadius: "50%",
-        backgroundColor: filled ? ACCENT_PINK : "transparent",
-        border: `2px solid ${filled ? ACCENT_PINK : "rgba(240, 237, 232, 0.25)"}`,
-        transform: `scale(${dotSpring})`,
-        opacity: dotSpring,
-      }}
-    />
-  );
-};
-
-/** Simple package rectangle icon */
-const PackageOutline: React.FC = () => (
-  <div
-    style={{
-      width: 52,
-      height: 68,
-      borderRadius: 8,
-      border: `2px solid ${MUTED_TEXT}`,
-      opacity: 0.6,
-    }}
-  />
-);
-
-/** A single product card with package, price, and quality dots */
-const ProductPanel: React.FC<{
-  filledDots: number;
-  totalDots: number;
-  price: string;
-  index: number;
-  frame: number;
-  fps: number;
-  fontFamily: string;
-}> = ({ filledDots, totalDots, price, index, frame, fps, fontFamily }) => {
-  const entranceDelay = index * CARD_STAGGER;
-
-  const cardSpring = spring({
-    fps,
-    frame: frame - entranceDelay,
-    config: { damping: 16, stiffness: 70 },
-  });
-  const slideX = interpolate(cardSpring, [0, 1], [60, 0]);
-
-  // Dots animate after card is mostly in
-  const dotsBaseDelay = entranceDelay + 20;
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 16,
-        backgroundColor: SURFACE_BG,
-        border: `1px solid ${SURFACE_BORDER}`,
-        borderRadius: 12,
-        padding: "32px 36px",
-        width: 200,
-        opacity: cardSpring,
-        transform: `translateX(${slideX}px)`,
-      }}
-    >
-      {/* Package icon */}
-      <PackageOutline />
-
-      {/* Price tag */}
-      <div
-        style={{
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 22,
-          fontWeight: 600,
-          color: TEXT_COLOR,
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        {price}
-      </div>
-
-      {/* Quality dots row */}
-      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-        {Array.from({ length: totalDots }).map((_, dotIdx) => (
-          <QualityDot
-            key={dotIdx}
-            filled={dotIdx < filledDots}
-            delay={dotsBaseDelay + dotIdx * 3}
-            frame={frame}
-            fps={fps}
-          />
-        ))}
-      </div>
-
-      {/* Quality label */}
-      <div
-        style={{
-          fontFamily: fontFamily || "Inter, sans-serif",
-          fontSize: 13,
-          color: MUTED_TEXT,
-          letterSpacing: "0.04em",
-        }}
-      >
-        Quality
-      </div>
-    </div>
-  );
-};
-
-export const SkimpflationCard: React.FC<SkimpflationCardProps> = ({
-  chart,
-  brandColor: _brandColor,
-  fontFamily,
-}) => {
+export const SkimpflationCard: React.FC<SkimpflationCardProps> = ({ chart, brandColor: _brandColor, fontFamily }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-
   const title = chart.title || "SKIMPFLATION";
-  const subtitle =
-    chart.subtitle || "Same package. Cheaper ingredients. No data series.";
+  const subtitle = chart.subtitle || "Same price. Same size. Cheaper ingredients.";
 
-  // Title entrance
-  const titleSpring = spring({
-    fps,
-    frame,
-    config: { damping: 18, stiffness: 60 },
-  });
+  // Title: appears at ~0.3s
+  const titleDelay = Math.round(fps * 0.3);
+  const titleSpring = spring({ fps, frame: frame - titleDelay, config: { damping: 18, stiffness: 60 } });
 
-  // Subtitle entrance — delayed
-  const subtitleOpacity = interpolate(frame, [40, 60], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  // Photo: fades in at ~0.5s with scale 0.95→1.0
+  const photoDelay = Math.round(fps * 0.5);
+  const photoSpring = spring({ fps, frame: frame - photoDelay, config: { damping: 16, stiffness: 70 } });
+  const photoScale = interpolate(photoSpring, [0, 1], [0.95, 1]);
 
-  // Three cards: 5/5, 4/5, 3/5 filled dots
-  const cardConfigs = [
-    { filledDots: 5, price: "$3.99" },
-    { filledDots: 4, price: "$3.99" },
-    { filledDots: 3, price: "$3.99" },
-  ];
+  // Subtitle: appears at ~1.5s
+  const subtitleOpacity = interpolate(frame, [fps * 1.5, fps * 2], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        backgroundColor: BG_COLOR,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 20,
-        position: "relative",
-      }}
-    >
+    <div style={{ width: "100%", height: "100%", backgroundColor: BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 24 }}>
       {/* Title */}
-      <div
-        style={{
-          fontFamily: "'Montserrat', sans-serif",
-          fontSize: 48,
-          fontWeight: 700,
-          color: ACCENT_PINK,
-          letterSpacing: "0.08em",
-          opacity: titleSpring,
-          transform: `translateY(${(1 - titleSpring) * -20}px)`,
-          marginBottom: 8,
-        }}
-      >
+      <div style={{
+        fontFamily: "'Montserrat',sans-serif", fontSize: 52, fontWeight: 800,
+        color: ACCENT_PINK, letterSpacing: "0.1em",
+        opacity: titleSpring, transform: `translateY(${(1 - titleSpring) * -24}px)`,
+      }}>
         {title}
       </div>
 
-      {/* Three product cards */}
-      <div
-        style={{
-          display: "flex",
-          gap: 32,
-          alignItems: "flex-end",
-        }}
-      >
-        {cardConfigs.map((cfg, i) => (
-          <ProductPanel
-            key={i}
-            filledDots={cfg.filledDots}
-            totalDots={5}
-            price={cfg.price}
-            index={i}
-            frame={frame}
-            fps={fps}
-            fontFamily={fontFamily}
-          />
-        ))}
+      {/* Skimpflation photo */}
+      <div style={{
+        opacity: photoSpring,
+        transform: `scale(${photoScale})`,
+      }}>
+        <Img
+          src={staticFile("shrinkflation-decoded/skimpflation.png")}
+          style={{
+            maxWidth: 1200,
+            maxHeight: 650,
+            objectFit: "contain",
+            borderRadius: 16,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+            border: "1px solid rgba(240, 237, 232, 0.1)",
+          }}
+        />
       </div>
 
       {/* Subtitle */}
-      <div
-        style={{
-          fontFamily: fontFamily || "Inter, sans-serif",
-          fontSize: 20,
-          color: TEXT_COLOR,
-          opacity: subtitleOpacity,
-          marginTop: 16,
-          textAlign: "center",
-          maxWidth: 700,
-          lineHeight: 1.5,
-        }}
-      >
+      <div style={{
+        fontFamily: fontFamily || "Inter,sans-serif", fontSize: 22, color: TEXT,
+        opacity: subtitleOpacity, textAlign: "center", maxWidth: 700, lineHeight: 1.5, marginTop: 8,
+      }}>
         {subtitle}
       </div>
     </div>

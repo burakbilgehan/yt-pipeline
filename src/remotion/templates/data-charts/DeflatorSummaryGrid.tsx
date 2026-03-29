@@ -9,10 +9,12 @@ import { BG, TEXT, NEGATIVE, POSITIVE, SAGE, TRACK } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
+type BarItem = string | { name: string; value: number };
+
 interface ChartEntry {
   deflator: string;
-  above: string[];
-  below: string[];
+  above: BarItem[];
+  below: BarItem[];
 }
 
 interface DeflatorSummaryGridProps {
@@ -90,9 +92,15 @@ const MiniChart: React.FC<MiniChartProps> = ({
   });
 
   // Build combined bar list: above (red) first, then below (green)
-  const bars: Array<{ name: string; color: string }> = [
-    ...entry.above.map((name) => ({ name, color: RED })),
-    ...entry.below.map((name) => ({ name, color: GREEN })),
+  // Normalize BarItem (string | {name, value}) into a uniform shape
+  const normalizeItem = (item: BarItem): { name: string; value: number | null } => {
+    if (typeof item === "string") return { name: item, value: null };
+    return { name: item.name, value: item.value ?? null };
+  };
+
+  const bars: Array<{ name: string; value: number | null; color: string }> = [
+    ...(entry.above || []).map((item) => ({ ...normalizeItem(item), color: RED })),
+    ...(entry.below || []).map((item) => ({ ...normalizeItem(item), color: GREEN })),
   ];
 
   const totalBars = bars.length;
@@ -102,7 +110,8 @@ const MiniChart: React.FC<MiniChartProps> = ({
       style={{
         display: "flex",
         flexDirection: "column",
-        padding: "16px 20px",
+        justifyContent: "center",
+        padding: "10px 14px",
         borderRadius: 12,
         backgroundColor: "rgba(240, 237, 232, 0.03)",
         border: `1px solid rgba(163, 177, 138, 0.15)`,
@@ -114,7 +123,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
       <div
         style={{
           fontFamily: "Montserrat, sans-serif",
-          fontSize: 22,
+          fontSize: 24,
           fontWeight: 700,
           color: TEXT_COLOR,
           marginBottom: 6,
@@ -131,7 +140,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
       <div
         style={{
           fontFamily: "JetBrains Mono, monospace",
-          fontSize: 13,
+          fontSize: 15,
           color: SAGE,
           marginBottom: 14,
           opacity: headerOpacity,
@@ -140,10 +149,10 @@ const MiniChart: React.FC<MiniChartProps> = ({
         }}
       >
         <span>
-          <span style={{ color: RED }}>{entry.above.length}</span> above
+          <span style={{ color: RED }}>{(entry.above || []).length}</span> above
         </span>
         <span>
-          <span style={{ color: GREEN }}>{entry.below.length}</span> below
+          <span style={{ color: GREEN }}>{(entry.below || []).length}</span> below
         </span>
       </div>
 
@@ -152,8 +161,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: 6,
-          flex: 1,
+          gap: 8,
         }}
       >
         {bars.map((bar, barIdx) => {
@@ -168,10 +176,16 @@ const MiniChart: React.FC<MiniChartProps> = ({
             extrapolateRight: "clamp",
           });
 
-          // Equal-length bars — widthPct fixed
-          const widthPct = 100;
+          // Bar width proportional to RUPI value (0.0–2.0 → 0–100%)
+          // Falls back to 100% if no value provided
+          const MAX_RUPI = 1.8;
+          const rupiValue = bar.value;
+          const widthPct =
+            rupiValue != null
+              ? Math.min((rupiValue / MAX_RUPI) * 100, 100)
+              : 100;
           // Bar height adapts to available space
-          const barHeight = totalBars <= 4 ? 28 : totalBars <= 6 ? 24 : 20;
+          const barHeight = totalBars <= 4 ? 40 : totalBars <= 6 ? 34 : 28;
 
           return (
             <div
@@ -211,6 +225,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
                   backgroundColor: TRACK_COLOR,
                   borderRadius: 4,
                   overflow: "hidden",
+                  position: "relative",
                 }}
               >
                 <div
@@ -222,6 +237,30 @@ const MiniChart: React.FC<MiniChartProps> = ({
                     opacity: 0.85,
                   }}
                 />
+                {/* RUPI value label */}
+                {rupiValue != null && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: `${widthPct * barSpring}%`,
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                      paddingRight: 6,
+                      fontFamily: "JetBrains Mono, monospace",
+                      fontSize: barHeight <= 28 ? 11 : 13,
+                      fontWeight: 600,
+                      color: "#fff",
+                      opacity: textOpacity,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {rupiValue.toFixed(3)}
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -280,7 +319,7 @@ export const DeflatorSummaryGrid: React.FC<DeflatorSummaryGridProps> = ({
         position: "relative",
         display: "flex",
         flexDirection: "column",
-        padding: "50px 60px 40px",
+        padding: "30px 40px 20px",
         overflow: "hidden",
       }}
     >
@@ -311,7 +350,7 @@ export const DeflatorSummaryGrid: React.FC<DeflatorSummaryGridProps> = ({
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
           gridTemplateRows: "1fr 1fr",
-          gap: 20,
+          gap: 14,
           zIndex: 1,
           minHeight: 0,
         }}

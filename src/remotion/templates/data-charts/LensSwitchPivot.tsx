@@ -5,7 +5,7 @@ import {
   spring,
   interpolate,
 } from "remotion";
-import { BG, TEXT, POSITIVE, SAGE } from "../../palette";
+import { BG, TEXT, TEXT_SECONDARY, POSITIVE, SAGE } from "../../palette";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -33,16 +33,25 @@ const BG_COLOR = BG;
 const TEXT_COLOR = TEXT;
 const GREEN = POSITIVE;
 
-// Phase boundaries (in seconds)
-const PHASE1_END = 6;
-const PHASE2_END = 12;
-// Phase 3 runs from PHASE2_END to scene end (~18.1s)
+// Phase proportions (of total scene duration)
+// Phase 1 (combined): summary text + pivot question coexist
+// Phase 2: ruler question + deflators
+const PHASE1_RATIO = 0.55; // Combined summary + pivot
+const PHASE2_RATIO = 0.45; // Ruler question + deflators
+// Minimum Phase 2 duration so deflator labels are readable
+const PHASE2_MIN_SECONDS = 4;
+// Minimum time deflator labels stay at full opacity before scene ends
+const DEFLATOR_HOLD_MIN_SECONDS = 2;
+
+// Timing for text appearances within Phase 1
+const SUMMARY_DELAY_SEC = 0.3; // "4 of 6" appears at ~0.3s
+const PIVOT_DELAY_SEC = 2.0; // "But cheaper for whom?" appears at ~2.0s
 
 // Ellipsis delay in frames (500ms ≈ 15 frames at 30fps)
 const ELLIPSIS_DELAY_FRAMES = 15;
 
 // Crossfade duration
-const CROSSFADE_FRAMES = 8;
+const CROSSFADE_FRAMES = 12;
 
 // Deflator stagger (frames between each label appearance)
 const DEFLATOR_STAGGER = 10;
@@ -56,7 +65,7 @@ export const LensSwitchPivot: React.FC<LensSwitchPivotProps> = ({
   fontFamily,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
 
   const summaryText = chart.summaryText ?? "4 of 6 cheaper";
   const pivotQuestion = chart.pivotQuestion ?? "But cheaper\u2026 for whom?";
@@ -67,20 +76,36 @@ export const LensSwitchPivot: React.FC<LensSwitchPivotProps> = ({
     { name: "Min Wage", status: "pending" },
   ];
 
-  // ── Frame boundaries ──
-  const phase1EndFrame = PHASE1_END * fps;
-  const phase2EndFrame = PHASE2_END * fps;
+  // ── Proportional phase boundaries ──
+  const sceneDurationSec = durationInFrames / fps;
 
-  // ── Phase 1: Summary text (0 – 6s) ──
-  const phase1Opacity = interpolate(
+  // Guarantee Phase 2 (ruler + deflators) gets at least PHASE2_MIN_SECONDS.
+  const phase2Ideal = sceneDurationSec * PHASE2_RATIO;
+  const phase2Sec = Math.max(phase2Ideal, PHASE2_MIN_SECONDS);
+  const phase1Sec = sceneDurationSec - phase2Sec;
+
+  const phase1EndFrame = Math.round(phase1Sec * fps);
+
+  // ── Phase 1 (combined): Summary text + Pivot question coexist ──
+
+  // Summary text: spring-in at SUMMARY_DELAY_SEC
+  const summaryDelayFrames = Math.round(SUMMARY_DELAY_SEC * fps);
+  const summaryEntrance = spring({
+    fps,
+    frame: frame - summaryDelayFrames,
+    config: SPRING_CFG,
+  });
+  // Crossfade out before Phase 2
+  const summaryFadeOut = interpolate(
     frame,
-    [0, 10, phase1EndFrame - 10, phase1EndFrame],
-    [0, 1, 1, 0],
+    [phase1EndFrame - CROSSFADE_FRAMES, phase1EndFrame],
+    [1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
+  const summaryOpacity = Math.min(summaryEntrance, summaryFadeOut) * 0.75;
 
-  // ── Phase 2: Pivot question (6s – 12s) ──
-  const phase2LocalFrame = frame - phase1EndFrame;
+  // Pivot question: spring-in at PIVOT_DELAY_SEC
+  const pivotDelayFrames = Math.round(PIVOT_DELAY_SEC * fps);
 
   // Split pivot question at the ellipsis for the typographic pause
   // "But cheaper… for whom?" → "But cheaper" + "… for whom?"
@@ -91,39 +116,52 @@ export const LensSwitchPivot: React.FC<LensSwitchPivotProps> = ({
 
   const pivotEntrance = spring({
     fps,
-    frame: phase2LocalFrame,
+    frame: frame - pivotDelayFrames,
     config: SPRING_CFG,
   });
 
   const ellipsisEntrance = hasEllipsis
     ? spring({
         fps,
-        frame: phase2LocalFrame - ELLIPSIS_DELAY_FRAMES,
+        frame: frame - pivotDelayFrames - ELLIPSIS_DELAY_FRAMES,
         config: SPRING_CFG,
       })
     : 1;
 
-  // Fade out at phase 2 end
+  // Crossfade out before Phase 2
   const pivotFadeOut = interpolate(
     frame,
-    [phase2EndFrame - CROSSFADE_FRAMES, phase2EndFrame],
+    [phase1EndFrame - CROSSFADE_FRAMES, phase1EndFrame],
     [1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
+  const pivotOpacity = Math.min(pivotEntrance, pivotFadeOut);
 
-  const phase2Visible = frame >= phase1EndFrame && frame < phase2EndFrame + CROSSFADE_FRAMES;
-  const phase2Opacity = Math.min(pivotEntrance, pivotFadeOut);
+  const phase1Visible = frame < phase1EndFrame;
 
-  // ── Phase 3: Ruler question + deflators (12s – end) ──
-  const phase3LocalFrame = frame - phase2EndFrame;
+  // ── Phase 2: Ruler question + deflators (phase1End – end) ──
+  const phase2LocalFrame = frame - phase1EndFrame;
+  const phase2DurationFrames = durationInFrames - phase1EndFrame;
+
+  // Ensure deflator labels reach full opacity at least DEFLATOR_HOLD_MIN_SECONDS before scene end.
+  // Budget = phase2 duration - hold time - ruler entrance (~15 frames).
+  const holdFrames = DEFLATOR_HOLD_MIN_SECONDS * fps;
+  const rulerEntranceFrames = 15; // frames before deflators start appearing
+  const deflatorBudgetFrames = phase2DurationFrames - holdFrames - rulerEntranceFrames;
+  // Each deflator spring takes ~20 frames to settle; last deflator index = deflators.length - 1
+  const maxDeflatorCount = Math.max(deflators.length - 1, 1);
+  const effectiveStagger = Math.min(
+    DEFLATOR_STAGGER,
+    Math.max(4, Math.floor((deflatorBudgetFrames - 20) / maxDeflatorCount)),
+  );
 
   const rulerEntrance = spring({
     fps,
-    frame: phase3LocalFrame,
+    frame: phase2LocalFrame,
     config: SPRING_CFG,
   });
 
-  const phase3Visible = frame >= phase2EndFrame;
+  const phase2Visible = frame >= phase1EndFrame;
 
   return (
     <div
@@ -139,63 +177,64 @@ export const LensSwitchPivot: React.FC<LensSwitchPivotProps> = ({
         overflow: "hidden",
       }}
     >
-      {/* Phase 1: Summary text at top */}
-      <div
-        style={{
-          position: "absolute",
-          top: 60,
-          left: 0,
-          right: 0,
-          textAlign: "center",
-          opacity: phase1Opacity,
-          fontFamily: "Inter, sans-serif",
-          fontSize: 18,
-          color: TEXT_COLOR,
-          // 40% opacity on the text itself
-          filter: `opacity(${0.4})`,
-          letterSpacing: "0.05em",
-        }}
-      >
-        {summaryText}
-      </div>
-
-      {/* Phase 2: Pivot question — center of screen */}
-      {phase2Visible && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            opacity: phase2Opacity,
-          }}
-        >
+      {/* Phase 1 (combined): Summary text at upper portion + Pivot question centered */}
+      {phase1Visible && (
+        <>
+          {/* Summary text — upper portion (~30% from top) */}
           <div
             style={{
-              fontFamily: "Montserrat, sans-serif",
-              fontWeight: 700,
-              fontSize: 64,
-              color: TEXT_COLOR,
+              position: "absolute",
+              top: "30%",
+              left: 0,
+              right: 0,
               textAlign: "center",
-              lineHeight: 1.2,
-              padding: "0 100px",
+              opacity: summaryOpacity,
+              fontFamily: "Inter, sans-serif",
+              fontSize: 30,
+              color: TEXT_COLOR,
+              letterSpacing: "0.05em",
             }}
           >
-            <span style={{ opacity: pivotEntrance }}>
-              {pivotPart1}
-            </span>
-            {hasEllipsis && (
-              <span style={{ opacity: ellipsisEntrance }}>
-                {pivotPart2}
-              </span>
-            )}
+            {summaryText}
           </div>
-        </div>
+
+          {/* Pivot question — center of screen */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: pivotOpacity,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "Montserrat, sans-serif",
+                fontWeight: 700,
+                fontSize: 64,
+                color: TEXT_COLOR,
+                textAlign: "center",
+                lineHeight: 1.2,
+                padding: "0 100px",
+              }}
+            >
+              <span style={{ opacity: pivotEntrance }}>
+                {pivotPart1}
+              </span>
+              {hasEllipsis && (
+                <span style={{ opacity: ellipsisEntrance }}>
+                  {pivotPart2}
+                </span>
+              )}
+            </div>
+          </div>
+        </>
       )}
 
-      {/* Phase 3: Ruler question + deflator labels */}
-      {phase3Visible && (
+      {/* Phase 2: Ruler question + deflator labels */}
+      {phase2Visible && (
         <div
           style={{
             position: "absolute",
@@ -235,14 +274,14 @@ export const LensSwitchPivot: React.FC<LensSwitchPivotProps> = ({
             {deflators.map((d, i) => {
               const staggerEntrance = spring({
                 fps,
-                frame: phase3LocalFrame - 15 - i * DEFLATOR_STAGGER,
+                frame: phase2LocalFrame - rulerEntranceFrames - i * effectiveStagger,
                 config: { damping: 14, stiffness: 70 },
               });
 
               const isDone = d.status === "done";
               const statusSymbol = isDone ? "\u2713" : "?";
               const statusColor = isDone ? GREEN : SAGE;
-              const nameColor = isDone ? TEXT_COLOR : SAGE;
+              const nameColor = isDone ? TEXT_COLOR : TEXT_SECONDARY;
 
               return (
                 <div

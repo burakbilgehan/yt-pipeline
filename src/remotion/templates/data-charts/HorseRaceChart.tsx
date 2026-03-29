@@ -7,18 +7,75 @@ import {
 } from "remotion";
 import type {
   HorseRaceChartProps,
+  HorseRaceAnnotation,
   HorseRaceSeries,
   SceneYearRange,
+  ShrinkflationMarker,
 } from "../../types";
-import { TEXT, GRID, TRACK } from "../../palette";
+import {
+  TEXT,
+  GRID,
+  TRACK,
+  CARD_BG,
+  ACCENT_PINK,
+  ACCENT_BLUE,
+  SURFACE_BORDER_STRONG,
+  TEXT_SECONDARY,
+  NEGATIVE,
+} from "../../palette";
 
 // ─── Constants ────────────────────────────────────────────────
 
-const CHART_PADDING = { top: 60, right: 180, bottom: 70, left: 90 };
+const CHART_PADDING = { top: 60, right: 240, bottom: 70, left: 90 };
 const LABEL_FONT_SIZE = 20;
 const LABEL_VALUE_FONT_SIZE = 15;
 const LABEL_LINE_HEIGHT = 44; // spacing between stacked labels
+const LABEL_MAX_WIDTH = 220; // max label text width before truncation
 const WINDOW_YEARS = 18; // how many years visible in the sliding window
+
+// ─── Rewind animation ────────────────────────────────────────
+// When a scene jumps backward in time (e.g. 2015→2011), we "steal"
+// the first REWIND_DURATION_SEC seconds of the new range to animate
+// the year counter smoothly backward (VHS-style rewind).
+const REWIND_DURATION_SEC = 3.0;
+
+function easeInOutCubic(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+// Extra years to look ahead beyond the visible window for stable Y-range
+const Y_RANGE_LOOKAHEAD_TOTAL = 3;
+// Padding factor added to Y-range to reduce frequency of range changes
+const Y_RANGE_PADDING = 0.05;
+
+// ─── Notification Stack Constants ─────────────────────────────
+const TAG_MAX_VISIBLE = 5;
+const TAG_GAP = 14;
+const TAG_ESTIMATED_HEIGHT = 65; // estimated height of one tag (padding + text)
+const TAG_STACK_TOP = 60;
+const TAG_PUSH_ANIM_YEARS = 0.15; // years over which push-down animates
+const TAG_VISIBLE_SEC = 4.0; // seconds an annotation stays fully visible
+const TAG_FADE_OUT_SEC = 0.5; // seconds for the fade-out animation
+const TAG_WIDTH = 480; // fixed width for the notification stack
+
+// ─── Annotation style → text color mapping ───────────────────
+
+function getAnnotationTextColor(
+  style: HorseRaceAnnotation["style"]
+): string {
+  switch (style) {
+    case "event-flash":
+    case "crisis-flash":
+      return ACCENT_BLUE;
+    case "major-crisis-flash":
+      return NEGATIVE;
+    case "milestone-flash":
+      return TEXT;
+    // shrinkflation-callout, leader-callout, policy-banner, crossing-alert
+    default:
+      return ACCENT_PINK;
+  }
+}
 
 // ─── Theme-aware color helper ─────────────────────────────────
 
@@ -191,10 +248,10 @@ function catmullRomPath(
 ): string {
   if (points.length < 2) return "";
   if (points.length === 2) {
-    return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)} L ${points[1].x.toFixed(1)} ${points[1].y.toFixed(1)}`;
+    return `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)} L ${points[1].x.toFixed(2)} ${points[1].y.toFixed(2)}`;
   }
 
-  let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+  let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
 
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[Math.max(0, i - 1)];
@@ -207,7 +264,7 @@ function catmullRomPath(
     const cp2x = p2.x - ((p3.x - p1.x) * tension) / 3;
     const cp2y = p2.y - ((p3.y - p1.y) * tension) / 3;
 
-    d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
   }
 
   return d;
@@ -299,13 +356,13 @@ function formatRatio(v: number): string {
   if (v < 0.01) return v.toFixed(4);
   if (v < 1) return v.toFixed(3);
   if (v < 100) return v.toFixed(2);
-  return v.toFixed(1);
+  return v.toFixed(2);
 }
 
 function formatTickLabel(tick: number): string {
   if (tick < 0.01) return tick.toFixed(3);
   if (tick < 1) return tick.toFixed(2);
-  if (tick < 10) return tick.toFixed(1);
+  if (tick < 10) return tick.toFixed(2);
   return Math.round(tick).toLocaleString();
 }
 
@@ -323,12 +380,52 @@ function getYearFromFrame(
   // sceneYearRanges use sceneStartSec/sceneEndSec also relative to chart Sequence start.
   const currentSec = frame / fps;
 
-  for (const range of sceneYearRanges) {
-    if (currentSec >= range.sceneStartSec && currentSec <= range.sceneEndSec) {
-      const t =
-        (currentSec - range.sceneStartSec) /
-        (range.sceneEndSec - range.sceneStartSec || 1);
-      return range.yearStart + t * (range.yearEnd - range.yearStart);
+  // Pre-scan: detect which ranges have a backward jump from the previous range.
+  // For each such range, the first REWIND_DURATION_SEC seconds are the rewind zone.
+  for (let i = 0; i < sceneYearRanges.length; i++) {
+    const range = sceneYearRanges[i];
+
+    // Check if this range has a backward jump from the previous range
+    const prevRange = i > 0 ? sceneYearRanges[i - 1] : null;
+    const isRewind =
+      prevRange !== null && range.yearStart < prevRange.yearEnd;
+
+    if (isRewind && prevRange !== null) {
+      // Steal the first REWIND_DURATION_SEC of this range for the rewind animation.
+      // Clamp rewind duration to at most the full range duration so short ranges work.
+      const rangeDuration = range.sceneEndSec - range.sceneStartSec;
+      const rewindDur = Math.min(REWIND_DURATION_SEC, rangeDuration * 0.5);
+      const rewindEndSec = range.sceneStartSec + rewindDur;
+
+      if (currentSec >= range.sceneStartSec && currentSec < rewindEndSec) {
+        // ── REWIND ZONE: animate from prevRange.yearEnd → range.yearStart ──
+        const rewindProgress =
+          (currentSec - range.sceneStartSec) / (rewindDur || 0.001);
+        const easedProgress = easeInOutCubic(
+          Math.min(1, Math.max(0, rewindProgress))
+        );
+        // Interpolate backward: prevRange.yearEnd → range.yearStart
+        return (
+          prevRange.yearEnd +
+          easedProgress * (range.yearStart - prevRange.yearEnd)
+        );
+      }
+
+      if (currentSec >= rewindEndSec && currentSec <= range.sceneEndSec) {
+        // ── POST-REWIND: normal forward interpolation over remaining time ──
+        const remainingDuration = range.sceneEndSec - rewindEndSec;
+        const t =
+          (currentSec - rewindEndSec) / (remainingDuration || 1);
+        return range.yearStart + t * (range.yearEnd - range.yearStart);
+      }
+    } else {
+      // No rewind — standard forward interpolation
+      if (currentSec >= range.sceneStartSec && currentSec <= range.sceneEndSec) {
+        const t =
+          (currentSec - range.sceneStartSec) /
+          (range.sceneEndSec - range.sceneStartSec || 1);
+        return range.yearStart + t * (range.yearEnd - range.yearStart);
+      }
     }
   }
 
@@ -345,6 +442,44 @@ function getYearFromFrame(
   return fallbackTimeRange.start + (frame / totalFrames) * totalYears;
 }
 
+/**
+ * Inverse of getYearFromFrame: given a target year, return the frame at which
+ * that year is first reached. Uses binary search over the frame range for accuracy.
+ * Ignores rewind zones (returns the first forward-pass frame that reaches the year).
+ */
+function getFrameFromYear(
+  targetYear: number,
+  fps: number,
+  sceneYearRanges: SceneYearRange[] | undefined,
+  chartStartSec: number,
+  fallbackTimeRange: { start: number; end: number },
+  totalFrames: number
+): number {
+  if (sceneYearRanges && sceneYearRanges.length > 0) {
+    // Find the scene range where targetYear falls (forward direction)
+    for (const range of sceneYearRanges) {
+      if (range.yearEnd < range.yearStart) continue; // skip rewind ranges
+      if (targetYear >= range.yearStart && targetYear <= range.yearEnd) {
+        const yearSpan = range.yearEnd - range.yearStart;
+        const t = yearSpan > 0 ? (targetYear - range.yearStart) / yearSpan : 0;
+        const sec = range.sceneStartSec + t * (range.sceneEndSec - range.sceneStartSec);
+        return Math.round(sec * fps);
+      }
+    }
+    // If year is before all ranges, return first frame
+    if (targetYear <= sceneYearRanges[0].yearStart) return 0;
+    // If year is after all ranges, return last frame
+    const last = sceneYearRanges[sceneYearRanges.length - 1];
+    return Math.round(last.sceneEndSec * fps);
+  }
+
+  // Fallback: linear mapping (inverse of getYearFromFrame fallback)
+  const totalYears = fallbackTimeRange.end - fallbackTimeRange.start;
+  if (totalYears <= 0) return 0;
+  const t = (targetYear - fallbackTimeRange.start) / totalYears;
+  return Math.round(t * totalFrames);
+}
+
 // ─── Main Component ──────────────────────────────────────────
 
 export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
@@ -353,11 +488,13 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
   annotations,
   timeRange,
   sceneYearRanges,
+  shrinkflationMarkers,
   backgroundColor,
   brandColor: _brandColor,
   fontFamily,
   logScale: logScaleProp,
   yAxisLabel,
+  deflatorLabel,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames, width, height } = useVideoConfig();
@@ -430,27 +567,27 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
     }));
   }, [processedSeries, currentYear]);
 
-  // ── Determine Y range (auto-fit with look-ahead for smooth transitions) ──
+  // ── Determine Y range (frame-deterministic: wide look-ahead window) ──
   //
-  // To prevent jarring Y-axis jumps, we:
-  //   1. Include data up to LOOK_AHEAD years beyond currentYear in the range calc
-  //   2. Apply generous padding so incoming values don't clip
-  //   3. Use a "sliding max-envelope" — the Y range only expands eagerly but
-  //      contracts slowly (hysteresis via wider lookback than visible window)
+  // Strategy (renderMedia-safe — no useRef):
+  //   1. Scan visible window + generous look-ahead to find min/max values.
+  //   2. Apply padding so minor data changes don't trigger range shifts.
+  //   3. Purely functional: same frame → same output, regardless of render order.
   //
   const LOOK_AHEAD_YEARS = 5;
-  const LOOK_BACK_EXTRA = 3; // extra years behind visible window for slower contraction
+  const LOOK_BACK_EXTRA = 3;
 
   const yRange = useMemo(() => {
     let minV = Infinity;
     let maxV = -Infinity;
     const lookBackStart = xWindowStart - LOOK_BACK_EXTRA;
-    const lookAheadEnd = currentYear + LOOK_AHEAD_YEARS;
+    // Look ahead further than the visible window for early awareness of upcoming data
+    const lookAheadEnd = currentYear + LOOK_AHEAD_YEARS + Y_RANGE_LOOKAHEAD_TOTAL;
     let hasValues = false;
 
     for (const s of processedSeries) {
       const pc = s.precomputed;
-      // Binary search for lookBackStart to skip irrelevant data
+      // Binary search to find first point in window
       let lo = 0;
       let hi = pc.length;
       while (lo < hi) {
@@ -458,7 +595,6 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
         if (pc[mid].year < lookBackStart) lo = mid + 1;
         else hi = mid;
       }
-      // Scan from lookBackStart to lookAheadEnd
       for (let i = lo; i < pc.length; i++) {
         if (pc[i].year > lookAheadEnd) break;
         const ratio = pc[i].ratio;
@@ -476,13 +612,15 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
       const logMin = Math.log10(minV);
       const logMax = Math.log10(maxV);
       const logRange = logMax - logMin || 1;
-      // Generous padding: 20% each side (was 12%)
-      minV = Math.pow(10, logMin - logRange * 0.20);
-      maxV = Math.pow(10, logMax + logRange * 0.20);
+      // 20% base padding + extra stability padding
+      const totalPad = 0.20 + Y_RANGE_PADDING;
+      minV = Math.pow(10, logMin - logRange * totalPad);
+      maxV = Math.pow(10, logMax + logRange * totalPad);
     } else {
       const range = maxV - minV || 1;
-      minV = Math.max(0, minV - range * 0.15);
-      maxV = maxV + range * 0.20;
+      // 15%/20% base padding + extra stability padding
+      minV = Math.max(0, minV - range * (0.15 + Y_RANGE_PADDING));
+      maxV = maxV + range * (0.20 + Y_RANGE_PADDING);
     }
 
     return { min: minV, max: maxV };
@@ -611,13 +749,37 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
     );
   }, [currentValues, yRange, height]);
 
-  // ── Active annotations ──
+  // ── Snapshot detection — disable annotations for static/frozen scenes ──
+  // A snapshot is when all sceneYearRanges have yearStart === yearEnd (no animation).
+  const isSnapshot = useMemo(() => {
+    if (!sceneYearRanges || sceneYearRanges.length === 0) return false;
+    return sceneYearRanges.every((r) => r.yearStart === r.yearEnd);
+  }, [sceneYearRanges]);
+
+  // ── Active annotations (notification stack — newest on top, max 5) ──
+  // Uses frame-based timing: visible for TAG_VISIBLE_SEC, then fade over TAG_FADE_OUT_SEC.
+  // Disabled in snapshot mode (static end-state scenes like 2025 summaries).
   const activeAnnotations = useMemo(() => {
-    return annotations.filter((a) => {
-      const duration = a.duration ?? 1.5;
-      return currentYear >= a.year && currentYear <= a.year + duration;
-    });
-  }, [annotations, currentYear]);
+    if (isSnapshot) return [];
+
+    const totalLifetimeFrames = (TAG_VISIBLE_SEC + TAG_FADE_OUT_SEC) * fps;
+
+    const active = annotations
+      .filter((a) => {
+        if (currentYear < a.year) return false;
+        // Compute the frame at which this annotation first became active
+        const entryFrame = getFrameFromYear(
+          a.year, fps, sceneYearRanges, chartStartSec, timeRange, durationInFrames
+        );
+        const ageInFrames = frame - entryFrame;
+        return ageInFrames >= 0 && ageInFrames <= totalLifetimeFrames;
+      })
+      // Newest first (highest year = most recently entered)
+      .sort((a, b) => b.year - a.year);
+
+    // Enforce max visible
+    return active.slice(0, TAG_MAX_VISIBLE);
+  }, [annotations, currentYear, frame, fps, isSnapshot, sceneYearRanges, chartStartSec, timeRange, durationInFrames]);
 
   // ── Entrance animation ──
   const entranceOpacity = interpolate(frame, [0, fps * 0.5], [0, 1], {
@@ -650,7 +812,7 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
         style={{
           position: "absolute",
           top: "50%",
-          left: "40%",
+          left: "50%",
           transform: "translate(-50%, -50%)",
           fontSize: 240,
           fontWeight: 900,
@@ -664,21 +826,42 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
         {displayYear}
       </div>
 
-      {/* Year counter — top left, prominent */}
+      {/* Year counter + deflator label — top left, prominent */}
       <div
         style={{
           position: "absolute",
           top: 14,
           left: CHART_PADDING.left,
-          fontSize: 40,
-          fontWeight: 800,
-          color: yearDisplayColor,
-          fontFamily,
-          letterSpacing: 1,
+          display: "flex",
+          alignItems: "baseline",
+          gap: 10,
           zIndex: 5,
         }}
       >
-        {displayYear}
+        <span
+          style={{
+            fontSize: 40,
+            fontWeight: 800,
+            color: yearDisplayColor,
+            fontFamily,
+            letterSpacing: 1,
+          }}
+        >
+          {displayYear}
+        </span>
+        {deflatorLabel && (
+          <span
+            style={{
+              fontSize: 20,
+              fontWeight: 500,
+              color: TEXT_SECONDARY,
+              fontFamily,
+              letterSpacing: 0.5,
+            }}
+          >
+            — {deflatorLabel}
+          </span>
+        )}
       </div>
 
       {/* Y-axis label */}
@@ -689,7 +872,7 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
           left: 8,
           transform: "rotate(-90deg) translateX(-50%)",
           transformOrigin: "0 0",
-          fontSize: 16,
+          fontSize: 20,
           color: yAxisLabelColor,
           fontFamily,
           whiteSpace: "nowrap",
@@ -802,6 +985,50 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
 
         {/* Series lines — clipped, smooth Catmull-Rom */}
         <g clipPath={`url(#${clipId})`} opacity={entranceOpacity}>
+          {/* Shrinkflation event markers — vertical dashed lines with labels */}
+          {(shrinkflationMarkers || []).map((marker, idx) => {
+            if (marker.year < xWindowStart || marker.year > xWindowEnd) return null;
+            if (marker.year > currentYear) return null;
+            const mx = yearToX(marker.year);
+            const markerColor = marker.color || "#FF9F43";
+            // Fade in as the chart reaches this year
+            const markerProgress = Math.min(1, (currentYear - marker.year) / 0.3);
+            const markerOpacity = markerProgress < 0 ? 0 : markerProgress;
+            return (
+              <g key={`shrink-marker-${idx}`} opacity={markerOpacity}>
+                <line
+                  x1={mx}
+                  y1={CHART_PADDING.top}
+                  x2={mx}
+                  y2={height - CHART_PADDING.bottom}
+                  stroke={markerColor}
+                  strokeWidth={2}
+                  strokeDasharray="6,4"
+                  opacity={0.7}
+                />
+                {/* Small triangle at top */}
+                <polygon
+                  points={`${mx},${CHART_PADDING.top - 2} ${mx - 6},${CHART_PADDING.top - 12} ${mx + 6},${CHART_PADDING.top - 12}`}
+                  fill={markerColor}
+                  opacity={0.85}
+                />
+                {/* Label — rotated 90° at top of the line */}
+                <text
+                  x={mx + 4}
+                  y={CHART_PADDING.top + 18}
+                  fill={markerColor}
+                  fontSize={12}
+                  fontFamily={fontFamily}
+                  fontWeight={600}
+                  transform={`rotate(90, ${mx + 4}, ${CHART_PADDING.top + 18})`}
+                  opacity={0.85}
+                >
+                  {marker.label}
+                </text>
+              </g>
+            );
+          })}
+
           {seriesPaths.map((sp, i) => {
             if (!sp.visible || !sp.path) return null;
             const s = processedSeries[i];
@@ -906,6 +1133,9 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
                   padding: "1px 4px",
                   borderRadius: 3,
                   whiteSpace: "nowrap",
+                  maxWidth: LABEL_MAX_WIDTH,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
               >
                 {lbl.label}
@@ -929,74 +1159,135 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
         })}
       </div>
 
-      {/* ═══ Event annotations overlay ═══ */}
-      {activeAnnotations.map((annotation, idx) => {
-        const duration = annotation.duration ?? 1.5;
-        const progress = (currentYear - annotation.year) / duration;
-        const opacity = Math.min(
-          progress < 0.15
-            ? progress / 0.15
-            : progress > 0.8
-              ? (1 - progress) / 0.2
-              : 1,
-          1
-        );
+      {/* ═══ macOS-style notification stack — center-top ═══ */}
+      <div
+        style={{
+          position: "absolute",
+          top: TAG_STACK_TOP,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: TAG_WIDTH,
+          pointerEvents: "none",
+          zIndex: 10,
+        }}
+      >
+        {activeAnnotations.map((annotation, slotIndex) => {
+          // ── Frame-based timing: 4s visible, 0.5s fade-out ──
+          const entryFrame = getFrameFromYear(
+            annotation.year, fps, sceneYearRanges, chartStartSec, timeRange, durationInFrames
+          );
+          const ageInSec = (frame - entryFrame) / fps;
 
-        const isMajor =
-          annotation.style === "major-crisis-flash" ||
-          annotation.style === "milestone-flash";
+          // Fade in over 0.3s, hold for TAG_VISIBLE_SEC, fade out over TAG_FADE_OUT_SEC
+          const fadeInSec = 0.3;
+          const fadeOpacity = interpolate(
+            ageInSec,
+            [0, fadeInSec, TAG_VISIBLE_SEC, TAG_VISIBLE_SEC + TAG_FADE_OUT_SEC],
+            [0, 1, 1, 0],
+            { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+          );
 
-        const bannerBg = isMajor
-          ? "rgba(255, 50, 50, 0.9)"
-          : annotation.style === "policy-banner"
-            ? "rgba(70, 70, 220, 0.85)"
-            : "rgba(0, 0, 0, 0.85)";
+          // Slide down from above on entrance: -30px → 0 over 0.3s
+          const slideY = interpolate(
+            ageInSec,
+            [0, fadeInSec],
+            [-30, 0],
+            { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.quad) }
+          );
 
-        return (
-          <div
-            key={`ann-${idx}`}
-            style={{
-              position: "absolute",
-              top: isMajor ? "28%" : "18%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              opacity,
-              pointerEvents: "none",
-              textAlign: "center",
-              zIndex: 10,
-            }}
-          >
-            {annotation.icon && (
-              <div style={{ fontSize: isMajor ? 44 : 30, marginBottom: 6 }}>
-                {annotation.icon === "crown"
-                  ? "👑"
-                  : annotation.icon === "skull"
-                    ? "💀"
-                    : "⚡"}
-              </div>
-            )}
+          // Smooth push-down: animate Y position when slotIndex changes
+          // Each annotation knows how many newer tags are above it (slotIndex).
+          // We animate from slot 0 to the target slot over TAG_PUSH_ANIM_YEARS
+          // after the *newest* tag above it appeared.
+          const targetY = slotIndex * (TAG_ESTIMATED_HEIGHT + TAG_GAP);
+
+          // Find the newest annotation above this one (if any) to time the push
+          const newestAbove = slotIndex > 0 ? activeAnnotations[0] : null;
+          const pushStartYear = newestAbove ? newestAbove.year : annotation.year;
+          const pushAge = currentYear - pushStartYear;
+          const pushProgress = TAG_PUSH_ANIM_YEARS > 0
+            ? Math.min(1, Math.max(0, pushAge / TAG_PUSH_ANIM_YEARS))
+            : 1;
+          // Ease-out for smooth deceleration
+          const easedPush = 1 - Math.pow(1 - pushProgress, 3);
+          // Previous slot = one slot up (or 0 for first push)
+          const prevY = Math.max(0, (slotIndex - 1)) * (TAG_ESTIMATED_HEIGHT + TAG_GAP);
+          const smoothY = prevY + (targetY - prevY) * easedPush;
+
+          // Compute year as YYYY string from the annotation's year field
+          const datePrefix = String(Math.floor(annotation.year));
+
+          const textColor = getAnnotationTextColor(annotation.style);
+          const isMajorCrisis = annotation.style === "major-crisis-flash";
+
+          return (
             <div
+              key={`ann-${annotation.year}-${annotation.text}`}
               style={{
-                backgroundColor: bannerBg,
-                color: "#FFFFFF",
-                fontSize: isMajor ? 30 : 22,
-                fontWeight: 800,
-                fontFamily,
-                padding: isMajor ? "14px 32px" : "10px 22px",
-                borderRadius: 10,
-                border: isMajor
-                  ? "2px solid rgba(255,255,255,0.5)"
-                  : "1px solid rgba(255,255,255,0.25)",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: TAG_WIDTH,
+                transform: `translateY(${smoothY + slideY}px)`,
+                opacity: fadeOpacity,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                backgroundColor: CARD_BG,
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                border: `1px solid ${isMajorCrisis ? NEGATIVE : SURFACE_BORDER_STRONG}`,
+                borderRadius: 14,
+                padding: "12px 24px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
                 whiteSpace: "nowrap",
-                textTransform: "uppercase",
-                letterSpacing: isMajor ? 4 : 1.5,
+                overflow: "hidden",
+                boxSizing: "border-box",
               }}
             >
-              {annotation.text}
+              {/* Icon (if present) */}
+              {annotation.icon && (
+                <span style={{ fontSize: 26, lineHeight: 1, flexShrink: 0 }}>
+                  {annotation.icon === "crown"
+                    ? "👑"
+                    : annotation.icon === "skull"
+                      ? "💀"
+                      : "⚡"}
+                </span>
+              )}
+
+              {/* Text block: date prefix + main text */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 2, overflow: "hidden", minWidth: 0 }}>
+                <span
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 500,
+                    color: TEXT_SECONDARY,
+                    fontFamily,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {datePrefix}
+                </span>
+                <span
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: textColor,
+                    fontFamily,
+                    lineHeight: 1.3,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {annotation.text}
+                </span>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };

@@ -5,6 +5,8 @@ import {
   useVideoConfig,
   interpolate,
   spring,
+  staticFile,
+  Img,
 } from "remotion";
 import { BG, TEXT, ACCENT_PINK, NEGATIVE, SAGE, TEXT_MUTED } from "../../palette";
 
@@ -47,18 +49,20 @@ const STAGGER = 10;
 
 // ─── Phase Timing ─────────────────────────────────────────────
 // ~687 frames total at 30fps for 22.9s
-// Phase 1: 0–120   (can entrance + labels)
-// Phase 2: 120–300  (shrink + price glow)
+// Phase 1: 0–120   (Photo entrance + product label + price tag)
+// Phase 2: 120–300  (Callout overlay + price glow)
 // Phase 3: 300–end  (per-unit counter + BLS attribution)
 
-const PHASE1_END = 120;
-const PHASE2_START = 120;
-const PHASE2_SHRINK_START = 140; // slight delay after phase 2 start
-const PHASE2_SHRINK_DURATION = 45; // spring over 45 frames as per notes
-const PHASE2_GLOW_START = PHASE2_SHRINK_START + PHASE2_SHRINK_DURATION + 10;
+const PHASE2_AFTER_ENTRANCE = 160; // callout appears
+const PHASE2_GLOW_START = 220; // price tag glows after callout is settled
 const PHASE3_START = 300;
 const PHASE3_COUNTER_DURATION = 30; // 30 frames for number interpolation
 const PHASE3_BLS_FADE_START = 370; // BLS text fades in after counter
+
+// ─── Photo dimensions ─────────────────────────────────────────
+
+const PHOTO_WIDTH = 650;
+const PHOTO_HEIGHT = 420;
 
 // ─── Helpers ──────────────────────────────────────────────────
 
@@ -73,113 +77,10 @@ function formatPrice(n: number, decimals = 2): string {
   return `$${n.toFixed(decimals)}`;
 }
 
-/** Parse oz value from a size string like "16 oz" */
-function parseOz(s: string): number {
-  const match = s.match(/[\d.]+/);
-  return match ? parseFloat(match[0]) : 16;
-}
-
 // ─── Sub-components ───────────────────────────────────────────
 
 /**
- * CSS-drawn coffee can — a rounded rectangle with elliptical top/bottom.
- * Drawn entirely with divs — no external images.
- */
-const CoffeeCan: React.FC<{
-  heightPx: number;
-  widthPx: number;
-  opacity: number;
-  fillColor: string;
-}> = ({ heightPx, widthPx, opacity, fillColor }) => {
-  const ellipseH = 24; // height of top/bottom ellipses
-
-  return (
-    <div
-      style={{
-        position: "relative",
-        width: widthPx,
-        height: heightPx + ellipseH * 2,
-        opacity,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}
-    >
-      {/* Top ellipse */}
-      <div
-        style={{
-          width: widthPx,
-          height: ellipseH * 2,
-          borderRadius: "50%",
-          backgroundColor: fillColor,
-          position: "absolute",
-          top: 0,
-          zIndex: 2,
-          border: `2px solid rgba(240, 237, 232, 0.15)`,
-        }}
-      />
-      {/* Body cylinder */}
-      <div
-        style={{
-          width: widthPx,
-          height: heightPx,
-          backgroundColor: fillColor,
-          position: "absolute",
-          top: ellipseH,
-          borderLeft: `2px solid rgba(240, 237, 232, 0.15)`,
-          borderRight: `2px solid rgba(240, 237, 232, 0.15)`,
-        }}
-      />
-      {/* Bottom ellipse */}
-      <div
-        style={{
-          width: widthPx,
-          height: ellipseH * 2,
-          borderRadius: "50%",
-          backgroundColor: fillColor,
-          position: "absolute",
-          bottom: 0,
-          zIndex: 1,
-          border: `2px solid rgba(240, 237, 232, 0.1)`,
-          // Slightly darker bottom for depth
-          filter: "brightness(0.85)",
-        }}
-      />
-      {/* Label stripe on body */}
-      <div
-        style={{
-          position: "absolute",
-          top: ellipseH + heightPx * 0.3,
-          width: widthPx - 16,
-          height: heightPx * 0.35,
-          backgroundColor: "rgba(26, 27, 34, 0.35)",
-          borderRadius: 4,
-          left: 8,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 3,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: FONT_HEADING,
-            fontSize: 14,
-            fontWeight: 700,
-            color: TEXT_COLOR,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-          }}
-        >
-          COFFEE
-        </span>
-      </div>
-    </div>
-  );
-};
-
-/**
- * Price tag — the sticker price next to the can.
+ * Price tag — the sticker price below the cans.
  */
 const PriceTag: React.FC<{
   price: string;
@@ -200,7 +101,7 @@ const PriceTag: React.FC<{
     <div
       style={{
         fontFamily: FONT_BODY,
-        fontSize: 18,
+        fontSize: 20,
         color: MUTED_TEXT,
         letterSpacing: 0.5,
       }}
@@ -210,17 +111,17 @@ const PriceTag: React.FC<{
     <div
       style={{
         fontFamily: FONT_MONO,
-        fontSize: 48,
+        fontSize: 56,
         fontWeight: 700,
         color: TEXT_COLOR,
         fontVariantNumeric: "tabular-nums",
         fontFeatureSettings: '"tnum"',
-        padding: "12px 28px",
+        padding: "14px 32px",
         borderRadius: 12,
         border: `2px solid rgba(240, 237, 232, ${0.15 + glowIntensity * 0.3})`,
         backgroundColor: `rgba(240, 237, 232, ${0.04 + glowIntensity * 0.08})`,
         boxShadow: glowIntensity > 0
-          ? `0 0 ${20 * glowIntensity}px rgba(240, 237, 232, ${0.15 * glowIntensity})`
+          ? `0 0 ${24 * glowIntensity}px rgba(240, 237, 232, ${0.18 * glowIntensity})`
           : "none",
         transition: "box-shadow 0.1s",
       }}
@@ -235,10 +136,11 @@ const PriceTag: React.FC<{
 /**
  * BLSShrinkExplainer — Shrinkflation explanation animation.
  *
- * Phase 1 (0–120): Coffee can entrance with size label + price tag.
- * Phase 2 (120–300): Can shrinks from startSize to endSize; price stays fixed
- *   with a brief glow to emphasize it's unchanged.
- * Phase 3 (300–end): Per-pound price counter ticks up; BLS attribution fades in.
+ * Uses a single Folgers comparison photo showing before/after side by side.
+ *
+ * Phase 1 (0–120): Photo enters large and centered with product label.
+ * Phase 2 (120–300): "Same price — less coffee" callout fades in; price tag glows.
+ * Phase 3 (300–end): Photo shrinks up, per-unit price counter ticks; BLS attribution.
  */
 export const BLSShrinkExplainer: React.FC<BLSShrinkExplainerProps> = ({
   chart,
@@ -256,20 +158,18 @@ export const BLSShrinkExplainer: React.FC<BLSShrinkExplainerProps> = ({
   const endPerUnit = chart.endPerUnit || "$7.99/lb";
   const blsAttribution = chart.blsAttribution || "BLS tracks per-unit price";
 
-  const startOz = parseOz(startSize);
-  const endOz = parseOz(endSize);
   const startUnitPrice = parsePrice(startPerUnit);
   const endUnitPrice = parsePrice(endPerUnit);
 
-  // ── Phase 1: Can entrance ──
-  const canEntrance = spring({
+  // ── Phase 1: Photo entrance ──
+  const photoEntrance = spring({
     fps,
     frame: frame - 15,
     config: SPRING_CARD,
   });
-  const canSlideY = interpolate(canEntrance, [0, 1], [60, 0]);
+  const photoSlideY = interpolate(photoEntrance, [0, 1], [40, 0]);
 
-  const labelEntrance = spring({
+  const productLabelEntrance = spring({
     fps,
     frame: frame - 15 - STAGGER,
     config: SPRING_CARD,
@@ -281,33 +181,14 @@ export const BLSShrinkExplainer: React.FC<BLSShrinkExplainerProps> = ({
     config: SPRING_CARD,
   });
 
-  // ── Phase 2: Shrink animation ──
-  // Can height shrinks proportionally: endOz/startOz ratio
-  const shrinkRatio = endOz / startOz; // e.g., 10/16 = 0.625
-  const shrinkProgress = spring({
+  // ── Phase 2: Emphasis callout ──
+  const calloutEntrance = spring({
     fps,
-    frame: frame - PHASE2_SHRINK_START,
-    config: SPRING_BARS, // stiffness 100, damping 20 — brand guide for bars/counters
+    frame: frame - PHASE2_AFTER_ENTRANCE,
+    config: SPRING_BARS,
   });
 
-  // Interpolate can height from full to shrunk
-  const fullCanHeight = 240;
-  const canWidth = 140;
-  const currentCanHeight = interpolate(
-    shrinkProgress,
-    [0, 1],
-    [fullCanHeight, fullCanHeight * shrinkRatio],
-  );
-
-  // Size label morphs — crossfade between start and end labels
-  const shrinkLabelProgress = interpolate(
-    shrinkProgress,
-    [0.3, 0.7],
-    [0, 1],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
-  );
-
-  // Price tag glow — pulses briefly after shrink completes to emphasize it's unchanged
+  // Price tag glow — pulses briefly to show price unchanged
   const glowIn = interpolate(
     frame,
     [PHASE2_GLOW_START, PHASE2_GLOW_START + 15],
@@ -355,12 +236,20 @@ export const BLSShrinkExplainer: React.FC<BLSShrinkExplainerProps> = ({
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
 
-  // ── Arrow between price sections (appears in phase 3) ──
-  const arrowEntrance = spring({
+  // ── Phase 3 arrow between price sections ──
+  const arrowPhase3 = spring({
     fps,
     frame: frame - PHASE3_START - STAGGER,
     config: SPRING_CARD,
   });
+
+  // ── Photo area scales down in phase 3 to make room for counter ──
+  const photoAreaScale = phase3Visible
+    ? interpolate(counterEntrance, [0, 1], [1, 0.65])
+    : 1;
+  const photoAreaTranslateY = phase3Visible
+    ? interpolate(counterEntrance, [0, 1], [0, -80])
+    : 0;
 
   return (
     <AbsoluteFill
@@ -368,205 +257,212 @@ export const BLSShrinkExplainer: React.FC<BLSShrinkExplainerProps> = ({
         backgroundColor: BG_COLOR,
         fontFamily: fontFamily || FONT_BODY,
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
+        gap: 20,
       }}
     >
-      {/* Main layout: can + price on left/center, per-unit on right (phase 3) */}
+      {/* ═══ Photo comparison area ═══ */}
       <div
         style={{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 48,
+          gap: 14,
+          transform: `scale(${photoAreaScale}) translateY(${photoAreaTranslateY}px)`,
+          transformOrigin: "center top",
+          opacity: photoEntrance,
         }}
       >
-        {/* Top row: Coffee can + price tag */}
+        {/* Product label */}
+        <div
+          style={{
+            fontFamily: FONT_BODY,
+            fontSize: 20,
+            fontWeight: 600,
+            color: TEXT_COLOR,
+            letterSpacing: 0.5,
+            opacity: productLabelEntrance,
+            transform: `translateY(${interpolate(productLabelEntrance, [0, 1], [10, 0])}px)`,
+          }}
+        >
+          Folgers Classic Roast{" "}
+          <span style={{ color: MUTED_TEXT }}>&middot;</span>{" "}
+          <span style={{ fontFamily: FONT_MONO, color: SAGE_SILVER }}>{startSize}</span>
+          {" "}
+          <span style={{ color: MUTED_RED }}>{"\u2192"}</span>
+          {" "}
+          <span style={{ fontFamily: FONT_MONO, color: MUTED_RED }}>{endSize}</span>
+        </div>
+
+        {/* Folgers comparison photo */}
+        <div
+          style={{
+            position: "relative",
+            width: PHOTO_WIDTH,
+            height: PHOTO_HEIGHT,
+            borderRadius: 12,
+            overflow: "hidden",
+            border: `2px solid rgba(240, 237, 232, 0.12)`,
+            transform: `translateY(${photoSlideY}px)`,
+          }}
+        >
+          <Img
+            src={staticFile("shrinkflation-decoded/folgers.jpg")}
+            style={{
+              width: PHOTO_WIDTH,
+              height: PHOTO_HEIGHT,
+              objectFit: "contain",
+            }}
+          />
+
+          {/* Phase 2: "Same price — less coffee" callout overlay */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 16,
+              left: 0,
+              right: 0,
+              display: "flex",
+              justifyContent: "center",
+              opacity: calloutEntrance,
+              transform: `translateY(${interpolate(calloutEntrance, [0, 1], [12, 0])}px)`,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: FONT_HEADING,
+                fontSize: 22,
+                fontWeight: 700,
+                color: MUTED_PINK,
+                backgroundColor: "rgba(26, 27, 34, 0.85)",
+                padding: "8px 24px",
+                borderRadius: 8,
+                letterSpacing: 0.5,
+              }}
+            >
+              Same price — less coffee
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ Price tag (centered below photo) ═══ */}
+      <PriceTag
+        price={stickerPrice}
+        opacity={priceEntrance}
+        scale={interpolate(priceEntrance, [0, 1], [0.85, 1])}
+        glowIntensity={glowIntensity}
+      />
+
+      {/* ═══ Divider line ═══ */}
+      {phase3Visible && (
+        <div
+          style={{
+            width: interpolate(counterEntrance, [0, 1], [0, 600]),
+            height: 1,
+            backgroundColor: SAGE_SILVER,
+            opacity: 0.3 * counterEntrance,
+          }}
+        />
+      )}
+
+      {/* ═══ Bottom row: Per-unit price counter + BLS attribution ═══ */}
+      {phase3Visible && (
         <div
           style={{
             display: "flex",
-            alignItems: "flex-end",
-            gap: 80,
-            opacity: canEntrance,
-            transform: `translateY(${canSlideY}px)`,
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 24,
+            opacity: counterEntrance,
+            transform: `translateY(${interpolate(counterEntrance, [0, 1], [30, 0])}px)`,
           }}
         >
-          {/* Can + size label column */}
+          {/* Per-unit label */}
           <div
             style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 16,
+              fontFamily: FONT_BODY,
+              fontSize: 24,
+              color: MUTED_TEXT,
+              letterSpacing: 0.5,
             }}
           >
-            <CoffeeCan
-              heightPx={currentCanHeight}
-              widthPx={canWidth}
-              opacity={1}
-              fillColor={MUTED_PINK}
-            />
-            {/* Size label with crossfade */}
-            <div
-              style={{
-                position: "relative",
-                height: 36,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: labelEntrance,
-              }}
-            >
-              {/* Start size (fading out during shrink) */}
-              <span
-                style={{
-                  fontFamily: FONT_MONO,
-                  fontSize: 28,
-                  fontWeight: 500,
-                  color: TEXT_COLOR,
-                  fontVariantNumeric: "tabular-nums",
-                  fontFeatureSettings: '"tnum"',
-                  position: "absolute",
-                  opacity: 1 - shrinkLabelProgress,
-                }}
-              >
-                {startSize}
-              </span>
-              {/* End size (fading in during shrink) */}
-              <span
-                style={{
-                  fontFamily: FONT_MONO,
-                  fontSize: 28,
-                  fontWeight: 500,
-                  color: MUTED_RED,
-                  fontVariantNumeric: "tabular-nums",
-                  fontFeatureSettings: '"tnum"',
-                  position: "absolute",
-                  opacity: shrinkLabelProgress,
-                }}
-              >
-                {endSize}
-              </span>
-            </div>
+            Per pound:
           </div>
 
-          {/* Price tag */}
-          <PriceTag
-            price={stickerPrice}
-            opacity={priceEntrance}
-            scale={interpolate(priceEntrance, [0, 1], [0.85, 1])}
-            glowIntensity={glowIntensity}
-          />
-        </div>
-
-        {/* Divider line */}
-        {phase3Visible && (
-          <div
-            style={{
-              width: interpolate(counterEntrance, [0, 1], [0, 500]),
-              height: 1,
-              backgroundColor: SAGE_SILVER,
-              opacity: 0.3 * counterEntrance,
-            }}
-          />
-        )}
-
-        {/* Bottom row: Per-unit price counter + BLS attribution */}
-        {phase3Visible && (
+          {/* Counter row: start → arrow → current */}
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
-              gap: 24,
-              opacity: counterEntrance,
-              transform: `translateY(${interpolate(counterEntrance, [0, 1], [30, 0])}px)`,
+              gap: 28,
             }}
           >
-            {/* Per-unit label */}
-            <div
+            {/* Start per-unit price (dimmed) */}
+            <span
               style={{
-                fontFamily: FONT_BODY,
-                fontSize: 22,
+                fontFamily: FONT_MONO,
+                fontSize: 48,
+                fontWeight: 500,
                 color: MUTED_TEXT,
-                letterSpacing: 0.5,
+                fontVariantNumeric: "tabular-nums",
+                fontFeatureSettings: '"tnum"',
+                opacity: interpolate(
+                  counterProgress,
+                  [0, 0.5],
+                  [1, 0.5],
+                  { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+                ),
               }}
             >
-              Per pound:
-            </div>
+              {formatPrice(startUnitPrice)}{perUnitSuffix}
+            </span>
 
-            {/* Counter row: start → arrow → current */}
-            <div
+            {/* Arrow */}
+            <span
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 24,
-              }}
-            >
-              {/* Start per-unit price (dimmed) */}
-              <span
-                style={{
-                  fontFamily: FONT_MONO,
-                  fontSize: 40,
-                  fontWeight: 500,
-                  color: MUTED_TEXT,
-                  fontVariantNumeric: "tabular-nums",
-                  fontFeatureSettings: '"tnum"',
-                  opacity: interpolate(
-                    counterProgress,
-                    [0, 0.5],
-                    [1, 0.5],
-                    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
-                  ),
-                }}
-              >
-                {formatPrice(startUnitPrice)}{perUnitSuffix}
-              </span>
-
-              {/* Arrow */}
-              <span
-                style={{
-                  fontFamily: FONT_MONO,
-                  fontSize: 32,
-                  color: SAGE_SILVER,
-                  opacity: arrowEntrance,
-                  transform: `scaleX(${interpolate(arrowEntrance, [0, 1], [0.5, 1])})`,
-                }}
-              >
-                {"\u2192"}
-              </span>
-
-              {/* Current (animated) per-unit price */}
-              <span
-                style={{
-                  fontFamily: FONT_MONO,
-                  fontSize: 52,
-                  fontWeight: 700,
-                  color: MUTED_RED,
-                  fontVariantNumeric: "tabular-nums",
-                  fontFeatureSettings: '"tnum"',
-                }}
-              >
-                {formatPrice(currentUnitPrice)}{perUnitSuffix}
-              </span>
-            </div>
-
-            {/* BLS attribution */}
-            <div
-              style={{
-                fontFamily: FONT_BODY,
-                fontSize: 16,
+                fontFamily: FONT_MONO,
+                fontSize: 40,
                 color: SAGE_SILVER,
-                letterSpacing: 0.5,
-                opacity: blsFadeIn,
-                marginTop: 16,
+                opacity: arrowPhase3,
+                transform: `scaleX(${interpolate(arrowPhase3, [0, 1], [0.5, 1])})`,
               }}
             >
-              {blsAttribution}
-            </div>
+              {"\u2192"}
+            </span>
+
+            {/* Current (animated) per-unit price */}
+            <span
+              style={{
+                fontFamily: FONT_MONO,
+                fontSize: 64,
+                fontWeight: 700,
+                color: MUTED_RED,
+                fontVariantNumeric: "tabular-nums",
+                fontFeatureSettings: '"tnum"',
+              }}
+            >
+              {formatPrice(currentUnitPrice)}{perUnitSuffix}
+            </span>
           </div>
-        )}
-      </div>
+
+          {/* BLS attribution */}
+          <div
+            style={{
+              fontFamily: FONT_BODY,
+              fontSize: 18,
+              color: SAGE_SILVER,
+              letterSpacing: 0.5,
+              opacity: blsFadeIn,
+              marginTop: 12,
+            }}
+          >
+            {blsAttribution}
+          </div>
+        </div>
+      )}
     </AbsoluteFill>
   );
 };

@@ -22,12 +22,13 @@ import { renderMedia, selectComposition } from "@remotion/renderer";
 import { getLatestVersionedFile, loadProjectConfig, saveProjectConfig, loadChannelConfig, getProjectDir, loadStoryboardResolved } from "../utils/project";
 import { bridgeAllScenes } from "../utils/storyboard-bridge";
 import type { AudioManifest } from "../types/index";
+import { START_PADDING_SEC, END_PADDING_SEC } from "../remotion/compositions/MainComposition";
 
 const REMOTION_ENTRY = path.resolve("src", "remotion", "index.ts");
 
 /**
  * Parse concurrency from CLI args or env var.
- * Priority: --concurrency=N > REMOTION_CONCURRENCY env > default (4)
+ * Priority: --concurrency=N > REMOTION_CONCURRENCY env > default (16)
  */
 function parseConcurrency(): number {
   // CLI: --concurrency=8 or --concurrency 8
@@ -48,7 +49,7 @@ function parseConcurrency(): number {
     const val = parseInt(envVal, 10);
     if (!isNaN(val) && val > 0) return val;
   }
-  return 4; // default
+  return 16; // default
 }
 
 /**
@@ -75,7 +76,6 @@ function parseCrf(): number {
   return 18; // default — high quality
 }
 
-// All 33 countries data now in ../utils/storyboard-bridge.ts
 
 interface AudioSegment {
   src: string;
@@ -127,7 +127,8 @@ async function main() {
     fps = videoConfig.fps || (isShorts
       ? ((channelConfig as any).shorts?.fps || channelConfig.visuals.fps)
       : channelConfig.visuals.fps);
-    totalFrames = Math.ceil(totalDurationSec * fps);
+    // Note: video-config durationSeconds should include padding; adding here for safety
+    totalFrames = Math.ceil((totalDurationSec + START_PADDING_SEC + END_PADDING_SEC) * fps);
 
     compositionId = isShorts ? "ShortsVideo" : "MainVideo";
     width = videoConfig.width || (isShorts ? 1080 : channelConfig.visuals.resolution.width);
@@ -172,7 +173,7 @@ async function main() {
     fps = isShorts
       ? ((channelConfig as any).shorts?.fps || channelConfig.visuals.fps)
       : channelConfig.visuals.fps;
-    totalFrames = Math.ceil(totalDurationSec * fps);
+    totalFrames = Math.ceil((totalDurationSec + START_PADDING_SEC + END_PADDING_SEC) * fps);
 
     // Determine composition and resolution based on format
     compositionId = isShorts ? "ShortsVideo" : "MainVideo";
@@ -206,13 +207,9 @@ async function main() {
 
         audioFiles.push(audioRelPath);
 
-        // Use startTime from manifest if available, otherwise fall back to storyboard scene matching
-        let startTime: number = block.startTime ?? -1;
-        if (startTime < 0) {
-          // Try to find matching scene in storyboard by block ID
-          const matchingScene = scenes.find((s: any) => s.id === block.id);
-          startTime = matchingScene?.startTime ?? 0;
-        }
+        // Always use storyboard scene startTime for audio placement to stay in sync with visuals
+        const matchingScene = scenes.find((s: any) => s.id === block.id);
+        const startTime = matchingScene?.startTime ?? block.startTime ?? 0;
 
         audioSegments.push({ src: audioRelPath, startTime });
         console.log(`  ${block.file} → ${block.section}/${block.id} at ${startTime.toFixed(1)}s (${block.duration.toFixed(1)}s)`);
@@ -299,14 +296,21 @@ async function main() {
 
       const resolvedTracks: Array<{ src: string; durationSec: number }> = [];
       for (const track of bgm.tracks) {
-        // track.src can be relative to channel dir (e.g. "channel-assets/background-music/file.mp3")
-        // or already relative to project dir
-        const channelSrc = path.join(channelDir, track.src);
-        const projectSrc = path.join(projectDir, track.src);
-        const srcPath = fs.existsSync(channelSrc) ? channelSrc : projectSrc;
+        // track.src or track.file — storyboard may use either field name
+        const trackRef: string | undefined = track.src ?? track.file;
+        if (!trackRef) {
+          console.warn(`  ⚠️ BGM track missing src/file field — skipping`);
+          continue;
+        }
+        // trackRef can be relative to channel dir (e.g. "channel-assets/background-music/file.mp3")
+        // or just a filename (resolved to project bgm dir) or already relative to project dir
+        const channelSrc = path.join(channelDir, trackRef);
+        const projectSrc = path.join(projectDir, trackRef);
+        const bgmDirSrc = path.join(musicDestDir, path.basename(trackRef));
+        const srcPath = fs.existsSync(channelSrc) ? channelSrc : fs.existsSync(projectSrc) ? projectSrc : bgmDirSrc;
 
         if (!fs.existsSync(srcPath)) {
-          console.warn(`  ⚠️ Missing BGM track: ${track.src}`);
+          console.warn(`  ⚠️ Missing BGM track: ${trackRef}`);
           continue;
         }
 
@@ -319,7 +323,7 @@ async function main() {
 
         resolvedTracks.push({
           src: path.join("production", "audio", "bgm", filename).replace(/\\/g, "/"),
-          durationSec: track.durationSec,
+          durationSec: (track.durationSec ?? track.duration ?? 120) as number,
         });
       }
 
@@ -357,6 +361,37 @@ async function main() {
   const outputDir = path.join(projectDir, "production", "output");
   fs.mkdirSync(outputDir, { recursive: true });
   const outputPath = path.join(outputDir, "final.mp4");
+
+  // ── Copy BGM files to projectDir/bgm/ so Remotion staticFile("bgm/...") can find them ──
+  const bgmSrcDir = path.join(projectDir, "production", "audio", "bgm");
+  const bgmPublicDir = path.join(projectDir, "bgm");
+  if (fs.existsSync(bgmSrcDir)) {
+    fs.mkdirSync(bgmPublicDir, { recursive: true });
+    for (const file of fs.readdirSync(bgmSrcDir)) {
+      const srcFile = path.join(bgmSrcDir, file);
+      const destFile = path.join(bgmPublicDir, file);
+      if (fs.statSync(srcFile).isFile() && !fs.existsSync(destFile)) {
+        fs.copyFileSync(srcFile, destFile);
+        console.log(`  Copied BGM to public: bgm/${file}`);
+      }
+    }
+  }
+
+  // ── Copy stock photos from repo public/ to project dir for Remotion serving ──
+  const repoPublicDir = path.resolve("public");
+  const projectSlugDir = path.join(repoPublicDir, slug);
+  if (fs.existsSync(projectSlugDir)) {
+    const destDir = path.join(projectDir, slug);
+    fs.mkdirSync(destDir, { recursive: true });
+    for (const file of fs.readdirSync(projectSlugDir)) {
+      const srcFile = path.join(projectSlugDir, file);
+      const destFile = path.join(destDir, file);
+      if (fs.statSync(srcFile).isFile() && !fs.existsSync(destFile)) {
+        fs.copyFileSync(srcFile, destFile);
+        console.log(`  Copied asset: ${slug}/${file}`);
+      }
+    }
+  }
 
   console.log("\nBundling Remotion project...");
 
@@ -403,7 +438,7 @@ async function main() {
     // x264 'fast' preset: ~40% faster encoding, ~5% larger file (negligible quality loss)
     x264Preset: "fast",
     // Use GPU encoding when available (e.g., NVENC on NVIDIA)
-    hardwareAcceleration: "if-possible",
+    hardwareAcceleration: "disable",
     onProgress: ({ progress }) => {
       const percent = Math.round(progress * 100);
       process.stdout.write(`\rRendering: ${percent}%`);

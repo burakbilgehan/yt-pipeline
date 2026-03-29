@@ -4,53 +4,68 @@ import {
   useVideoConfig,
   spring,
   interpolate,
-  Easing,
+  staticFile,
+  Img,
 } from "remotion";
-import { TEXT, SAGE, ACCENT_BLUE } from "../../palette";
+import { BG, TEXT, TEXT_SECONDARY, SAGE, ACCENT_PINK } from "../../palette";
 
 /**
- * ShrinkflationHook — Scene 001 (20s)
+ * ShrinkflationHook — Scene 001
  *
- * Visual sequence:
- * 0–2s: Chips bag icon shrinks (spring from 1.0 → 0.77)
- * 2–4s: Coffee can icon shrinks + weight counter 16oz → 10oz
- * ~5s: Title "Shrinkflation Decoded" fades in (Montserrat ExtraBold 72px)
- * ~8s: Title fades out
- * ~10s: Shrink props dissolve, 6 product icons emerge at RUPI=1.0 baseline
- *       with stagger. Baseline pulses gently.
+ * Two-row single-photo product comparison synced to voiceover:
+ *   Row 1 (0.5s):  Häagen-Dazs — single photo showing 16oz → 14oz
+ *   Row 2 (4.0s):  Folgers     — single photo showing 39oz → 30.5oz
+ *   Hold (8s+):    Both rows visible with subtle breathe animation
  *
- * Background: #2A2A32 + dot grid (2px #8A9A7A dots, 40px spacing, 10% opacity)
+ * Each photo already contains the before/after comparison in one image.
+ * NO title text — title handled by scene-002.
  */
+
+// ─── Types ──────────────────────────────────────────────────────
 
 interface ShrinkflationHookProps {
   chart: {
     type: "shrinkflation-hook";
-    title?: string;
-    products?: string[];
-    productColors?: Record<string, string>;
     [key: string]: unknown;
   };
   brandColor: string;
   fontFamily: string;
 }
 
-const BG_COLOR = "#232328"; // intentionally different from palette BG
-const ACCENT_CREAM = TEXT;
-const SAGE_SILVER = SAGE;
+// ─── Constants ──────────────────────────────────────────────────
+
 const DOT_SPACING = 40;
 const DOT_SIZE = 2;
+const PHOTO_WIDTH = 760;
+const PHOTO_HEIGHT = 340;
 
-const DEFAULT_PRODUCTS = ["Eggs", "Coffee", "Chips", "Milk", "Peanut Butter", "Ice Cream"];
-const DEFAULT_PRODUCT_COLORS: Record<string, string> = {
-  Eggs: "#E8828A",
-  Coffee: "#7BA3C4",
-  Chips: "rgba(240,237,232,0.9)",
-  Milk: "rgba(240,237,232,0.7)",
-  "Peanut Butter": "rgba(240,237,232,0.55)",
-  "Ice Cream": "rgba(240,237,232,0.4)",
-};
+// ─── Product Data ───────────────────────────────────────────────
 
-/** Dot grid background — SVG pattern, no emoji. */
+interface ProductRow {
+  name: string;
+  sizeLabel: string;
+  image: string;
+  entranceTime: number;
+}
+
+const ROWS: ProductRow[] = [
+  {
+    name: "Ice Cream",
+    sizeLabel: "16 oz → 14 oz",
+    image: "shrinkflation-decoded/haagen-dazs.jpg",
+    entranceTime: 0.5,
+  },
+  {
+    name: "Coffee",
+    sizeLabel: "39 oz → 30.5 oz",
+    image: "shrinkflation-decoded/folgers.jpg",
+    entranceTime: 4.0,
+  },
+];
+
+// ─── Sub-components ─────────────────────────────────────────────
+
+/** Dot grid background — subtle texture */
 const DotGrid: React.FC = () => {
   const cols = Math.ceil(1920 / DOT_SPACING);
   const rows = Math.ceil(1080 / DOT_SPACING);
@@ -63,7 +78,7 @@ const DotGrid: React.FC = () => {
           cx={c * DOT_SPACING + DOT_SPACING / 2}
           cy={r * DOT_SPACING + DOT_SPACING / 2}
           r={DOT_SIZE / 2}
-          fill={SAGE_SILVER}
+          fill={SAGE}
         />,
       );
     }
@@ -79,383 +94,151 @@ const DotGrid: React.FC = () => {
   );
 };
 
-/** Simple product icon: styled rectangle with label. */
-const ProductBox: React.FC<{
-  label: string;
-  color: string;
-  scale: number;
-  opacity: number;
-  width: number;
-  height: number;
-}> = ({ label, color, scale, opacity, width, height }) => (
-  <div
-    style={{
-      width,
-      height,
-      backgroundColor: color,
-      borderRadius: 8,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      transform: `scale(${scale})`,
-      opacity,
-      transition: "none",
-    }}
-  >
-    <span
-      style={{
-        fontFamily: "Montserrat, sans-serif",
-        fontWeight: 700,
-        fontSize: 16,
-        color: BG_COLOR,
-        letterSpacing: "0.04em",
-        textTransform: "uppercase",
-      }}
-    >
-      {label}
-    </span>
-  </div>
-);
-
-/** Animated counter that ticks between two numbers. */
-const AnimatedCounter: React.FC<{
-  from: number;
-  to: number;
-  progress: number; // 0→1
-  suffix: string;
-}> = ({ from, to, progress, suffix }) => {
-  const value = Math.round(from + (to - from) * progress);
-  return (
-    <span
-      style={{
-        fontFamily: "JetBrains Mono, monospace",
-        fontVariantNumeric: "tabular-nums",
-        fontSize: 28,
-        fontWeight: 600,
-        color: ACCENT_CREAM,
-      }}
-    >
-      {value} {suffix}
-    </span>
-  );
-};
-
-/** Small product icon for the race lineup: colored circle + name. */
-const ProductDot: React.FC<{
-  name: string;
-  color: string;
-  opacity: number;
-  translateY: number;
-}> = ({ name, color, opacity, translateY }) => (
-  <div
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      gap: 8,
-      opacity,
-      transform: `translateY(${translateY}px)`,
-    }}
-  >
-    <div
-      style={{
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: color,
-      }}
-    />
-    <span
-      style={{
-        fontFamily: "Inter, sans-serif",
-        fontSize: 14,
-        fontWeight: 500,
-        color: ACCENT_CREAM,
-        letterSpacing: "0.02em",
-      }}
-    >
-      {name}
-    </span>
-  </div>
-);
+// ─── Main Component ─────────────────────────────────────────────
 
 export const ShrinkflationHook: React.FC<ShrinkflationHookProps> = ({
-  chart,
   fontFamily,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const time = frame / fps;
 
-  const title = chart.title ?? "Shrinkflation Decoded";
-  const products = chart.products ?? DEFAULT_PRODUCTS;
-  const productColors = { ...DEFAULT_PRODUCT_COLORS, ...(chart.productColors || {}) };
-
-  // ── Phase 1: Chips shrink (0–2s) ──────────────────────────
-  const chipsShrink = spring({
-    frame,
-    fps,
-    config: { damping: 14, stiffness: 80 },
-    durationInFrames: Math.round(2 * fps),
-  });
-  const chipsScale = interpolate(chipsShrink, [0, 1], [1.0, 0.77]);
-  const chipsOpacity = interpolate(time, [0, 0.3], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  // ── Phase 2: Coffee shrink + counter (2–4s) ───────────────
-  const coffeeDelay = Math.round(2 * fps);
-  const coffeeShrink = spring({
-    frame: frame - coffeeDelay,
-    fps,
-    config: { damping: 14, stiffness: 80 },
-    durationInFrames: Math.round(2 * fps),
-  });
-  const coffeeScale = interpolate(
-    Math.max(0, coffeeShrink),
-    [0, 1],
-    [1.0, 0.72],
+  // ── Breathe animation for hold phase (8s+) ─────────────────
+  const breathePhase = Math.max(0, time - 8);
+  const breatheScale = 1 + 0.015 * Math.sin(breathePhase * Math.PI * 0.8);
+  const breatheGlow = interpolate(
+    Math.sin(breathePhase * Math.PI * 0.8),
+    [-1, 1],
+    [0, 0.25],
   );
-  const coffeeOpacity = interpolate(time, [2, 2.3], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  // Counter: 16→10 over 2–4s
-  const counterProgress = interpolate(time, [2, 4], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.out(Easing.quad),
-  });
-
-  // ── Phase 3: Title fade in (~5s) and out (~8s) ────────────
-  // cubic-bezier(0.33,1,0.68,1) over 30 frames ≈ 1s at 30fps
-  const titleFadeIn = interpolate(
-    frame,
-    [Math.round(5 * fps), Math.round(5 * fps) + 30],
-    [0, 1],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: Easing.bezier(0.33, 1, 0.68, 1),
-    },
-  );
-  const titleFadeOut = interpolate(
-    frame,
-    [Math.round(8 * fps), Math.round(8 * fps) + 30],
-    [1, 0],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: Easing.bezier(0.33, 1, 0.68, 1),
-    },
-  );
-  const titleOpacity = Math.min(titleFadeIn, titleFadeOut);
-
-  // ── Phase 4: Shrink props dissolve (~9–10s) ───────────────
-  const propsDissolve = interpolate(time, [9, 10], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  // ── Phase 5: Product icons emerge at baseline (~10s+) ─────
-  const STAGGER_FRAMES = 10;
-  const lineupStartFrame = Math.round(10 * fps);
-
-  // Baseline pulse: 2s cycle, opacity 0.6→1.0→0.6
-  const baselinePulseTime = Math.max(0, time - 10);
-  const baselineOpacity = interpolate(
-    baselinePulseTime % 2,
-    [0, 1, 2],
-    [0.6, 1.0, 0.6],
-    { extrapolateRight: "clamp" },
-  );
-
-  const showLineup = frame >= lineupStartFrame;
-
-  // Total width for lineup (centered)
-  const iconSpacing = 160;
-  const lineupWidth = (products.length - 1) * iconSpacing;
-  const lineupX = (1920 - lineupWidth) / 2;
-  const baselineY = 600; // vertical center-ish
 
   return (
     <div
       style={{
         width: 1920,
         height: 1080,
-        backgroundColor: BG_COLOR,
+        backgroundColor: BG,
         position: "relative",
         overflow: "hidden",
         fontFamily: fontFamily || "Inter, sans-serif",
       }}
     >
-      {/* Dot grid background */}
       <DotGrid />
 
-      {/* ── Shrink props (0–10s) ── */}
-      {propsDissolve > 0 && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 120,
-            opacity: propsDissolve,
-            zIndex: 2,
-          }}
-        >
-          {/* Chips box */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-            <ProductBox
-              label="CHIPS"
-              color={productColors["Chips"] || ACCENT_CREAM}
-              scale={chipsScale}
-              opacity={chipsOpacity}
-              width={140}
-              height={180}
-            />
-          </div>
+      {/* Two product rows centered vertically */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 48,
+          zIndex: 2,
+        }}
+      >
+        {ROWS.map((row) => {
+          // Photo: fade + scale in via spring
+          const entrance = spring({
+            frame: Math.max(0, frame - Math.round(row.entranceTime * fps)),
+            fps,
+            config: { damping: 14, stiffness: 80 },
+          });
+          const photoOpacity = interpolate(entrance, [0, 0.5], [0, 1], {
+            extrapolateRight: "clamp",
+          });
+          const photoScale = interpolate(entrance, [0, 1], [0.9, 1], {
+            extrapolateRight: "clamp",
+          });
 
-          {/* Coffee box + counter */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-            <ProductBox
-              label="COFFEE"
-              color={productColors["Coffee"] || ACCENT_BLUE}
-              scale={coffeeScale}
-              opacity={coffeeOpacity}
-              width={120}
-              height={160}
-            />
-            {time >= 2 && (
-              <div style={{ opacity: coffeeOpacity }}>
-                <AnimatedCounter
-                  from={16}
-                  to={10}
-                  progress={counterProgress}
-                  suffix="oz"
+          // Apply breathe effect only after row is fully visible
+          const rowFullyVisible = time > row.entranceTime + 2;
+          const applyBreathe = time >= 8 && rowFullyVisible;
+          const rowBreatheScale = applyBreathe ? breatheScale : 1;
+
+          return (
+            <div
+              key={row.name}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                opacity: photoOpacity,
+                transform: `scale(${photoScale * rowBreatheScale})`,
+                filter: applyBreathe
+                  ? `drop-shadow(0 0 ${20 + breatheGlow * 30}px rgba(138, 154, 122, ${0.1 + breatheGlow * 0.15}))`
+                  : "none",
+              }}
+            >
+              {/* Product photo */}
+              <div
+                style={{
+                  width: PHOTO_WIDTH,
+                  height: PHOTO_HEIGHT,
+                  borderRadius: 12,
+                  overflow: "hidden",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4)",
+                }}
+              >
+                <Img
+                  src={staticFile(row.image)}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                  }}
                 />
               </div>
-            )}
-          </div>
-        </div>
-      )}
 
-      {/* ── Title "Shrinkflation Decoded" ── */}
-      {titleOpacity > 0 && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 3,
-            pointerEvents: "none",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "Montserrat, sans-serif",
-              fontWeight: 800,
-              fontSize: 72,
-              color: ACCENT_CREAM,
-              opacity: titleOpacity,
-              letterSpacing: "0.02em",
-              textAlign: "center",
-            }}
-          >
-            {title}
-          </div>
-        </div>
-      )}
-
-      {/* ── Product lineup at baseline (~10s+) ── */}
-      {showLineup && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            zIndex: 4,
-          }}
-        >
-          {/* Baseline reference line */}
-          <div
-            style={{
-              position: "absolute",
-              top: baselineY + 60,
-              left: 160,
-              right: 160,
-              height: 2,
-              backgroundColor: ACCENT_CREAM,
-              opacity: baselineOpacity * 0.5,
-            }}
-          />
-          {/* "RUPI = 1.0" label */}
-          <div
-            style={{
-              position: "absolute",
-              top: baselineY + 70,
-              right: 160,
-              fontFamily: "JetBrains Mono, monospace",
-              fontVariantNumeric: "tabular-nums",
-              fontSize: 14,
-              color: SAGE_SILVER,
-              opacity: baselineOpacity * 0.7,
-            }}
-          >
-            RUPI = 1.0
-          </div>
-
-          {/* Product icons */}
-          <div
-            style={{
-              position: "absolute",
-              top: baselineY - 50,
-              left: 0,
-              width: "100%",
-              display: "flex",
-              justifyContent: "center",
-              gap: iconSpacing - 50, // gap between dots
-            }}
-          >
-            {products.map((name, i) => {
-              const staggerDelay = i * STAGGER_FRAMES;
-              const localFrame = frame - lineupStartFrame - staggerDelay;
-              const entrance = spring({
-                frame: Math.max(0, localFrame),
-                fps,
-                config: { damping: 15, stiffness: 120 },
-              });
-              const dotOpacity = interpolate(entrance, [0, 1], [0, 1]);
-              const dotTranslateY = interpolate(entrance, [0, 1], [30, 0]);
-              const color = productColors[name] || ACCENT_CREAM;
-
-              return (
-                <ProductDot
-                  key={name}
-                  name={name}
-                  color={color}
-                  opacity={localFrame >= 0 ? dotOpacity : 0}
-                  translateY={localFrame >= 0 ? dotTranslateY : 30}
-                />
-              );
-            })}
-          </div>
-        </div>
-      )}
+              {/* Label: "Product Name · before → after" */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: 10,
+                  marginTop: 16,
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: 24,
+                    fontWeight: 700,
+                    color: TEXT,
+                  }}
+                >
+                  {row.name}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: 20,
+                    fontWeight: 500,
+                    color: TEXT_SECONDARY,
+                  }}
+                >
+                  ·
+                </span>
+                <span
+                  style={{
+                    fontFamily: "JetBrains Mono, monospace",
+                    fontVariantNumeric: "tabular-nums",
+                    fontSize: 22,
+                    fontWeight: 600,
+                    color: ACCENT_PINK,
+                  }}
+                >
+                  {row.sizeLabel}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

@@ -207,6 +207,9 @@ export const DataChartScene: React.FC<DataChartSceneProps> = ({
       // Extract HorseRaceChartProps from the chart object.
       // These fields are injected by Root.tsx after bridgeAllScenes().
       const hrChart = chart as DataChartInput & Partial<HorseRaceChartProps>;
+      // Build deflator label from yAxisLabel or deflator field
+      const deflatorLabel = hrChart.yAxisLabel || (hrChart as any).deflator || undefined;
+
       const hrProps: HorseRaceChartProps = {
         series: hrChart.series || [],
         cameraKeyframes: hrChart.cameraKeyframes || [{ year: 2000, zoom: 1.0, speed: 1.0 }],
@@ -218,6 +221,7 @@ export const DataChartScene: React.FC<DataChartSceneProps> = ({
         fontFamily: fontFamily,
         logScale: hrChart.logScale,
         yAxisLabel: hrChart.yAxisLabel,
+        deflatorLabel,
       };
       // If no series data yet (not injected), render a placeholder
       if (hrProps.series.length === 0) {
