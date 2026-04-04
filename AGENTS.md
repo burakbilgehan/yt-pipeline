@@ -169,9 +169,9 @@ npm run sync-ai
 ## Orchestration Model
 
 **Director** is the primary orchestrator:
-- **Review Protocol**: automatic after every deliverable. Single source of truth: `.ai/protocols/multi-agent-review.md`. Covers Critic gate, fix routing, specialist spot-checks, loop limits.
+- **Review Protocol**: opt-in only — run on user request or when output quality is clearly insufficient. Source: `.ai/protocols/multi-agent-review.md`. Do not run automatically after every deliverable.
 - **QA Loop**: reactive — triggered by user negative feedback or 3+ Critic failures.
-- **Content Strategist Alignment**: auto at project start and script finalization. Score 1-5.
+- **Content Strategist Alignment**: on request only.
 - **Stage transitions**: never automatic — require user approval.
 
 ## Windows / PowerShell
