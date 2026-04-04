@@ -1,4 +1,9 @@
+---
+name: remotion-rendering
+description: "Rules and workflows for rendering video with Remotion"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # Remotion Rendering
 

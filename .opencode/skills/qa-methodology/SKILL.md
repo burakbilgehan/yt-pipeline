@@ -1,4 +1,9 @@
+---
+name: qa-methodology
+description: "Diagnose and fix pipeline issues — triage, root-cause analysis, remediation"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # QA Methodology
 

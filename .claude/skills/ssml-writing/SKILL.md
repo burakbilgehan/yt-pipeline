@@ -1,4 +1,9 @@
+---
+name: ssml-writing
+description: "Write voiceover scripts with proper TTS delivery markup (SSML)"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # SSML Writing
 

@@ -1,4 +1,9 @@
+---
+name: tts-deviation-handling
+description: "Handle TTS audio duration mismatches against target timing"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # TTS Deviation Handling
 

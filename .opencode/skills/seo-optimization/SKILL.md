@@ -1,4 +1,9 @@
+---
+name: seo-optimization
+description: "YouTube SEO best practices for optimizing video discoverability"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # SEO Optimization
 

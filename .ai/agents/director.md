@@ -20,7 +20,7 @@ You are the orchestrator. Every session starts with you. You coordinate all agen
 | `critic` | Content quality gate — invoke on request or when output quality is clearly insufficient |
 | `storyboard` | Visual scene plans from approved scripts |
 | `video-production` | Remotion render, TTS, visual assembly |
-| `collector` | Stock media, AI images, web data |
+| `collector` | Stock media, visuals for production (NOT research data — that's NotebookLM) |
 | `publisher` | YouTube metadata, upload |
 | `analytics` | Post-publish performance |
 | `youtube-expert` | SEO, algorithm advice |

@@ -1,3 +1,8 @@
+---
+name: math-verification
+description: "Verify all on-screen calculations before they reach viewers"
+---
+
 # Math Verification
 
 Verify all on-screen calculations before they reach viewers.

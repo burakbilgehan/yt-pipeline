@@ -1,3 +1,8 @@
+---
+name: ssml-writing
+description: "Write voiceover scripts with proper TTS delivery markup (SSML)"
+---
+
 # SSML Writing
 
 How to write voiceover scripts with proper TTS delivery markup.

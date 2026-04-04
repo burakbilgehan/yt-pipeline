@@ -1,3 +1,8 @@
+---
+name: critique-methodology
+description: "Quality gate evaluation methodology for pipeline deliverables"
+---
+
 # Critique Methodology
 
 How to evaluate pipeline deliverables as a quality gate.

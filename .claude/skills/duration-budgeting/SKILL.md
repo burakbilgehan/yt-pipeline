@@ -1,4 +1,9 @@
+---
+name: duration-budgeting
+description: "Calculate and verify script/scene duration against target video length"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # Duration Budgeting
 

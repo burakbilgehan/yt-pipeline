@@ -1,4 +1,9 @@
+---
+name: scene-timing
+description: "Calculate scene start/end times from voiceover word counts and markup"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # Scene Timing
 

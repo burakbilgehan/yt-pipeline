@@ -1,3 +1,8 @@
+---
+name: tts-generation
+description: "Generate voiceover audio from scripts using Google Cloud TTS"
+---
+
 # TTS Generation
 
 Generate voiceover audio from scripts using Google Cloud TTS.

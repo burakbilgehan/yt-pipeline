@@ -1,3 +1,8 @@
+---
+name: seo-optimization
+description: "YouTube SEO best practices for optimizing video discoverability"
+---
+
 # SEO Optimization
 
 YouTube SEO best practices for optimizing discoverability.

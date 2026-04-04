@@ -1,3 +1,8 @@
+---
+name: qa-methodology
+description: "Diagnose and fix pipeline issues — triage, root-cause analysis, remediation"
+---
+
 # QA Methodology
 
 How to diagnose and fix pipeline issues as the QA agent.

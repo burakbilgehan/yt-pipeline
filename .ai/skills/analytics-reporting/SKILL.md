@@ -1,3 +1,8 @@
+---
+name: analytics-reporting
+description: "Track and report video performance with actionable insights"
+---
+
 # Analytics Reporting
 
 How to track and report video performance.

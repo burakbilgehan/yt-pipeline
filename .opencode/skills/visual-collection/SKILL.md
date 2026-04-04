@@ -1,4 +1,9 @@
+---
+name: visual-collection
+description: "Fetch and organize visual assets (stock media, AI images) for video production"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # Visual Collection
 

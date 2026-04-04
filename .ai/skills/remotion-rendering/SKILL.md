@@ -1,3 +1,8 @@
+---
+name: remotion-rendering
+description: "Rules and workflows for rendering video with Remotion"
+---
+
 # Remotion Rendering
 
 Rules and workflows for rendering video with Remotion.

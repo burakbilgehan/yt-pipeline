@@ -1,4 +1,9 @@
+---
+name: alignment-check
+description: "Evaluate whether a video topic/script fits the channel brand and strategy"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # Alignment Check
 

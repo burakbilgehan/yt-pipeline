@@ -1,4 +1,9 @@
+---
+name: analytics-reporting
+description: "Track and report video performance with actionable insights"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # Analytics Reporting
 

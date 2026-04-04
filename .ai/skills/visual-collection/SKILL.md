@@ -1,3 +1,8 @@
+---
+name: visual-collection
+description: "Fetch and organize visual assets (stock media, AI images) for video production"
+---
+
 # Visual Collection
 
 How to fetch and organize visual assets for video production.

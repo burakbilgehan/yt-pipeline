@@ -1,3 +1,8 @@
+---
+name: youtube-upload
+description: "Workflow for uploading videos to YouTube and verifying success"
+---
+
 # YouTube Upload
 
 Workflow for uploading videos to YouTube and verifying success.

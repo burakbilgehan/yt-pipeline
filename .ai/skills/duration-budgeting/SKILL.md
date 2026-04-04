@@ -1,3 +1,8 @@
+---
+name: duration-budgeting
+description: "Calculate and verify script/scene duration against target video length"
+---
+
 # Duration Budgeting
 
 Calculate and verify script/scene duration against target length.

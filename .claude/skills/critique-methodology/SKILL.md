@@ -1,4 +1,9 @@
+---
+name: critique-methodology
+description: "Quality gate evaluation methodology for pipeline deliverables"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # Critique Methodology
 

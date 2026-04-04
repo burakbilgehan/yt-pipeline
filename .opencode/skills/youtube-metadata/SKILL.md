@@ -1,4 +1,9 @@
+---
+name: youtube-metadata
+description: "Rules for crafting YouTube titles, descriptions, and tags"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # YouTube Metadata
 

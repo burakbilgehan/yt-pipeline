@@ -1,3 +1,8 @@
+---
+name: youtube-metadata
+description: "Rules for crafting YouTube titles, descriptions, and tags"
+---
+
 # YouTube Metadata
 
 Rules for crafting titles, descriptions, and tags for YouTube.

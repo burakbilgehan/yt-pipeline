@@ -1,4 +1,9 @@
+---
+name: tts-generation
+description: "Generate voiceover audio from scripts using Google Cloud TTS"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # TTS Generation
 

@@ -1,3 +1,8 @@
+---
+name: alignment-check
+description: "Evaluate whether a video topic/script fits the channel brand and strategy"
+---
+
 # Alignment Check
 
 Evaluate whether a video topic/script fits the channel's brand and strategy.

@@ -1,3 +1,8 @@
+---
+name: tts-deviation-handling
+description: "Handle TTS audio duration mismatches against target timing"
+---
+
 # TTS Deviation Handling
 
 What to do when TTS audio duration doesn't match the target.

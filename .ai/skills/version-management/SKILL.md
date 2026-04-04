@@ -1,3 +1,8 @@
+---
+name: version-management
+description: "Versioned file management and config.json pipeline state tracking"
+---
+
 # Version Management
 
 How versioned files and `channels/<channel>/videos/<slug>/config.json` pipeline state work.

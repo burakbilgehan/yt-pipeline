@@ -50,27 +50,40 @@ function parseFrontmatter(content: string): ParsedFile {
   return { frontmatter: fm, body: match[2] };
 }
 
-// ── Skill content loading ────────────────────────────────────────────
+// ── Skill references (lazy load) ─────────────────────────────────────
 
-function loadSkillContent(skillName: string): string | null {
-  const skillPath = path.join(AI_DIR, "skills", skillName, "SKILL.md");
-  if (!fs.existsSync(skillPath)) {
-    console.warn(`  ⚠ Skill "${skillName}" not found at ${skillPath}`);
-    return null;
-  }
-  return fs.readFileSync(skillPath, "utf-8");
-}
+// Cache skill descriptions parsed from frontmatter (populated during syncSkills)
+const skillDescriptions = new Map<string, string>();
 
-function buildSkillsSection(skillNames: string[]): string {
-  const sections: string[] = [];
-  for (const name of skillNames) {
-    const content = loadSkillContent(name);
-    if (content) {
-      sections.push(`<skill name="${name}">\n${content}\n</skill>`);
+function loadSkillDescriptions() {
+  const skillsDir = path.join(AI_DIR, "skills");
+  if (!fs.existsSync(skillsDir)) return;
+
+  const dirs = fs
+    .readdirSync(skillsDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory());
+
+  for (const dir of dirs) {
+    const skillFile = path.join(skillsDir, dir.name, "SKILL.md");
+    if (!fs.existsSync(skillFile)) continue;
+    const content = fs.readFileSync(skillFile, "utf-8");
+    const parsed = parseFrontmatter(content);
+    const desc = parsed.frontmatter.description as string;
+    if (desc) {
+      skillDescriptions.set(dir.name, desc);
     }
   }
-  if (sections.length === 0) return "";
-  return `\n\n---\n\n## Preloaded Skills\n\n${sections.join("\n\n")}`;
+}
+
+function buildSkillsReference(skillNames: string[]): string {
+  if (skillNames.length === 0) return "";
+  const list = skillNames
+    .map((s) => {
+      const desc = skillDescriptions.get(s);
+      return desc ? `- \`${s}\` — ${desc}` : `- \`${s}\``;
+    })
+    .join("\n");
+  return `\n\n## Skills (lazy load)\n\nLoad these with the \`skill\` tool by name when you need them. Do NOT read them upfront.\n\n${list}\n`;
 }
 
 // ── Claude format ────────────────────────────────────────────────────
@@ -85,7 +98,7 @@ function toClaudeAgent(parsed: ParsedFile, filename: string): string {
     ? (parsed.frontmatter.skills as string[])
     : [];
 
-  const skillsSection = buildSkillsSection(skills);
+  const skillsRef = buildSkillsReference(skills);
 
   return `---
 name: ${name}
@@ -93,7 +106,7 @@ description: ${desc}
 tools: ${tools}
 ---
 ${AUTO_GENERATED_HEADER}
-${parsed.body}${skillsSection}`;
+${parsed.body}${skillsRef}`;
 }
 
 function toClaudeCommand(parsed: ParsedFile): string {
@@ -137,7 +150,7 @@ function toOpenCodeAgent(parsed: ParsedFile): string {
     .map((t) => `  ${t}: true`)
     .join("\n");
 
-  const skillsSection = buildSkillsSection(skills);
+  const skillsRef = buildSkillsReference(skills);
 
   return `---
 description: "${desc}"
@@ -146,7 +159,7 @@ tools:
 ${toolLines}
 ---
 ${AUTO_GENERATED_HEADER}
-${parsed.body}${skillsSection}`;
+${parsed.body}${skillsRef}`;
 }
 
 function toOpenCodeCommand(parsed: ParsedFile): string {
@@ -234,10 +247,29 @@ function copySkillDir(
       } else {
         const content = fs.readFileSync(srcPath, "utf-8");
         if (entry.name === "SKILL.md" && src === srcSkillDir) {
-          fs.writeFileSync(
-            destPath,
-            `${AUTO_GENERATED_HEADER}\n\n${content}`
-          );
+          // Insert auto-generated header AFTER frontmatter (if present)
+          const parsed = parseFrontmatter(content);
+          if (Object.keys(parsed.frontmatter).length > 0) {
+            // Re-serialize frontmatter + insert header before body
+            const fmLines = content.match(/^---\n([\s\S]*?)\n---\n/);
+            if (fmLines) {
+              const afterFm = content.slice(fmLines[0].length);
+              fs.writeFileSync(
+                destPath,
+                `${fmLines[0]}${AUTO_GENERATED_HEADER}\n\n${afterFm}`
+              );
+            } else {
+              fs.writeFileSync(
+                destPath,
+                `${AUTO_GENERATED_HEADER}\n\n${content}`
+              );
+            }
+          } else {
+            fs.writeFileSync(
+              destPath,
+              `${AUTO_GENERATED_HEADER}\n\n${content}`
+            );
+          }
         } else {
           fs.writeFileSync(destPath, content);
         }
@@ -364,6 +396,10 @@ function syncDir(subdir: "agents" | "commands") {
 
 function main() {
   console.log("Syncing .ai/ → .claude/ + .opencode/\n");
+
+  // Load skill descriptions first — needed for agent skill references
+  loadSkillDescriptions();
+  console.log(`Loaded ${skillDescriptions.size} skill descriptions\n`);
 
   console.log("Agents:");
   const agentResults = syncDir("agents");

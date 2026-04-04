@@ -1,3 +1,8 @@
+---
+name: remotion-best-practices
+description: "Best practices for Remotion video creation in React"
+---
+
 # Remotion Best Practices
 
 Best practices for Remotion — video creation in React. Use this skill whenever you are dealing with Remotion code.

@@ -1,4 +1,9 @@
+---
+name: youtube-upload
+description: "Workflow for uploading videos to YouTube and verifying success"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # YouTube Upload
 

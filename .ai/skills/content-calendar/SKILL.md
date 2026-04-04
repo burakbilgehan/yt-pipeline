@@ -1,3 +1,8 @@
+---
+name: content-calendar
+description: "Maintain and use the channel content calendar"
+---
+
 # Content Calendar
 
 How to maintain and use the channel content calendar.

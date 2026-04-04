@@ -1,3 +1,8 @@
+---
+name: script-format
+description: "Standard format and template for video scripts"
+---
+
 # Script Format
 
 Standard format for video scripts in this pipeline.

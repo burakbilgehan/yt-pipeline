@@ -1,3 +1,8 @@
+---
+name: scene-timing
+description: "Calculate scene start/end times from voiceover word counts and markup"
+---
+
 # Scene Timing
 
 Calculate scene start/end times from voiceover word counts and markup.

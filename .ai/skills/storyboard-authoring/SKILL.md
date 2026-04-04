@@ -1,3 +1,8 @@
+---
+name: storyboard-authoring
+description: "Create scene-by-scene visual plans (skeleton + detail files) for Remotion production"
+---
+
 # Storyboard Authoring
 
 How to create scene-by-scene visual plans for Remotion production.

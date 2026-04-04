@@ -1,4 +1,9 @@
+---
+name: content-calendar
+description: "Maintain and use the channel content calendar"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # Content Calendar
 

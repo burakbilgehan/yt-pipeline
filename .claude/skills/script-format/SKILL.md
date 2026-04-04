@@ -1,4 +1,9 @@
+---
+name: script-format
+description: "Standard format and template for video scripts"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # Script Format
 

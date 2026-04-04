@@ -1,4 +1,9 @@
+---
+name: math-verification
+description: "Verify all on-screen calculations before they reach viewers"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # Math Verification
 

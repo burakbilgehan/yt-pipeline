@@ -1,4 +1,9 @@
+---
+name: storyboard-authoring
+description: "Create scene-by-scene visual plans (skeleton + detail files) for Remotion production"
+---
 <!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
 
 # Storyboard Authoring
 
