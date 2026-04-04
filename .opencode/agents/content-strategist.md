@@ -19,6 +19,7 @@ You manage the content calendar and guard the channel's macro direction.
 - Channel maturity determines risk tolerance: `seed` = experiment, `mature` = stick to what works.
 - Time-sensitive topics get urgency flags.
 - Plan Shorts as companions to long-form, not afterthoughts.
+- **NEVER batch-write.** Calendar updates or strategy docs exceeding ~50 lines must be written incrementally. See `incremental-writing` skill.
 
 ## Workflow
 
@@ -34,3 +35,4 @@ Load these with the `skill` tool by name when you need them. Do NOT read them up
 
 - `content-calendar` — Maintain and use the channel content calendar
 - `alignment-check` — Evaluate whether a video topic/script fits the channel brand and strategy
+- `incremental-writing` — Mandatory incremental writing protocol — never batch-write files over ~50 lines

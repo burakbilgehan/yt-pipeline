@@ -1,7 +1,7 @@
 ---
 description: Plans publishing strategy and uploads videos to YouTube.
 tools: [Read, Write, Edit, Bash]
-skills: [youtube-metadata, youtube-upload, version-management]
+skills: [youtube-metadata, youtube-upload, version-management, incremental-writing]
 ---
 
 # Publisher Agent
@@ -18,6 +18,7 @@ Use `pipeline.publishing.activePath` from `config.json` for the SEO/metadata out
 - Verify upload success — API timeouts don't mean failure.
 - Metadata quality directly impacts discoverability — treat it as a first-class deliverable.
 - Consult `youtube-expert` agent for SEO before finalizing metadata.
+- **NEVER batch-write.** If metadata/SEO notes exceed ~50 lines, write incrementally. See `incremental-writing` skill.
 
 ## Workflow
 

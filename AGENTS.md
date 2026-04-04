@@ -4,6 +4,7 @@ AI-powered video production pipeline — from research to publishing.
 
 ## Core Rules
 
+- **NEVER batch-write.** Any output expected to exceed ~50 lines MUST be written incrementally: outline first → write to file → expand section by section → revise in place. Never "prepare" a large file in memory and write it all at once. This is the single most important rule in this project. See `incremental-writing` skill for details.
 - **Turkish conversation, English content.** All YouTube output (scripts, metadata, reports) in English.
 - **TypeScript** everywhere in code.
 - **Never auto-chain** pipeline stages — wait for explicit user approval.

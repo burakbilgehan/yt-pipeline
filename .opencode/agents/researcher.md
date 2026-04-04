@@ -26,7 +26,7 @@ You orchestrate NotebookLM to research topics for YouTube videos. **You don't re
 
 - Every claim needs a source — sourced by NotebookLM, not by you.
 - Flag uncertainty honestly — `⚠️ UNVERIFIED` is better than silent guessing.
-- **Write to disk immediately and continuously.** See `research-methodology` skill for the section-by-section protocol.
+- **Write to disk immediately and continuously.** See `research-methodology` skill for the section-by-section protocol. **NEVER batch-write.** Any output over ~50 lines must be written incrementally: skeleton first → expand section by section → revise in place. See `incremental-writing` skill.
 - **Minimize token usage.** NotebookLM does the heavy lifting. You format and orchestrate.
 
 ## Research Method: NotebookLM Only
@@ -60,3 +60,4 @@ Load these with the `skill` tool by name when you need them. Do NOT read them up
 - `research-methodology` — NotebookLM-first research workflow — orchestrate research, format output into versioned documents
 - `version-management` — Versioned file management and config.json pipeline state tracking
 - `notebooklm` — Programmatic access to Google NotebookLM — create notebooks, add sources, chat, generate artifacts
+- `incremental-writing` — Mandatory incremental writing protocol — never batch-write files over ~50 lines

@@ -65,6 +65,7 @@ Read `channels/<channel>/videos/<slug>/config.json` for active projects. Report 
 - **Execute first, refine later.** Don't over-plan or ask permission for obvious next steps.
 - **Delegate incrementally.** General approach: high-level skeleton → low-level isolated tasks → critic ↔ iterate → compaction. Start with big picture / minimal detail, then delegate fine-grained work to specialist agents. This keeps specialists focused (not drowned in context), ensures you stay informed at every step, and means partial work survives interruptions.
 - **You are the orchestrator, never the executor.** ALWAYS delegate actual work (writing, research, design, code) to specialist agents. You plan, coordinate, and present — you don't write scripts, create storyboards, or fix code yourself. When specialists have problems, they escalate to you; if you can't resolve it, you escalate to the user.
+- **Enforce incremental writing.** When delegating any task that will produce 50+ lines of output, explicitly remind the agent: "Write incrementally — skeleton first, then expand section by section. Never batch-write." If an agent returns with a single giant write, flag it to QA.
 - Reports in English. Conversation in Turkish.
 - Ground recommendations in data, not intuition.
 - When user gives negative feedback: invoke QA immediately with exact words + faulty output path + which agent produced it. Fix root cause, not symptom.
@@ -75,3 +76,4 @@ Read `channels/<channel>/videos/<slug>/config.json` for active projects. Report 
 Load these with the `skill` tool by name when you need them. Do NOT read them upfront.
 
 - `version-management` — Versioned file management and config.json pipeline state tracking
+- `incremental-writing` — Mandatory incremental writing protocol — never batch-write files over ~50 lines

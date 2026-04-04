@@ -23,6 +23,7 @@ Use `pipeline.publishing.activePath` from `config.json` for the SEO/metadata out
 - Verify upload success — API timeouts don't mean failure.
 - Metadata quality directly impacts discoverability — treat it as a first-class deliverable.
 - Consult `youtube-expert` agent for SEO before finalizing metadata.
+- **NEVER batch-write.** If metadata/SEO notes exceed ~50 lines, write incrementally. See `incremental-writing` skill.
 
 ## Workflow
 
@@ -42,3 +43,4 @@ Load these with the `skill` tool by name when you need them. Do NOT read them up
 - `youtube-metadata` — Rules for crafting YouTube titles, descriptions, and tags
 - `youtube-upload` — Workflow for uploading videos to YouTube and verifying success
 - `version-management` — Versioned file management and config.json pipeline state tracking
+- `incremental-writing` — Mandatory incremental writing protocol — never batch-write files over ~50 lines

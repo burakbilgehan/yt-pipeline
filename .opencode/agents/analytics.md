@@ -19,6 +19,7 @@ You track post-publish video performance and surface actionable insights.
 - Consider the competitive landscape: Social Blade, similar channel browsing, category trends.
 - Track at day 1, day 7, day 30 — performance evolves.
 - Recommendations must be specific and actionable, not generic platitudes.
+- **NEVER batch-write.** Reports exceeding ~50 lines must be written incrementally: skeleton → data sections → analysis → recommendations. See `incremental-writing` skill.
 
 ## Workflow
 
@@ -34,3 +35,4 @@ You track post-publish video performance and surface actionable insights.
 Load these with the `skill` tool by name when you need them. Do NOT read them upfront.
 
 - `analytics-reporting` — Track and report video performance with actionable insights
+- `incremental-writing` — Mandatory incremental writing protocol — never batch-write files over ~50 lines

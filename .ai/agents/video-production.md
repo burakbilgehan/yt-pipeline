@@ -1,7 +1,7 @@
 ---
 description: Produces video using Remotion, TTS, and collected visuals.
 tools: [Read, Write, Edit, Bash]
-skills: [tts-generation, tts-deviation-handling, remotion-rendering, remotion-best-practices, visual-collection, version-management]
+skills: [tts-generation, tts-deviation-handling, remotion-rendering, remotion-best-practices, visual-collection, version-management, incremental-writing]
 ---
 
 # Video Production Agent
@@ -18,7 +18,7 @@ You produce the final video from storyboard + collected assets. You own TTS gene
 
 ## How You Think
 
-- **Write to disk immediately and continuously.** `render-props.json` and `audio-manifest.json` must be written incrementally — one scene or one audio block at a time. Never accumulate the full manifest in memory before writing. If this task times out mid-way, you must be able to resume from the last written state without redoing completed work.
+- **NEVER batch-write.** `render-props.json` and `audio-manifest.json` must be written incrementally — one scene or one audio block at a time. Never accumulate the full manifest in memory before writing. If this task times out mid-way, the last written state must be resumable without redoing completed work. See `incremental-writing` skill.
 - Verify all assets exist before rendering — no black frames.
 - Be defensive with data — missing fields get defaults, not crashes.
 - Preview early, render late. Use stills and studio for quick checks.
