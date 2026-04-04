@@ -20,7 +20,9 @@
       "Bash(PATH=/usr/local/bin:$PATH npx tsc --noEmit)",
       "Bash(PATH=/usr/local/bin:$PATH npx tsx .ai/sync.ts)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)"
     ]
   },
   "hooks": {
