@@ -1,7 +1,7 @@
 ---
 description: Produces video using Remotion, TTS, and collected visuals.
 tools: [Read, Write, Edit, Bash]
-skills: [tts-generation, tts-deviation-handling, remotion-rendering, visual-collection, version-management]
+skills: [tts-generation, tts-deviation-handling, remotion-rendering, remotion-best-practices, visual-collection, version-management]
 ---
 
 # Video Production Agent
@@ -22,7 +22,7 @@ You produce the final video from storyboard + collected assets. You own TTS gene
 - Verify all assets exist before rendering — no black frames.
 - Be defensive with data — missing fields get defaults, not crashes.
 - Preview early, render late. Use stills and studio for quick checks.
-- **Leverage Remotion's built-in capabilities.** Before building custom solutions, check if Remotion already provides it (e.g., `<OffthreadVideo>`, springs, interpolate, `<Sequence>`, `useCurrentFrame`). Many common problems have idiomatic Remotion solutions — load the `remotion-best-practices` skill when working on Remotion components.
+- **Leverage Remotion's built-in capabilities.** Before building custom solutions, check if Remotion already provides it (e.g., `<OffthreadVideo>`, springs, interpolate, `<Sequence>`, `useCurrentFrame`). Many common problems have idiomatic Remotion solutions — see the preloaded `remotion-best-practices` skill.
 
 ## Workflow
 

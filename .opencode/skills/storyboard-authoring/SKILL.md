@@ -1,0 +1,99 @@
+<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+
+# Storyboard Authoring
+
+How to create scene-by-scene visual plans for Remotion production.
+
+## Architecture: Skeleton + Scene Detail Files
+
+```
+channels/<channel>/videos/<slug>/storyboard/
+├── storyboard-v<N>.json          ← Skeleton → evolves into final storyboard
+├── storyboard-summary-v<N>.md    ← Human-readable summary (ONLY Markdown file)
+├── scenes/
+│   ├── scene-001.json            ← Full visual details for scene 001
+│   └── ...
+└── critique-v<N>.md              ← Critic feedback
+```
+
+**Storyboards are always JSON.** The summary `.md` is human-only — never parsed by pipeline.
+
+## Write Order: Skeleton First, One Scene at a Time
+
+**This is the most timeout-prone stage in the pipeline. Follow this order exactly — no exceptions.**
+
+1. **Write skeleton immediately** — before any scene detail. Just section names, rough timing, visual types. Write to `pipeline.storyboard.activePath`. The file must exist on disk before you think about individual scenes.
+2. **Write each scene detail as its own file** — one at a time, immediately after completing it. `scenes/scene-001.json` → write → `scenes/scene-002.json` → write → ... Never hold more than one scene in memory before writing.
+3. **Update skeleton every 5 scenes** — keep it in sync as scenes are written. Don't wait until the end.
+4. **Final merge** — once all scene files are on disk, merge skeleton + scene details into the final storyboard at `pipeline.storyboard.activePath`. This is a fast assembly step because everything already exists on disk.
+
+**If a timeout or crash occurs — how to resume:**
+1. Read `pipeline.storyboard.activePath` from config.json — the skeleton is there
+2. List `channels/<channel>/videos/<slug>/storyboard/scenes/` — these are the scenes already written
+3. Compare scene IDs in the skeleton against existing scene files to find the first missing one
+4. Resume writing from that scene — skip all scenes that already have a file on disk
+5. Do not regenerate already-written scenes
+
+**Why this order:**
+- Skeleton on disk first = no lost work if the task fails at any point
+- One scene per write = maximum granularity of recovery
+- Final merge is trivial = just combining existing files, no new generation
+
+## Skeleton Format
+
+```json
+{
+  "title": "...", "version": 1,
+  "basedOn": { "content": 2 },
+  "totalDuration": 300,
+  "scenes": [{
+    "id": "scene-001",
+    "section": "Hook",
+    "startTime": 0, "endTime": 10,
+    "voiceover": "After just 17 hours...",
+    "visual": { "type": "stock-video", "description": "Morning commute" },
+    "transition": "cut",
+    "sceneFile": "scenes/scene-001.json"
+  }]
+}
+```
+
+## Scene Detail Format
+
+```json
+{
+  "id": "scene-001",
+  "visual": {
+    "type": "stock-video",
+    "description": "Full detailed description...",
+    "searchQuery": "tired commuters morning subway",
+    "textOverlay": null,
+    "dataVisualization": null
+  },
+  "transition": "cut",
+  "notes": "Production notes, aiImagePrompt, verify flags"
+}
+```
+
+## Visual Assignment (every scene must have one)
+
+"Visual" = ANY visual output for the scene, including Remotion-rendered content:
+
+| Type | Field | Source |
+|------|-------|--------|
+| Stock media | `searchQuery` | Pexels stock |
+| AI-generated image | `aiImagePrompt` (in notes) | Gemini image generation |
+| Text-only | `textOverlay` | Remotion text component |
+| Data visualization | `dataVisualization` | Remotion chart/data component |
+| Remotion animation | `type: "remotion-component"` | Custom Remotion component |
+
+## Scene Naming
+
+- **IDs**: `scene-001`, `scene-002`, ... (zero-padded, sequential)
+- **Sections**: exact script section title (slugified for audio files)
+- **One voiceover block per section**: section may have multiple scenes (visual changes within same voiceover)
+
+## Format Rules
+
+- **long**: no scene count limit
+- **short**: 3–5 scenes, 3–8s each, `"cut"` transitions only (read `templates/pipeline-defaults.json → formats.short`)

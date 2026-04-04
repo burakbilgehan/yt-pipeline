@@ -1,5 +1,3 @@
-<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
-
 # Remotion Best Practices
 
 Best practices for Remotion — video creation in React. Use this skill whenever you are dealing with Remotion code.

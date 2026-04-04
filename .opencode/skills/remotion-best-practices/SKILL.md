@@ -1,13 +1,8 @@
----
-name: remotion-best-practices
-description: Best practices for Remotion - Video creation in React
-metadata:
-  tags: remotion, video, react, animation, composition
----
+<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
-## When to use
+# Remotion Best Practices
 
-Use this skills whenever you are dealing with Remotion code to obtain the domain-specific knowledge.
+Best practices for Remotion — video creation in React. Use this skill whenever you are dealing with Remotion code.
 
 ## yt-pipeline Specific Rules (CRITICAL)
 

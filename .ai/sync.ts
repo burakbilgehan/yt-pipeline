@@ -209,17 +209,80 @@ function generateOpenCodeJson(
 
 // ── Skills sync ──────────────────────────────────────────────────────
 
+function copySkillDir(
+  srcSkillDir: string,
+  destSkillDir: string,
+  skillName: string
+): boolean {
+  const skillFile = path.join(srcSkillDir, "SKILL.md");
+  if (!fs.existsSync(skillFile)) {
+    console.warn(`  ⚠ Skipping ${skillName} — no SKILL.md`);
+    return false;
+  }
+
+  fs.mkdirSync(destSkillDir, { recursive: true });
+
+  // Copy all files (flat — subdirectories handled recursively)
+  const copyRecursive = (src: string, dest: string) => {
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+    for (const entry of entries) {
+      const srcPath = path.join(src, entry.name);
+      const destPath = path.join(dest, entry.name);
+      if (entry.isDirectory()) {
+        fs.mkdirSync(destPath, { recursive: true });
+        copyRecursive(srcPath, destPath);
+      } else {
+        const content = fs.readFileSync(srcPath, "utf-8");
+        if (entry.name === "SKILL.md" && src === srcSkillDir) {
+          fs.writeFileSync(
+            destPath,
+            `${AUTO_GENERATED_HEADER}\n\n${content}`
+          );
+        } else {
+          fs.writeFileSync(destPath, content);
+        }
+      }
+    }
+  };
+
+  copyRecursive(srcSkillDir, destSkillDir);
+  return true;
+}
+
+function cleanOrphanSkills(targetSkillsDir: string, sourceSkillNames: string[]) {
+  if (!fs.existsSync(targetSkillsDir)) return;
+
+  const existing = fs
+    .readdirSync(targetSkillsDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name);
+
+  for (const name of existing) {
+    if (!sourceSkillNames.includes(name)) {
+      const skillFile = path.join(targetSkillsDir, name, "SKILL.md");
+      if (fs.existsSync(skillFile)) {
+        const content = fs.readFileSync(skillFile, "utf-8");
+        if (content.startsWith(AUTO_GENERATED_HEADER)) {
+          fs.rmSync(path.join(targetSkillsDir, name), { recursive: true });
+          console.log(`  Removed orphan skill: ${name}`);
+        }
+      }
+    }
+  }
+}
+
 function syncSkills() {
   const sourceDir = path.join(AI_DIR, "skills");
   const claudeSkillsDir = path.join(CLAUDE_DIR, "skills");
+  const opencodeSkillsDir = path.join(OPENCODE_DIR, "skills");
 
   if (!fs.existsSync(sourceDir)) {
     console.log("Skills: no .ai/skills/ directory, skipping");
     return;
   }
 
-  // Ensure target dir exists
   fs.mkdirSync(claudeSkillsDir, { recursive: true });
+  fs.mkdirSync(opencodeSkillsDir, { recursive: true });
 
   const skillDirs = fs
     .readdirSync(sourceDir, { withFileTypes: true })
@@ -230,67 +293,18 @@ function syncSkills() {
 
   for (const skillName of skillDirs) {
     const srcSkillDir = path.join(sourceDir, skillName);
-    const destSkillDir = path.join(claudeSkillsDir, skillName);
+    const claudeDest = path.join(claudeSkillsDir, skillName);
+    const opencodeDest = path.join(opencodeSkillsDir, skillName);
 
-    // Check for SKILL.md
-    const skillFile = path.join(srcSkillDir, "SKILL.md");
-    if (!fs.existsSync(skillFile)) {
-      console.warn(`  ⚠ Skipping ${skillName} — no SKILL.md`);
-      continue;
-    }
-
-    // Ensure dest dir exists
-    fs.mkdirSync(destSkillDir, { recursive: true });
-
-    // Copy all files in the skill directory
-    const files = fs.readdirSync(srcSkillDir);
-    for (const file of files) {
-      const srcFile = path.join(srcSkillDir, file);
-      const destFile = path.join(destSkillDir, file);
-      const stat = fs.statSync(srcFile);
-      if (stat.isFile()) {
-        const content = fs.readFileSync(srcFile, "utf-8");
-        // Add auto-generated header to SKILL.md only
-        if (file === "SKILL.md") {
-          fs.writeFileSync(
-            destFile,
-            `${AUTO_GENERATED_HEADER}\n\n${content}`
-          );
-        } else {
-          fs.writeFileSync(destFile, content);
-        }
-      }
-    }
-
-    synced.push(skillName);
-  }
-
-  // Clean up skill dirs in claude that don't exist in source
-  // But skip skills that aren't from .ai/ (like remotion-best-practices which lives directly in .claude/)
-  const existingClaudeSkills = fs.existsSync(claudeSkillsDir)
-    ? fs
-        .readdirSync(claudeSkillsDir, { withFileTypes: true })
-        .filter((d) => d.isDirectory())
-        .map((d) => d.name)
-    : [];
-
-  for (const existing of existingClaudeSkills) {
-    if (!skillDirs.includes(existing)) {
-      // Check if this skill has the auto-generated header — only remove if it was synced by us
-      const existingSkillFile = path.join(
-        claudeSkillsDir,
-        existing,
-        "SKILL.md"
-      );
-      if (fs.existsSync(existingSkillFile)) {
-        const content = fs.readFileSync(existingSkillFile, "utf-8");
-        if (content.startsWith(AUTO_GENERATED_HEADER)) {
-          fs.rmSync(path.join(claudeSkillsDir, existing), { recursive: true });
-          console.log(`  Removed orphan skill: ${existing}`);
-        }
-      }
+    if (copySkillDir(srcSkillDir, claudeDest, skillName)) {
+      copySkillDir(srcSkillDir, opencodeDest, skillName);
+      synced.push(skillName);
     }
   }
+
+  // Clean orphans from both targets
+  cleanOrphanSkills(claudeSkillsDir, skillDirs);
+  cleanOrphanSkills(opencodeSkillsDir, skillDirs);
 
   for (const s of synced) {
     console.log(`  ✓ ${s}`);
