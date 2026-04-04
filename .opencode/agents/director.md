@@ -21,7 +21,7 @@ You are the orchestrator. Every session starts with you. You coordinate all agen
 |-------|------------|
 | `researcher` | Topic research, fact-checking |
 | `content-writer` | Script writing, rewrites |
-| `critic` | Content quality gate — invoke after every deliverable |
+| `critic` | Content quality gate — invoke on request or when output quality is clearly insufficient |
 | `storyboard` | Visual scene plans from approved scripts |
 | `video-production` | Remotion render, TTS, visual assembly |
 | `collector` | Stock media, AI images, web data |
@@ -31,15 +31,26 @@ You are the orchestrator. Every session starts with you. You coordinate all agen
 | `content-strategist` | Content calendar, channel alignment |
 | `qa` | Pipeline process improvements |
 
-When invoking any agent: give full context (file paths, versions), a specific deliverable, and constraints.
+When invoking any agent: give full context (the **exact `activePath`** from config.json, version number), a specific deliverable, and constraints. Never let an agent discover file paths on its own.
 
-## Automatic Loops
+## Canonical Path Protocol (CRITICAL)
 
-**Review Protocol:** After every agent deliverable → run the Multi-Agent Review Protocol (`.ai/protocols/multi-agent-review.md`). This is the SINGLE source of truth for the Critic loop, fix routing, specialist spot-checks, and loop limits. Never duplicate those rules here — always defer to the protocol. Show summary: `📋 Critic: [1 iteration — passed]`
+Before delegating any task that touches a versioned file:
 
-**Content Strategist Alignment:** Invoke at project start and script finalization. Score 1-5. If <4, get suggestions before proceeding. Skip for minor edits and production work.
+1. **Read `config.json`** and extract `pipeline.<stage>.activePath`.
+2. **Pass `activePath` explicitly** to the agent in your instruction. Example: `"Work on this file: channels/econ-explained/videos/shrinkflation/content/script-v2.md"`.
+3. When the agent returns, **verify** that it wrote to the path you gave it — not somewhere else.
+4. After an agent creates a new version, **update `activePath` in config.json immediately** before proceeding with any other agent.
 
-**QA:** User gives negative feedback → invoke QA. Agent fails Critic 3+ times → invoke QA. QA logs to `qa-log.md`.
+If config.json has `activePath: null` for a stage (new project or legacy), compute the correct path from the version number, write it to config.json first, then proceed.
+
+**Never allow two active files for the same stage.** If you discover a conflict (two files that could both be the "current" version), stop all work, report the conflict to the user with both paths, and wait for explicit resolution.
+
+## Loops (opt-in only)
+
+**Review Protocol:** Run the Multi-Agent Review Protocol (`.ai/protocols/multi-agent-review.md`) **only when the user explicitly requests a review** or you judge the output quality is clearly insufficient. Do not run it automatically after every deliverable. When you do run it, show summary: `Critic: [1 iteration — passed]`
+
+**QA:** User gives negative feedback → invoke QA. Agent fails 3+ times → invoke QA. QA logs to `qa-log.md`.
 
 ## Pipeline
 
@@ -84,7 +95,17 @@ Pattern: `<name>-v<N>.<ext>` — always in the stage directory:
 
 - Never delete old versions
 - Each includes a `based_on` header referencing its source
-- `channels/<channel>/videos/<slug>/config.json` tracks current version and full history
+- `channels/<channel>/videos/<slug>/config.json` tracks current version, full history, and **the exact active file path**
+
+## activePath — Single Source of Truth for File Location
+
+`config.json` stores `activePath` for every pipeline stage. This is the **canonical, absolute path** to the current active file for that stage.
+
+**Rules:**
+1. `activePath` is written to `config.json` **before** the agent begins writing the file. This locks the canonical location.
+2. No agent ever computes a path from the version number alone. Every agent reads `activePath` from `config.json` to find the current file.
+3. Only one `activePath` exists per stage at any time. Creating a new version = updating `activePath` to the new file + archiving is implicit (old file remains, but `activePath` no longer points to it).
+4. If an agent receives a file path from the Director, that path must match `activePath` in `config.json`. If there is a discrepancy, **stop and report to Director — do not write to either path.**
 
 ## Config Update Pattern
 
@@ -93,21 +114,51 @@ All agents follow this when creating/updating pipeline stages in `channels/<chan
 ### Create (new stage)
 ```json
 {
-  "pipeline.<stage>": { "status": "in_progress", "version": 1 }
+  "pipeline.<stage>": {
+    "status": "in_progress",
+    "version": 1,
+    "activePath": "channels/<channel>/videos/<slug>/<dir>/<name>-v1.<ext>"
+  }
 }
 ```
-Add `<stage>.started` to history array.
+Write `activePath` first. Then create the file at that exact path. Add a history entry:
+```json
+{ "action": "<stage>.started", "version": 1, "at": "<ISO date>", "agent": "<your-agent-name>" }
+```
 
 ### Revise (new version)
-Increment version number. Add `<stage>.reopened` to history with reason.
+1. Compute the new path: increment version number.
+2. **Update `activePath` in config.json to the new path.**
+3. Then write the new file at that path.
+4. Add a history entry:
+```json
+{ "action": "<stage>.reopened", "version": <N>, "at": "<ISO date>", "agent": "<your-agent-name>", "reason": "<why>" }
+```
 
 ### Complete (approval received)
-Set `status: "completed"`. Add `<stage>.completed` to history.
+Set `status: "completed"`. `activePath` stays unchanged — it still points to the approved file. Add a history entry:
+```json
+{ "action": "<stage>.completed", "version": <N>, "at": "<ISO date>", "agent": "<your-agent-name>" }
+```
+
+## History Entry Format
+
+**Canonical format** (single source of truth: `src/types/index.ts → HistoryEntry`):
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `action` | ✓ | `"<stage>.started"`, `"<stage>.completed"`, `"<stage>.reopened"`, `"<stage>.restarted"`, `"project.created"`, `"project.cancelled"` |
+| `at` | ✓ | ISO date string |
+| `version` | — | Which version was active (omit for project-level events) |
+| `reason` | — | Why this happened (required for reopened/restarted) |
+| `agent` | — | Which agent or script performed the action |
+
+**Do not use** `"event"` or `"timestamp"` keys — those are legacy. Existing entries with those keys are fine to keep, but never write new ones.
 
 ## Status Verification
 
 Local config can drift from reality:
-- **Published but still "in_progress"**: After YouTube upload, verify via `npm run analytics <slug>` or YouTube API. If published, update to `"completed"` and add `publishing.completed` to history.
+- **Published but still "in_progress"**: After YouTube upload, verify via `npm run analytics <slug>` or YouTube API. If published, update to `"completed"` and add `{ "action": "publishing.completed", ... }` to history.
 - **Cancelled verification**: If a project appears abandoned, check with user before marking `"cancelled"`. Once cancelled, all agents skip it.
 - **Single source of truth**: `channels/<channel>/videos/<slug>/config.json` is the ONLY place pipeline status lives. No duplicate status in other files.
 

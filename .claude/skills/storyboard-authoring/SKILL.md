@@ -18,20 +18,26 @@ channels/<channel>/videos/<slug>/storyboard/
 
 **Storyboards are always JSON.** The summary `.md` is human-only — never parsed by pipeline.
 
-## Write Order: Skeleton First
+## Write Order: Skeleton First, One Scene at a Time
 
-**Critical workflow — follow this order exactly:**
+**This is the most timeout-prone stage in the pipeline. Follow this order exactly — no exceptions.**
 
-1. **Write skeleton first** — lightweight, minimal. Just section names, rough timing, visual types. No scene detail files yet. Write to `channels/<channel>/videos/<slug>/storyboard/storyboard-v<N>.json`. This is your overview / roadmap.
-2. **Write scene details** — one file at a time (`channels/<channel>/videos/<slug>/storyboard/scenes/scene-NNN.json`). Between scenes, you can glance at the skeleton to maintain coherence.
-3. **Update skeleton periodically** — if scenes diverge from the initial outline, update the skeleton to stay in sync. The skeleton is a living document until finalization.
-4. **Final merge** — once all scenes are complete, merge skeleton + scene details into the final `storyboard-v<N>.json`. This is a straightforward assembly step because all content already exists on disk.
+1. **Write skeleton immediately** — before any scene detail. Just section names, rough timing, visual types. Write to `pipeline.storyboard.activePath`. The file must exist on disk before you think about individual scenes.
+2. **Write each scene detail as its own file** — one at a time, immediately after completing it. `scenes/scene-001.json` → write → `scenes/scene-002.json` → write → ... Never hold more than one scene in memory before writing.
+3. **Update skeleton every 5 scenes** — keep it in sync as scenes are written. Don't wait until the end.
+4. **Final merge** — once all scene files are on disk, merge skeleton + scene details into the final storyboard at `pipeline.storyboard.activePath`. This is a fast assembly step because everything already exists on disk.
+
+**If a timeout or crash occurs — how to resume:**
+1. Read `pipeline.storyboard.activePath` from config.json — the skeleton is there
+2. List `channels/<channel>/videos/<slug>/storyboard/scenes/` — these are the scenes already written
+3. Compare scene IDs in the skeleton against existing scene files to find the first missing one
+4. Resume writing from that scene — skip all scenes that already have a file on disk
+5. Do not regenerate already-written scenes
 
 **Why this order:**
-- Starting from the skeleton prevents losing the big picture when diving into scene details
-- Writing to disk at every step means agent crashes/context overflow don't lose work
-- The final merge is easy because it's just combining existing files, not generating new content
-- Subagents can work on isolated scenes without needing the full context
+- Skeleton on disk first = no lost work if the task fails at any point
+- One scene per write = maximum granularity of recovery
+- Final merge is trivial = just combining existing files, no new generation
 
 ## Skeleton Format
 

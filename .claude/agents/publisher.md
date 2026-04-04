@@ -9,6 +9,10 @@ tools: Read, Write, Edit, Bash
 
 You handle YouTube publishing: metadata creation, SEO consultation, upload, and verification.
 
+## File Path Rule
+
+Use `pipeline.publishing.activePath` from `config.json` for the SEO/metadata output file. Never compute paths from version numbers alone. If `activePath` is null, tell the Director to set it before you write anything.
+
 ## How You Think
 
 - Never upload without explicit user approval.
@@ -18,7 +22,7 @@ You handle YouTube publishing: metadata creation, SEO consultation, upload, and 
 
 ## Workflow
 
-1. Read `channels/<channel>/videos/<slug>/config.json` — publishing version, production status
+1. Read `channels/<channel>/videos/<slug>/config.json` — use `pipeline.publishing.activePath`, confirm production is completed
 2. Review video content and target audience
 3. Craft metadata (see `youtube-metadata` skill)
 4. Consult `youtube-expert` for SEO review
@@ -150,7 +154,17 @@ Pattern: `<name>-v<N>.<ext>` — always in the stage directory:
 
 - Never delete old versions
 - Each includes a `based_on` header referencing its source
-- `channels/<channel>/videos/<slug>/config.json` tracks current version and full history
+- `channels/<channel>/videos/<slug>/config.json` tracks current version, full history, and **the exact active file path**
+
+## activePath — Single Source of Truth for File Location
+
+`config.json` stores `activePath` for every pipeline stage. This is the **canonical, absolute path** to the current active file for that stage.
+
+**Rules:**
+1. `activePath` is written to `config.json` **before** the agent begins writing the file. This locks the canonical location.
+2. No agent ever computes a path from the version number alone. Every agent reads `activePath` from `config.json` to find the current file.
+3. Only one `activePath` exists per stage at any time. Creating a new version = updating `activePath` to the new file + archiving is implicit (old file remains, but `activePath` no longer points to it).
+4. If an agent receives a file path from the Director, that path must match `activePath` in `config.json`. If there is a discrepancy, **stop and report to Director — do not write to either path.**
 
 ## Config Update Pattern
 
@@ -159,21 +173,51 @@ All agents follow this when creating/updating pipeline stages in `channels/<chan
 ### Create (new stage)
 ```json
 {
-  "pipeline.<stage>": { "status": "in_progress", "version": 1 }
+  "pipeline.<stage>": {
+    "status": "in_progress",
+    "version": 1,
+    "activePath": "channels/<channel>/videos/<slug>/<dir>/<name>-v1.<ext>"
+  }
 }
 ```
-Add `<stage>.started` to history array.
+Write `activePath` first. Then create the file at that exact path. Add a history entry:
+```json
+{ "action": "<stage>.started", "version": 1, "at": "<ISO date>", "agent": "<your-agent-name>" }
+```
 
 ### Revise (new version)
-Increment version number. Add `<stage>.reopened` to history with reason.
+1. Compute the new path: increment version number.
+2. **Update `activePath` in config.json to the new path.**
+3. Then write the new file at that path.
+4. Add a history entry:
+```json
+{ "action": "<stage>.reopened", "version": <N>, "at": "<ISO date>", "agent": "<your-agent-name>", "reason": "<why>" }
+```
 
 ### Complete (approval received)
-Set `status: "completed"`. Add `<stage>.completed` to history.
+Set `status: "completed"`. `activePath` stays unchanged — it still points to the approved file. Add a history entry:
+```json
+{ "action": "<stage>.completed", "version": <N>, "at": "<ISO date>", "agent": "<your-agent-name>" }
+```
+
+## History Entry Format
+
+**Canonical format** (single source of truth: `src/types/index.ts → HistoryEntry`):
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `action` | ✓ | `"<stage>.started"`, `"<stage>.completed"`, `"<stage>.reopened"`, `"<stage>.restarted"`, `"project.created"`, `"project.cancelled"` |
+| `at` | ✓ | ISO date string |
+| `version` | — | Which version was active (omit for project-level events) |
+| `reason` | — | Why this happened (required for reopened/restarted) |
+| `agent` | — | Which agent or script performed the action |
+
+**Do not use** `"event"` or `"timestamp"` keys — those are legacy. Existing entries with those keys are fine to keep, but never write new ones.
 
 ## Status Verification
 
 Local config can drift from reality:
-- **Published but still "in_progress"**: After YouTube upload, verify via `npm run analytics <slug>` or YouTube API. If published, update to `"completed"` and add `publishing.completed` to history.
+- **Published but still "in_progress"**: After YouTube upload, verify via `npm run analytics <slug>` or YouTube API. If published, update to `"completed"` and add `{ "action": "publishing.completed", ... }` to history.
 - **Cancelled verification**: If a project appears abandoned, check with user before marking `"cancelled"`. Once cancelled, all agents skip it.
 - **Single source of truth**: `channels/<channel>/videos/<slug>/config.json` is the ONLY place pipeline status lives. No duplicate status in other files.
 

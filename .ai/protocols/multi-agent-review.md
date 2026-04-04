@@ -5,9 +5,11 @@ A structured review workflow for pipeline deliverables that combines Critic + do
 ## When to Use
 
 Invoke this protocol (via `/review <slug> <stage>`) when:
-- A stage deliverable is ready and **before presenting it to the user**
+- The user explicitly requests a review
 - The Critic loop produced a FAIL and you need to route fixes intelligently
-- The user requests an explicit review of a specific stage
+- You judge the output quality is clearly insufficient before presenting to the user
+
+**This is opt-in — do not run automatically after every deliverable.**
 
 Do **not** invoke for:
 - Minor text edits or typo fixes

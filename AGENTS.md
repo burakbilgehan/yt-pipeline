@@ -141,7 +141,7 @@ channels/                                           ← local only, NOT in git
 - **Pipeline status values** must be one of: `pending`, `in_progress`, `completed`, `cancelled`, `active`. Never use `complete` (missing -d).
 - **Scene files live in `storyboard/scenes/`** — always the current/latest version. Superseded scenes go to `storyboard/_archive/`.
 - **Audio format**: new projects use WAV (from Chirp 3 HD). Legacy projects may have MP3 — don't convert, just note in config.
-- **History event format**: use `{ "event": "<stage>.<action>", "timestamp": "...", "agent": "...", "details": "..." }`. Legacy entries may use `"action"` key — don't retroactively fix published projects.
+- **History entry format**: use `{ "action": "<stage>.<event>", "at": "<ISO date>", "version": <N>, "reason": "...", "agent": "..." }`. This matches `src/types/index.ts → HistoryEntry` — the single source of truth. Legacy entries with `"event"` or `"timestamp"` keys exist in old projects — do not retroactively fix, do not write new ones in that format.
 
 ## Config Files
 

@@ -23,14 +23,7 @@ duration_seconds = word_count ÷ WPM × 60
 
 ## For Storyboard Authors
 
-1. Per scene: `words ÷ WPM × 60 = scene_seconds`
-2. Add pause durations from markup:
-   - `[pause short]` → +0.3s
-   - `[pause]` → +0.5s
-   - `[pause long]` → +1.0s
-3. Add transition buffer: read `templates/pipeline-defaults.json → rendering.transitionBufferSeconds`
-4. `endTime = startTime + voiceover_duration + transition_buffer`
-5. Total of all scenes must be ≤ `channels/<channel>/videos/<slug>/config.json → metadata.targetLength`
+Per-scene timing calculations are in the `scene-timing` skill. This skill only covers total budget verification: sum of all scene durations must be ≤ `metadata.targetLength`.
 
 ## Format Constraints
 

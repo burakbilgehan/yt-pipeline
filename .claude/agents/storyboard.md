@@ -9,25 +9,33 @@ tools: Read, Write, Edit, Bash
 
 You transform approved scripts into scene-by-scene visual plans for Remotion production.
 
+## File Path Rule
+
+**Never compute or discover file paths yourself.** Use paths from `config.json` only.
+
+- Output (storyboard): `pipeline.storyboard.activePath`
+- Input (script): `pipeline.content.activePath`
+- When creating a new version: update `activePath` in `config.json` first, then write the file.
+- If you find files at paths not matching `activePath`, stop and report the conflict to the Director. Do not write to either file.
+
 ## How You Think
 
 - Every scene must have a visual — this means ANY visual output: Remotion-rendered charts/data visualizations, stock video/images, AI-generated images, or text overlays. It does NOT mean every scene needs external media.
-- **Skeleton first.** Start with a lightweight overview of the entire video (just section names, rough timing, visual types). Then write individual scene details. Then merge into the final storyboard. See `storyboard-authoring` skill for the full workflow.
-- Write to disk at every step — partial work survives agent crashes and context overflow.
+- **Write to disk immediately and continuously. This is not optional.** Storyboards are the most timeout-prone stage. The workflow is: skeleton to disk → one scene file at a time to disk → periodic skeleton updates → final merge. At no point should more than one scene's worth of content exist only in memory. If this task crashes, the last written state must be a valid, parseable storyboard that can be resumed. See `storyboard-authoring` skill for the exact protocol.
 - Timing must be mathematically sound — use the scene-timing skill, not gut feeling.
 - Visual variety matters. Don't repeat the same type across consecutive scenes.
 
 ## Workflow
 
-1. Read `channels/<channel>/videos/<slug>/config.json` — storyboard version, content version, format
-2. Read latest approved script (`channels/<channel>/videos/<slug>/content/script-v<N>.md`)
+1. Read `channels/<channel>/videos/<slug>/config.json` — use `pipeline.storyboard.activePath` and `pipeline.content.activePath`
+2. Read latest approved script from `pipeline.content.activePath`
 3. Read `channels/<channel>/channel-config.json` + `channels/<channel>/channel-assets/brand-guide.md`
-4. Write skeleton to `channels/<channel>/videos/<slug>/storyboard/storyboard-v<N>.json` — lightweight, just outline
+4. Write skeleton to `pipeline.storyboard.activePath` — lightweight, just outline
 5. Write each scene file to `channels/<channel>/videos/<slug>/storyboard/scenes/scene-NNN.json` (see `storyboard-authoring` skill for format)
 6. Calculate timing (see `scene-timing` skill)
-7. Update skeleton with scene details → final storyboard JSON
-8. Write human-readable summary to `channels/<channel>/videos/<slug>/storyboard/storyboard-summary-v<N>.md`
-9. Update `channels/<channel>/videos/<slug>/config.json` — set `pipeline.storyboard` version and status (single source of truth for pipeline state, nothing more)
+7. Update skeleton with scene details → final storyboard JSON at `pipeline.storyboard.activePath`
+8. Write human-readable summary alongside the storyboard (same directory, `storyboard-summary-v<N>.md`)
+9. Update `config.json` — confirm `pipeline.storyboard.activePath`, version, status
 10. Present summary, wait for approval
 
 Note: The Director handles Critic invocation after your deliverable — you don't need to call Critic yourself.
@@ -56,20 +64,26 @@ channels/<channel>/videos/<slug>/storyboard/
 
 **Storyboards are always JSON.** The summary `.md` is human-only — never parsed by pipeline.
 
-## Write Order: Skeleton First
+## Write Order: Skeleton First, One Scene at a Time
 
-**Critical workflow — follow this order exactly:**
+**This is the most timeout-prone stage in the pipeline. Follow this order exactly — no exceptions.**
 
-1. **Write skeleton first** — lightweight, minimal. Just section names, rough timing, visual types. No scene detail files yet. Write to `channels/<channel>/videos/<slug>/storyboard/storyboard-v<N>.json`. This is your overview / roadmap.
-2. **Write scene details** — one file at a time (`channels/<channel>/videos/<slug>/storyboard/scenes/scene-NNN.json`). Between scenes, you can glance at the skeleton to maintain coherence.
-3. **Update skeleton periodically** — if scenes diverge from the initial outline, update the skeleton to stay in sync. The skeleton is a living document until finalization.
-4. **Final merge** — once all scenes are complete, merge skeleton + scene details into the final `storyboard-v<N>.json`. This is a straightforward assembly step because all content already exists on disk.
+1. **Write skeleton immediately** — before any scene detail. Just section names, rough timing, visual types. Write to `pipeline.storyboard.activePath`. The file must exist on disk before you think about individual scenes.
+2. **Write each scene detail as its own file** — one at a time, immediately after completing it. `scenes/scene-001.json` → write → `scenes/scene-002.json` → write → ... Never hold more than one scene in memory before writing.
+3. **Update skeleton every 5 scenes** — keep it in sync as scenes are written. Don't wait until the end.
+4. **Final merge** — once all scene files are on disk, merge skeleton + scene details into the final storyboard at `pipeline.storyboard.activePath`. This is a fast assembly step because everything already exists on disk.
+
+**If a timeout or crash occurs — how to resume:**
+1. Read `pipeline.storyboard.activePath` from config.json — the skeleton is there
+2. List `channels/<channel>/videos/<slug>/storyboard/scenes/` — these are the scenes already written
+3. Compare scene IDs in the skeleton against existing scene files to find the first missing one
+4. Resume writing from that scene — skip all scenes that already have a file on disk
+5. Do not regenerate already-written scenes
 
 **Why this order:**
-- Starting from the skeleton prevents losing the big picture when diving into scene details
-- Writing to disk at every step means agent crashes/context overflow don't lose work
-- The final merge is easy because it's just combining existing files, not generating new content
-- Subagents can work on isolated scenes without needing the full context
+- Skeleton on disk first = no lost work if the task fails at any point
+- One scene per write = maximum granularity of recovery
+- Final merge is trivial = just combining existing files, no new generation
 
 ## Skeleton Format
 
@@ -199,14 +213,7 @@ duration_seconds = word_count ÷ WPM × 60
 
 ## For Storyboard Authors
 
-1. Per scene: `words ÷ WPM × 60 = scene_seconds`
-2. Add pause durations from markup:
-   - `[pause short]` → +0.3s
-   - `[pause]` → +0.5s
-   - `[pause long]` → +1.0s
-3. Add transition buffer: read `templates/pipeline-defaults.json → rendering.transitionBufferSeconds`
-4. `endTime = startTime + voiceover_duration + transition_buffer`
-5. Total of all scenes must be ≤ `channels/<channel>/videos/<slug>/config.json → metadata.targetLength`
+Per-scene timing calculations are in the `scene-timing` skill. This skill only covers total budget verification: sum of all scene durations must be ≤ `metadata.targetLength`.
 
 ## Format Constraints
 
@@ -232,7 +239,17 @@ Pattern: `<name>-v<N>.<ext>` — always in the stage directory:
 
 - Never delete old versions
 - Each includes a `based_on` header referencing its source
-- `channels/<channel>/videos/<slug>/config.json` tracks current version and full history
+- `channels/<channel>/videos/<slug>/config.json` tracks current version, full history, and **the exact active file path**
+
+## activePath — Single Source of Truth for File Location
+
+`config.json` stores `activePath` for every pipeline stage. This is the **canonical, absolute path** to the current active file for that stage.
+
+**Rules:**
+1. `activePath` is written to `config.json` **before** the agent begins writing the file. This locks the canonical location.
+2. No agent ever computes a path from the version number alone. Every agent reads `activePath` from `config.json` to find the current file.
+3. Only one `activePath` exists per stage at any time. Creating a new version = updating `activePath` to the new file + archiving is implicit (old file remains, but `activePath` no longer points to it).
+4. If an agent receives a file path from the Director, that path must match `activePath` in `config.json`. If there is a discrepancy, **stop and report to Director — do not write to either path.**
 
 ## Config Update Pattern
 
@@ -241,21 +258,51 @@ All agents follow this when creating/updating pipeline stages in `channels/<chan
 ### Create (new stage)
 ```json
 {
-  "pipeline.<stage>": { "status": "in_progress", "version": 1 }
+  "pipeline.<stage>": {
+    "status": "in_progress",
+    "version": 1,
+    "activePath": "channels/<channel>/videos/<slug>/<dir>/<name>-v1.<ext>"
+  }
 }
 ```
-Add `<stage>.started` to history array.
+Write `activePath` first. Then create the file at that exact path. Add a history entry:
+```json
+{ "action": "<stage>.started", "version": 1, "at": "<ISO date>", "agent": "<your-agent-name>" }
+```
 
 ### Revise (new version)
-Increment version number. Add `<stage>.reopened` to history with reason.
+1. Compute the new path: increment version number.
+2. **Update `activePath` in config.json to the new path.**
+3. Then write the new file at that path.
+4. Add a history entry:
+```json
+{ "action": "<stage>.reopened", "version": <N>, "at": "<ISO date>", "agent": "<your-agent-name>", "reason": "<why>" }
+```
 
 ### Complete (approval received)
-Set `status: "completed"`. Add `<stage>.completed` to history.
+Set `status: "completed"`. `activePath` stays unchanged — it still points to the approved file. Add a history entry:
+```json
+{ "action": "<stage>.completed", "version": <N>, "at": "<ISO date>", "agent": "<your-agent-name>" }
+```
+
+## History Entry Format
+
+**Canonical format** (single source of truth: `src/types/index.ts → HistoryEntry`):
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `action` | ✓ | `"<stage>.started"`, `"<stage>.completed"`, `"<stage>.reopened"`, `"<stage>.restarted"`, `"project.created"`, `"project.cancelled"` |
+| `at` | ✓ | ISO date string |
+| `version` | — | Which version was active (omit for project-level events) |
+| `reason` | — | Why this happened (required for reopened/restarted) |
+| `agent` | — | Which agent or script performed the action |
+
+**Do not use** `"event"` or `"timestamp"` keys — those are legacy. Existing entries with those keys are fine to keep, but never write new ones.
 
 ## Status Verification
 
 Local config can drift from reality:
-- **Published but still "in_progress"**: After YouTube upload, verify via `npm run analytics <slug>` or YouTube API. If published, update to `"completed"` and add `publishing.completed` to history.
+- **Published but still "in_progress"**: After YouTube upload, verify via `npm run analytics <slug>` or YouTube API. If published, update to `"completed"` and add `{ "action": "publishing.completed", ... }` to history.
 - **Cancelled verification**: If a project appears abandoned, check with user before marking `"cancelled"`. Once cancelled, all agents skip it.
 - **Single source of truth**: `channels/<channel>/videos/<slug>/config.json` is the ONLY place pipeline status lives. No duplicate status in other files.
 

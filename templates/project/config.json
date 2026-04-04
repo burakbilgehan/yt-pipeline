@@ -14,12 +14,12 @@
     "format": "long"
   },
   "pipeline": {
-    "research": { "status": "pending", "version": 0 },
-    "content": { "status": "pending", "version": 0 },
-    "storyboard": { "status": "pending", "version": 0 },
-    "production": { "status": "pending", "version": 0 },
-    "publishing": { "status": "pending", "version": 0 },
-    "analytics": { "status": "pending", "version": 0 }
+    "research":   { "status": "pending", "version": 0, "activePath": null },
+    "content":    { "status": "pending", "version": 0, "activePath": null },
+    "storyboard": { "status": "pending", "version": 0, "activePath": null },
+    "production": { "status": "pending", "version": 0, "activePath": null },
+    "publishing": { "status": "pending", "version": 0, "activePath": null },
+    "analytics":  { "status": "pending", "version": 0, "activePath": null }
   },
   "history": []
 }

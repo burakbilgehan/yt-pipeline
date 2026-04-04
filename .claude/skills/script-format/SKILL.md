@@ -57,6 +57,19 @@ After every edit:
 
 Write change manifest: `channels/<channel>/videos/<slug>/content/changes-v<N>.md` — checklist of all changes, check each off as applied.
 
+## Progressive Writing Protocol
+
+**Never write the full script at once.** Follow this order strictly:
+
+1. Create the file immediately with just the header block + empty section placeholders (Hook, Section names, CTA) — write to disk
+2. Write `## Hook` content — write to disk
+3. Write each `## Section` one at a time — write to disk after each
+4. Write `## CTA` — write to disk
+5. Apply delivery markup (SSML) pass — write to disk
+6. Verify word count, update the `Word count` metadata line — write to disk
+
+At every step the file on disk must be a parseable, coherent script. A timeout after step 3 means all completed sections are recoverable without redoing.
+
 ## Rules
 
 - Write for spoken delivery — conversational, clear, no jargon

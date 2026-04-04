@@ -44,23 +44,31 @@ export interface ProjectConfig {
 }
 
 export interface StageStatus {
-  status: "pending" | "in_progress" | "review" | "approved" | "completed";
+  status: "pending" | "in_progress" | "completed" | "cancelled" | "active";
   version: number; // 0 = not started, 1+ = iteration count
+  activePath: string | null; // canonical path to the current active file for this stage
   startedAt?: string;
   completedAt?: string;
   notes?: string;
 }
 
-// History tracks every state transition in the pipeline
+// History tracks every state transition in the pipeline.
+// Single source of truth for format: action + at + version + reason + agent.
+// "action" key is canonical — older entries with "event"/"timestamp" keys are legacy, do not write new ones.
 export interface HistoryEntry {
   action:
     | `${PipelineStageName}.started`
     | `${PipelineStageName}.completed`
     | `${PipelineStageName}.reopened`
-    | `${PipelineStageName}.restarted`;
-  version: number;
+    | `${PipelineStageName}.restarted`
+    | "project.created"
+    | "project.cancelled"
+    | `${PipelineStageName}.note`
+    | "project.note";
+  version?: number; // which version was active when this event occurred (omit for project-level events)
   at: string; // ISO date
-  reason?: string; // why this action happened (especially for reopened/restarted)
+  reason?: string; // why this action happened
+  agent?: string; // which agent or script performed the action (e.g. "researcher", "tts-generate")
   skipped?: PipelineStageName[]; // stages intentionally skipped during a jump
 }
 

@@ -5,7 +5,22 @@
       "WebSearch",
       "Bash(ls:*)",
       "Bash(npx tsx:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(wc -l /Users/burakkaanbilgehan/projects/yt-pipeline/.ai/agents/*.md)",
+      "Bash(wc -l /Users/burakkaanbilgehan/projects/yt-pipeline/.ai/skills/*/*.md)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//Users/burakkaanbilgehan/projects/yt-pipeline/.ai/agents/**)",
+      "Bash(done)",
+      "Bash(/usr/local/bin/npm run:*)",
+      "Bash(/opt/homebrew/bin/npm run:*)",
+      "Read(//usr/local/bin/**)",
+      "Read(//Users/burakkaanbilgehan/.nvm/versions/**)",
+      "Bash(/usr/local/bin/node /usr/local/bin/npm run sync-ai --prefix /Users/burakkaanbilgehan/projects/yt-pipeline)",
+      "Bash(PATH=/usr/local/bin:$PATH npx tsc --noEmit)",
+      "Bash(PATH=/usr/local/bin:$PATH npx tsx .ai/sync.ts)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   },
   "hooks": {
@@ -15,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q '\\.ai/'; then npx tsx .ai/sync.ts; fi",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q '\\.ai/'; then PATH=/usr/local/bin:$PATH npx tsx .ai/sync.ts; fi",
             "statusMessage": "Syncing .ai/ configs..."
           }
         ]
@@ -25,7 +40,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q '\\.ai/'; then npx tsx .ai/sync.ts; fi",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q '\\.ai/'; then PATH=/usr/local/bin:$PATH npx tsx .ai/sync.ts; fi",
             "statusMessage": "Syncing .ai/ configs..."
           }
         ]
