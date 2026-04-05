@@ -100,7 +100,7 @@ const CityPanel: React.FC<{
       <div
         style={{
           fontFamily: fontFamily || "Inter, sans-serif",
-          fontSize: 16,
+          fontSize: 20,
           color: MUTED_TEXT,
           marginBottom: 30,
         }}

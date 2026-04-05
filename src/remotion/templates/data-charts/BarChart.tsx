@@ -87,7 +87,7 @@ const HorizontalBars: React.FC<BarChartProps> = ({
         <div
           style={{
             color: "rgba(240, 237, 232, 0.45)",
-            fontSize: 16,
+            fontSize: 20,
             fontFamily,
             marginBottom: 20,
             lineHeight: 1.5,
@@ -138,7 +138,7 @@ const HorizontalBars: React.FC<BarChartProps> = ({
                   width: 200,
                   minWidth: 200,
                   color: MUTED_TEXT,
-                  fontSize: 22,
+                  fontSize: 24,
                   fontFamily,
                   fontWeight: 500,
                   textAlign: "right",
@@ -177,7 +177,7 @@ const HorizontalBars: React.FC<BarChartProps> = ({
                   width: 120,
                   minWidth: 120,
                   color: TEXT_COLOR,
-                  fontSize: 22,
+                  fontSize: 24,
                   fontFamily,
                   fontWeight: 600,
                   textAlign: "left",
@@ -318,7 +318,7 @@ const VerticalBars: React.FC<BarChartProps> = ({
               <div
                 style={{
                   color: MUTED_TEXT,
-                  fontSize: 18,
+                  fontSize: 20,
                   fontFamily,
                   fontWeight: 500,
                   textAlign: "center",

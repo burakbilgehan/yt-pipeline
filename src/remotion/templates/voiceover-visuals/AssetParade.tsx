@@ -381,7 +381,7 @@ export const AssetParade: React.FC<AssetParadeProps> = ({
             position: "absolute",
             bottom: "10%",
             opacity: badgeOpacity,
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: 500,
             color: textMuted,
             letterSpacing: 3,

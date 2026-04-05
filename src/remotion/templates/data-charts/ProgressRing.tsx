@@ -117,6 +117,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
             justifyContent: "center",
           }}
         >
+          {/* TODO: hero value should be 120px+ per VB-4 — needs layout redesign */}
           <span
             style={{
               color: "#FFFFFF",

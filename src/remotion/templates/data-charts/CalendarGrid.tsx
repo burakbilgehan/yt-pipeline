@@ -164,7 +164,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           <span
             style={{
               color: accent,
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: 600,
               fontFamily: "JetBrains Mono, monospace",
               letterSpacing: 2,
@@ -204,7 +204,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
             style={{
               textAlign: "center" as const,
               color: MUTED,
-              fontSize: 14,
+              fontSize: 20,
               fontWeight: 600,
               letterSpacing: 4,
               margin: "16px 0",
@@ -270,7 +270,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 <div
                   style={{
                     color: MUTED,
-                    fontSize: 12,
+                    fontSize: 20,
                     fontWeight: 600,
                     letterSpacing: 2,
                     marginBottom: 6,
@@ -386,7 +386,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           bottom: 20,
           right: 30,
           color: "rgba(240, 237, 232, 0.15)",
-          fontSize: 11,
+          fontSize: 20,
         }}
       >
         {source}
@@ -438,7 +438,7 @@ const ComparisonSide: React.FC<{
         }}
       >
         <span style={{ 
-          fontSize: 12, 
+          fontSize: 20, 
           fontWeight: 700,
           color: BG,
           backgroundColor: "rgba(240, 237, 232, 0.85)",
@@ -468,12 +468,12 @@ const ComparisonSide: React.FC<{
           <div key={key}>
             <div
               style={{
-                color: MUTED,
-                fontSize: 11,
-                fontWeight: 500,
-                letterSpacing: 1,
-                textTransform: "uppercase" as const,
-                marginBottom: 4,
+              color: MUTED,
+              fontSize: 20,
+              fontWeight: 500,
+              letterSpacing: 1,
+              textTransform: "uppercase" as const,
+              marginBottom: 4,
               }}
             >
               {statLabels[key] || key}

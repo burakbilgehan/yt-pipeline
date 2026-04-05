@@ -121,7 +121,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
         <span
           style={{
             color: MUTED,
-            fontSize: 16,
+            fontSize: 20,
             fontWeight: 500,
             letterSpacing: 3,
             textTransform: "uppercase" as const,
@@ -146,7 +146,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
           style={{
             width: 400,
             color: MUTED,
-            fontSize: 15,
+            fontSize: 20,
             fontWeight: 600,
             letterSpacing: 2,
             textTransform: "uppercase" as const,
@@ -159,7 +159,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
           style={{
             width: 250,
             color: MUTED,
-            fontSize: 15,
+            fontSize: 20,
             fontWeight: 600,
             letterSpacing: 2,
             textTransform: "uppercase" as const,
@@ -186,7 +186,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
         <span
           style={{
             color: accent,
-            fontSize: 15,
+            fontSize: 20,
             fontWeight: 600,
             letterSpacing: 2,
             textTransform: "uppercase" as const,
@@ -265,7 +265,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
               }}
             >
               <span style={{ 
-                fontSize: 14, 
+                fontSize: 20, 
                 fontWeight: 700,
                 color: BG,
                 backgroundColor: "rgba(240, 237, 232, 0.85)",
@@ -337,7 +337,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
               <span
                 style={{
                   color: MUTED,
-                  fontSize: 16,
+                  fontSize: 20,
                   fontWeight: 400,
                   marginLeft: 8,
                 }}
@@ -377,7 +377,7 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
           bottom: 20,
           right: 30,
           color: "rgba(240, 237, 232, 0.15)",
-          fontSize: 11,
+          fontSize: 20,
           fontWeight: 400,
           opacity: titleIn,
         }}

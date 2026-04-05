@@ -195,7 +195,7 @@ export const FormulaCard: React.FC<FormulaCardProps> = ({
               [0, 1],
               { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
             ),
-            fontSize: 22,
+            fontSize: 24,
             fontWeight: 500,
             color: "rgba(255, 255, 255, 0.35)",
             letterSpacing: 3,

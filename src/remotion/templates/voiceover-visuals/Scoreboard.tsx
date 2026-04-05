@@ -147,7 +147,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
               <div
                 style={{
                   width: 30,
-                  fontSize: 16,
+                  fontSize: 20,
                   fontWeight: 600,
                   color: textMuted,
                   textAlign: "right",
@@ -219,7 +219,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
         <div
           style={{
             textAlign: "center",
-            fontSize: 16,
+            fontSize: 20,
             color: textSubtle,
             marginTop: 20,
             letterSpacing: 2,

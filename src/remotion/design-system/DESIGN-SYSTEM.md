@@ -31,6 +31,103 @@ These are non-negotiable. Every component in this system must follow them.
 7. **Spring physics over easing curves.** Prefer `spring()` for organic movement. Use `interpolate()` with easing only when spring is inappropriate (linear progress bars, etc.).
 8. **Mobile-first font sizes.** Minimum body text: 32px. Minimum heading: 48px. Hero numbers: 120px+. Viewers watch on phones.
 
+## Visual Behaviour Rules (Non-Negotiable)
+
+These rules govern how data and content are visually represented. They are as binding as the technical constraints above. Any component that violates them must not pass review.
+
+### VB-1: Screen Utilization
+
+Content must fill the frame. Viewers watch on phones — tiny centered content surrounded by empty space is unusable.
+
+| Rule | Minimum | Target |
+|------|---------|--------|
+| Primary content area | 65% of frame area | 75–85% |
+| Max padding per side | 5% (96px at 1920w) | 3–4% (60–80px) |
+| Max vertical padding | 5% (54px at 1080h) | 3–4% |
+
+**Safe zone exception:** YouTube end screens reserve the bottom-right 30% for clickable elements. ClosingScene/EndCardScene may leave that area clear.
+
+**Test:** If the bounding box of all visible content is less than 65% of the frame, the component fails.
+
+### VB-2: Value-to-Color Mapping (Chromatic Scale)
+
+When values represent a spectrum (good → bad, low → high, cheap → expensive), colors must map proportionally — never binary.
+
+| Rule | Description |
+|------|-------------|
+| **Endpoints** | The worst value gets the most saturated `negative` color; the best value gets the most saturated `positive` color. |
+| **Interpolation** | Values between endpoints get interpolated colors. A value at 30% of the range gets a color 30% between negative and positive. |
+| **No binary coloring** | Never assign all items above a threshold to red and all below to green. The human eye reads color intensity as magnitude. |
+| **Neutral midpoint** | For diverging scales (e.g., baseline = 1.0), values near the midpoint should be near-neutral (desaturated / gray). |
+
+**Implementation pattern:**
+```ts
+// Given: values[], NEGATIVE color, POSITIVE color
+const min = Math.min(...values);
+const max = Math.max(...values);
+const t = (value - min) / (max - min); // 0..1
+const color = interpolateColors(t, [0, 1], [NEGATIVE, POSITIVE]);
+```
+
+Use Remotion's `interpolateColors()` for runtime color interpolation between palette endpoints.
+
+### VB-3: Proportional Bar Sizing
+
+Bars, progress indicators, and comparative fills must truthfully represent the underlying data ratio.
+
+| Rule | Description |
+|------|-------------|
+| **No winner-takes-all** | In a duel/comparison, both sides share the available space proportionally. If A=3 and B=5, A gets 3/8 of the bar and B gets 5/8. Neither side "fills" its half completely while the other is partial. |
+| **Consistent baseline** | In a multi-item bar chart, all bars share the same scale. The largest value maps to the maximum bar width; others are proportional to it. |
+| **No fake normalization** | Never normalize each bar to its own max (making them all look similar). If values are 100 and 10, the visual difference must be obvious (10:1 ratio). |
+| **Animated bars must converge to correct proportions** | Spring/interpolate animations must target the mathematically correct final width, not an aesthetic approximation. |
+
+### VB-4: Typography Hierarchy
+
+Every frame must have a clear reading order. Font sizes must establish unambiguous hierarchy.
+
+| Element | Min Size | Recommended | Weight |
+|---------|----------|-------------|--------|
+| Hero number / primary stat | 120px | 140–180px | 700–800 |
+| Section heading | 48px | 52–64px | 600–700 |
+| Body / description | 32px | 36–40px | 400–500 |
+| Label / caption | 24px | 28–32px | 400–500 |
+| Source attribution | 20px | 22–24px | 400 |
+| **Hard floor** | 20px | — | — |
+
+**Nothing below 20px.** If text can't fit at 20px, the layout is wrong — fix the layout, don't shrink the text.
+
+### VB-5: Data Ink Ratio
+
+Maximize the proportion of visual elements that carry information. Minimize decoration.
+
+| Rule | Description |
+|------|-------------|
+| **No empty bars** | If a chart has bars, they must carry data. Don't add bars for visual decoration. |
+| **Subtle gridlines** | Grid/track backgrounds should be ≤10% opacity. They guide the eye, not compete with data. |
+| **Labels on data, not legend** | Prefer direct labeling (text next to bars/points) over separate legends that require eye travel. |
+| **Source attribution** | Always show data source. Small, bottom-left or bottom-right, muted color. |
+
+### VB-6: Animation Timing Budget
+
+Animations must complete within their scene's timing budget. Don't let spring physics run longer than the scene allows.
+
+| Rule | Description |
+|------|-------------|
+| **Entrance budget** | All entrance animations must complete within the first 30% of scene duration. Remaining 70% is for the viewer to read. |
+| **Stagger ceiling** | When staggering N items, total stagger time ≤ 2 seconds. If N > 15, reduce per-item delay. |
+| **No orphan animations** | If a scene is too short for an animation to complete, skip the animation entirely (instant appear). |
+
+### VB-7: Template Genericity
+
+Templates must be content-agnostic. They visualize data structures, not specific topics.
+
+| Rule | Description |
+|------|-------------|
+| **No domain terms in names** | Template names must describe the visual pattern, not the content. "BeforeAfterCards" not "ShrinkflationCards". "BaselineZoneDiagram" not "RUPIBaseline". |
+| **No hardcoded content** | Default values in props should use generic placeholder data (e.g., "Item A", "Category 1", "$100"), never real-world branded names. |
+| **Composable over monolithic** | Prefer composing L2+L3+L4 layers over building a single 500-line template that does everything. |
+
 ### Styling Decision Tree
 
 ```

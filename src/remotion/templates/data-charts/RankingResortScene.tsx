@@ -57,7 +57,7 @@ const CountryBadge: React.FC<{ label: string }> = ({ label }) => {
   const code = COUNTRY_CODES[label] || label.slice(0, 3).toUpperCase();
   return (
     <span style={{
-      fontSize: 12, fontWeight: 700, color: BG,
+      fontSize: 20, fontWeight: 700, color: BG,
       backgroundColor: "rgba(240, 237, 232, 0.85)",
       borderRadius: 4, padding: "3px 6px", letterSpacing: 1,
       minWidth: 36, textAlign: "center" as const,
@@ -153,7 +153,7 @@ export const RankingResortScene: React.FC<RankingResortSceneProps> = ({
         <div
           style={{
             color: MUTED,
-            fontSize: 15,
+            fontSize: 20,
             fontWeight: 600,
             letterSpacing: 3,
             textTransform: "uppercase" as const,
@@ -295,7 +295,7 @@ export const RankingResortScene: React.FC<RankingResortSceneProps> = ({
         <div
           style={{
             color: accent,
-            fontSize: 15,
+            fontSize: 20,
             fontWeight: 600,
             letterSpacing: 3,
             textTransform: "uppercase" as const,
@@ -452,7 +452,7 @@ export const RankingResortScene: React.FC<RankingResortSceneProps> = ({
                   <span
                     style={{
                       color: rankChange.color,
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: 700,
                     }}
                   >
@@ -534,7 +534,7 @@ export const RankingResortScene: React.FC<RankingResortSceneProps> = ({
           bottom: 20,
           right: 30,
           color: "rgba(240, 237, 232, 0.15)",
-          fontSize: 11,
+          fontSize: 20,
           fontWeight: 400,
           opacity: leftColIn,
         }}

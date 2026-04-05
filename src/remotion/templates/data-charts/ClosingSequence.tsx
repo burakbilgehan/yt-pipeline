@@ -269,7 +269,7 @@ export const ClosingSequence: React.FC<ClosingSequenceProps> = ({
               <div
                 style={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: 18,
+                  fontSize: 20,
                   color: SAGE,
                   letterSpacing: "0.04em",
                 }}
@@ -280,7 +280,7 @@ export const ClosingSequence: React.FC<ClosingSequenceProps> = ({
                 <div
                   style={{
                     fontFamily: "Inter, sans-serif",
-                    fontSize: 14,
+                    fontSize: 20,
                     color: TEXT_COLOR,
                     opacity: 0.4,
                   }}

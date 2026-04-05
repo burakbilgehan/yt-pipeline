@@ -625,14 +625,6 @@ export const RemotionRoot: React.FC = () => {
             height={HEIGHT}
           />
           <Composition
-            id="DivisionComparison"
-            lazyComponent={() => import("./design-system/showcase/templates/Data/DivisionComparisonShowcase")}
-            durationInFrames={210}
-            fps={FPS}
-            width={WIDTH}
-            height={HEIGHT}
-          />
-          <Composition
             id="DeflatorSummaryGrid"
             lazyComponent={() => import("./design-system/showcase/templates/Data/DeflatorSummaryGridShowcase")}
             durationInFrames={240}
@@ -651,54 +643,6 @@ export const RemotionRoot: React.FC = () => {
         </Folder>
 
         <Folder name="Product">
-          <Composition
-            id="ShrinkflationHook"
-            lazyComponent={() => import("./design-system/showcase/templates/Product/ShrinkflationHookShowcase")}
-            durationInFrames={240}
-            fps={FPS}
-            width={WIDTH}
-            height={HEIGHT}
-          />
-          <Composition
-            id="ShrinkflationCards"
-            lazyComponent={() => import("./design-system/showcase/templates/Product/ShrinkflationCardsShowcase")}
-            durationInFrames={210}
-            fps={FPS}
-            width={WIDTH}
-            height={HEIGHT}
-          />
-          <Composition
-            id="SkimpflationCard"
-            lazyComponent={() => import("./design-system/showcase/templates/Product/SkimpflationCardShowcase")}
-            durationInFrames={180}
-            fps={FPS}
-            width={WIDTH}
-            height={HEIGHT}
-          />
-          <Composition
-            id="BLSShrinkExplainer"
-            lazyComponent={() => import("./design-system/showcase/templates/Product/BLSShrinkExplainerShowcase")}
-            durationInFrames={300}
-            fps={FPS}
-            width={WIDTH}
-            height={HEIGHT}
-          />
-          <Composition
-            id="BaselineReference"
-            lazyComponent={() => import("./design-system/showcase/templates/Product/BaselineReferenceShowcase")}
-            durationInFrames={210}
-            fps={FPS}
-            width={WIDTH}
-            height={HEIGHT}
-          />
-          <Composition
-            id="LensSwitchPivot"
-            lazyComponent={() => import("./design-system/showcase/templates/Product/LensSwitchPivotShowcase")}
-            durationInFrames={300}
-            fps={FPS}
-            width={WIDTH}
-            height={HEIGHT}
-          />
           <Composition
             id="HookPunchline"
             lazyComponent={() => import("./design-system/showcase/templates/Product/HookPunchlineShowcase")}

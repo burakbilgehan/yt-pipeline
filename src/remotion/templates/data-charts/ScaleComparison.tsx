@@ -133,7 +133,7 @@ export const ScaleComparison: React.FC<ScaleComparisonProps> = ({
               <div
                 style={{
                   color: "rgba(255,255,255,0.8)",
-                  fontSize: 18,
+                  fontSize: 20,
                   fontFamily,
                   fontWeight: 500,
                   textAlign: "center",

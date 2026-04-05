@@ -143,7 +143,7 @@ export const PieChart: React.FC<PieChartProps> = ({
               <span
                 style={{
                   color: "rgba(255,255,255,0.6)",
-                  fontSize: 18,
+                  fontSize: 20,
                   fontFamily,
                 }}
               >

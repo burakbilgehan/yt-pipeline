@@ -137,7 +137,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({
             position: "absolute",
             bottom: 80,
             fontFamily: fontFamily || "Inter, sans-serif",
-            fontSize: 14,
+            fontSize: 20,
             fontWeight: 500,
             color: "rgba(240,237,232,0.3)",
             letterSpacing: "0.1em",

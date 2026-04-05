@@ -207,7 +207,7 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
           <span
             style={{
               color: DEFAULT_MUTED,
-              fontSize: 16,
+              fontSize: 20,
               fontWeight: 500,
               letterSpacing: 4,
               textTransform: "uppercase" as const,
@@ -245,7 +245,7 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
             <span
               style={{
                 color: "rgba(240, 237, 232, 0.2)",
-                fontSize: 12,
+                fontSize: 20,
                 fontWeight: 500,
                 letterSpacing: 1,
                 textTransform: "uppercase" as const,
@@ -279,7 +279,7 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
             <span
               style={{
                 color: "rgba(240, 237, 232, 0.2)",
-                fontSize: 12,
+                fontSize: 20,
                 fontWeight: 500,
                 letterSpacing: 1,
                 textTransform: "uppercase" as const,

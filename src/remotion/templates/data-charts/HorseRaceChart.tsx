@@ -28,7 +28,7 @@ import {
 
 const CHART_PADDING = { top: 60, right: 240, bottom: 70, left: 90 };
 const LABEL_FONT_SIZE = 20;
-const LABEL_VALUE_FONT_SIZE = 15;
+const LABEL_VALUE_FONT_SIZE = 20;
 const LABEL_LINE_HEIGHT = 44; // spacing between stacked labels
 const LABEL_MAX_WIDTH = 220; // max label text width before truncation
 const WINDOW_YEARS = 18; // how many years visible in the sliding window
@@ -1017,7 +1017,7 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
                   x={mx + 4}
                   y={CHART_PADDING.top + 18}
                   fill={markerColor}
-                  fontSize={12}
+                  fontSize={20}
                   fontFamily={fontFamily}
                   fontWeight={600}
                   transform={`rotate(90, ${mx + 4}, ${CHART_PADDING.top + 18})`}
@@ -1261,7 +1261,7 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
               <div style={{ display: "flex", flexDirection: "column", gap: 2, overflow: "hidden", minWidth: 0 }}>
                 <span
                   style={{
-                    fontSize: 16,
+                    fontSize: 20,
                     fontWeight: 500,
                     color: TEXT_SECONDARY,
                     fontFamily,
@@ -1272,7 +1272,7 @@ export const HorseRaceChart: React.FC<HorseRaceChartProps> = ({
                 </span>
                 <span
                   style={{
-                    fontSize: 22,
+                    fontSize: 24,
                     fontWeight: 700,
                     color: textColor,
                     fontFamily,

@@ -209,7 +209,7 @@ export const ClosingCTA: React.FC<ClosingCTAProps> = ({
           </svg>
           <span
             style={{
-              fontSize: 16,
+              fontSize: 20,
               fontWeight: 600,
               color: ctaTextColor,
               letterSpacing: 2,
@@ -265,7 +265,7 @@ export const ClosingCTA: React.FC<ClosingCTAProps> = ({
             </svg>
             <span
               style={{
-                fontSize: 11,
+                fontSize: 20,
                 fontWeight: 500,
                 color: isDarkBg ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)",
                 letterSpacing: 1,
@@ -307,7 +307,7 @@ export const ClosingCTA: React.FC<ClosingCTAProps> = ({
             </svg>
             <span
               style={{
-                fontSize: 11,
+                fontSize: 20,
                 fontWeight: 500,
                 color: isDarkBg ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)",
                 letterSpacing: 1,

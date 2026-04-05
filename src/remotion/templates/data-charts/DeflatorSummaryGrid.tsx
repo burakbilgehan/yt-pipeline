@@ -4,6 +4,7 @@ import {
   useVideoConfig,
   spring,
   interpolate,
+  interpolateColors,
 } from "remotion";
 import { BG, TEXT, NEGATIVE, POSITIVE, SAGE, TRACK } from "../../palette";
 
@@ -33,8 +34,6 @@ interface DeflatorSummaryGridProps {
 
 const BG_COLOR = BG;
 const TEXT_COLOR = TEXT;
-const RED = NEGATIVE;
-const GREEN = POSITIVE;
 const TRACK_COLOR = TRACK;
 
 const DOT_SIZE = 2;
@@ -63,6 +62,70 @@ const DotGrid: React.FC = () => (
   />
 );
 
+// ─── Color scaling helpers ─────────────────────────────────────
+
+/** Normalize a BarItem to { name, value | null } */
+const normalizeItem = (
+  item: BarItem
+): { name: string; value: number | null } => {
+  if (typeof item === "string") return { name: item, value: null };
+  return { name: item.name, value: item.value ?? null };
+};
+
+/**
+ * Compute the global value range across ALL charts so that color
+ * interpolation is consistent grid-wide. For string-only items we
+ * synthesize values from their position (above → negative end,
+ * below → positive end).
+ */
+function computeGlobalRange(charts: ChartEntry[]): {
+  globalMin: number;
+  globalMax: number;
+} {
+  const allValues: number[] = [];
+  for (const chart of charts) {
+    const above = chart.above || [];
+    const below = chart.below || [];
+    above.forEach((item, i) => {
+      const n = normalizeItem(item);
+      if (n.value != null) {
+        allValues.push(n.value);
+      } else {
+        // Synthesize: first item in above is worst → highest value
+        const synth = above.length - i; // e.g. 3,2,1 for 3 items
+        allValues.push(synth);
+      }
+    });
+    below.forEach((item, i) => {
+      const n = normalizeItem(item);
+      if (n.value != null) {
+        allValues.push(n.value);
+      } else {
+        // Synthesize: last item in below is best → lowest (most negative) value
+        const synth = -(i + 1); // e.g. -1,-2,-3
+        allValues.push(synth);
+      }
+    });
+  }
+  if (allValues.length === 0) return { globalMin: 0, globalMax: 1 };
+  return { globalMin: Math.min(...allValues), globalMax: Math.max(...allValues) };
+}
+
+/**
+ * Map a single item's value to a gradient color between NEGATIVE ↔ POSITIVE.
+ * t = 0 → NEGATIVE (worst), t = 1 → POSITIVE (best).
+ */
+function itemColor(
+  value: number,
+  globalMin: number,
+  globalMax: number
+): string {
+  if (globalMax === globalMin) return interpolateColors(0.5, [0, 1], [NEGATIVE, POSITIVE]);
+  // Higher value = worse = NEGATIVE end; lower value = better = POSITIVE end
+  const t = 1 - (value - globalMin) / (globalMax - globalMin);
+  return interpolateColors(t, [0, 1], [NEGATIVE, POSITIVE]);
+}
+
 // ─── Single Mini Chart (one quadrant) ─────────────────────────
 
 interface MiniChartProps {
@@ -70,12 +133,16 @@ interface MiniChartProps {
   /** Absolute frame delay for this quadrant */
   delayFrames: number;
   fontFamily: string;
+  globalMin: number;
+  globalMax: number;
 }
 
 const MiniChart: React.FC<MiniChartProps> = ({
   entry,
   delayFrames,
   fontFamily,
+  globalMin,
+  globalMax,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -91,16 +158,22 @@ const MiniChart: React.FC<MiniChartProps> = ({
     extrapolateRight: "clamp",
   });
 
-  // Build combined bar list: above (red) first, then below (green)
-  // Normalize BarItem (string | {name, value}) into a uniform shape
-  const normalizeItem = (item: BarItem): { name: string; value: number | null } => {
-    if (typeof item === "string") return { name: item, value: null };
-    return { name: item.name, value: item.value ?? null };
-  };
+  // Build combined bar list: above first, then below
+  // Each item gets a gradient color based on its value magnitude
+  const aboveItems = (entry.above || []);
+  const belowItems = (entry.below || []);
 
-  const bars: Array<{ name: string; value: number | null; color: string }> = [
-    ...(entry.above || []).map((item) => ({ ...normalizeItem(item), color: RED })),
-    ...(entry.below || []).map((item) => ({ ...normalizeItem(item), color: GREEN })),
+  const bars: Array<{ name: string; value: number | null; color: string; rawValue: number }> = [
+    ...aboveItems.map((item, i) => {
+      const n = normalizeItem(item);
+      const raw = n.value != null ? n.value : aboveItems.length - i;
+      return { ...n, color: itemColor(raw, globalMin, globalMax), rawValue: raw };
+    }),
+    ...belowItems.map((item, i) => {
+      const n = normalizeItem(item);
+      const raw = n.value != null ? n.value : -(i + 1);
+      return { ...n, color: itemColor(raw, globalMin, globalMax), rawValue: raw };
+    }),
   ];
 
   const totalBars = bars.length;
@@ -123,7 +196,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
       <div
         style={{
           fontFamily: "Montserrat, sans-serif",
-          fontSize: 24,
+          fontSize: 48,
           fontWeight: 700,
           color: TEXT_COLOR,
           marginBottom: 6,
@@ -140,7 +213,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
       <div
         style={{
           fontFamily: "JetBrains Mono, monospace",
-          fontSize: 15,
+          fontSize: 24,
           color: SAGE,
           marginBottom: 14,
           opacity: headerOpacity,
@@ -149,10 +222,10 @@ const MiniChart: React.FC<MiniChartProps> = ({
         }}
       >
         <span>
-          <span style={{ color: RED }}>{(entry.above || []).length}</span> above
+          <span style={{ color: NEGATIVE }}>{(entry.above || []).length}</span> above
         </span>
         <span>
-          <span style={{ color: GREEN }}>{(entry.below || []).length}</span> below
+          <span style={{ color: POSITIVE }}>{(entry.below || []).length}</span> below
         </span>
       </div>
 
@@ -185,7 +258,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
               ? Math.min((rupiValue / MAX_RUPI) * 100, 100)
               : 100;
           // Bar height adapts to available space
-          const barHeight = totalBars <= 4 ? 40 : totalBars <= 6 ? 34 : 28;
+          const barHeight = totalBars <= 4 ? 40 : totalBars <= 6 ? 36 : 30;
 
           return (
             <div
@@ -203,7 +276,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
                   width: 120,
                   minWidth: 120,
                   fontFamily: fontFamily || "Inter, sans-serif",
-                  fontSize: 14,
+                  fontSize: 24,
                   fontWeight: 500,
                   color: "rgba(240, 237, 232, 0.7)",
                   textAlign: "right",
@@ -251,7 +324,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
                       justifyContent: "flex-end",
                       paddingRight: 6,
                       fontFamily: "JetBrains Mono, monospace",
-                      fontSize: barHeight <= 28 ? 11 : 13,
+                      fontSize: 20,
                       fontWeight: 600,
                       color: "#fff",
                       opacity: textOpacity,
@@ -287,6 +360,9 @@ export const DeflatorSummaryGrid: React.FC<DeflatorSummaryGridProps> = ({
   const title = chart.title || "Same Data. Different Ruler.";
   const charts = chart.charts || [];
   const source = chart.source || "";
+
+  // Compute global value range for gradient color mapping (VB-2)
+  const { globalMin, globalMax } = computeGlobalRange(charts);
 
   // Title fade-in
   const titleSpring = spring({
@@ -330,7 +406,7 @@ export const DeflatorSummaryGrid: React.FC<DeflatorSummaryGridProps> = ({
       <div
         style={{
           fontFamily: "Montserrat, sans-serif",
-          fontSize: 36,
+          fontSize: 48,
           fontWeight: 700,
           color: TEXT_COLOR,
           textAlign: "center",
@@ -361,6 +437,8 @@ export const DeflatorSummaryGrid: React.FC<DeflatorSummaryGridProps> = ({
             entry={entry}
             delayFrames={chartIdx * CHART_STAGGER}
             fontFamily={fontFamily}
+            globalMin={globalMin}
+            globalMax={globalMax}
           />
         ))}
       </div>
@@ -370,7 +448,7 @@ export const DeflatorSummaryGrid: React.FC<DeflatorSummaryGridProps> = ({
         <div
           style={{
             fontFamily: "JetBrains Mono, monospace",
-            fontSize: 13,
+            fontSize: 20,
             color: SAGE,
             textAlign: "center",
             opacity: sourceOpacity,

@@ -119,7 +119,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
         <div
           style={{
             fontFamily: fontFamily || "Inter, sans-serif",
-            fontSize: 28,
+            fontSize: 48,
             fontWeight: 600,
             color: TEXT_COLOR,
             marginBottom: 40,
@@ -176,7 +176,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                   width: 180,
                   minWidth: 180,
                   fontFamily: fontFamily || "Inter, sans-serif",
-                  fontSize: 18,
+                   fontSize: 20,
                   fontWeight: 500,
                   color: labelColor,
                   textAlign: "right",
@@ -219,7 +219,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                   width: 120,
                   minWidth: 120,
                   fontFamily: fontFamily || "Inter, sans-serif",
-                  fontSize: 18,
+                  fontSize: 20,
                   fontWeight: 600,
                   color: valueColor,
                   textAlign: "left",

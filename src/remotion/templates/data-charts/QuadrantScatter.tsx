@@ -815,11 +815,11 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
               opacity: titleIn,
             }}
           >
-            <div style={{ color: TEXT, fontSize: 30, fontWeight: 700, lineHeight: 1.2 }}>
+            <div style={{ color: TEXT, fontSize: 48, fontWeight: 700, lineHeight: 1.2 }}>
               {config.title}
             </div>
             {config.subtitle && (
-              <div style={{ color: MUTED, fontSize: 14, fontWeight: 400, marginTop: 2 }}>
+              <div style={{ color: MUTED, fontSize: 24, fontWeight: 400, marginTop: 2 }}>
                 {config.subtitle}
               </div>
             )}
@@ -1009,7 +1009,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
         {/* ── Origin label (stays in camera space — moves with data) ── */}
         <div style={{
           position: "absolute", top: originPy + 4, left: originPx + 8,
-          color: "rgba(163, 177, 138, 0.65)", fontSize: 14, fontWeight: 600,
+          color: "rgba(163, 177, 138, 0.65)", fontSize: 20, fontWeight: 600,
           letterSpacing: 1, opacity: axisIn,
         }}>
           OECD AVG
@@ -1128,7 +1128,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   }}>
                     <span style={{
                       color: isActiveDot ? (dotColorActive || defaultColor) : defaultColor,
-                      fontSize: isSpotlight ? 15 : 13,
+                      fontSize: 20,
                       fontWeight: 700,
                       textShadow: "0 1px 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.6)",
                     }}>
@@ -1191,7 +1191,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                 }}>
                   <span style={{
                     color: utColor,
-                    fontSize: 13,
+                    fontSize: 20,
                     fontWeight: 700,
                     textShadow: "0 1px 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.6)",
                   }}>
@@ -1231,7 +1231,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                 {/* Country header */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                   <span style={{
-                    fontSize: 12, fontWeight: 700, color: BG,
+                    fontSize: 20, fontWeight: 700, color: BG,
                     backgroundColor: "rgba(240, 237, 232, 0.85)",
                     borderRadius: 4, padding: "3px 7px", letterSpacing: 1,
                   }}>
@@ -1243,7 +1243,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   {spotlightCard.rankBadge && (
                     <span style={{
                       color: POSITIVE,
-                      fontSize: 16,
+                      fontSize: 20,
                       fontWeight: 800,
                       marginLeft: "auto",
                       fontFamily: "JetBrains Mono, monospace",
@@ -1259,9 +1259,9 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                     padding: "6px 0",
                     borderBottom: si < spotlightCard.stats.length - 1 ? "1px solid rgba(240, 237, 232, 0.06)" : "none",
                   }}>
-                    <span style={{ color: MUTED, fontSize: 12, fontWeight: 500 }}>{stat.key}</span>
+                    <span style={{ color: MUTED, fontSize: 20, fontWeight: 500 }}>{stat.key}</span>
                     <span style={{
-                      color: TEXT, fontSize: 14, fontWeight: 700,
+                      color: TEXT, fontSize: 20, fontWeight: 700,
                       fontFamily: "JetBrains Mono, monospace",
                     }}>
                       {stat.value}
@@ -1287,7 +1287,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
         {/* ── Data Source ── */}
         <div style={{
           position: "absolute", bottom: 12, right: 20,
-          color: "rgba(240, 237, 232, 0.2)", fontSize: 10,
+          color: "rgba(240, 237, 232, 0.2)", fontSize: 20,
           fontWeight: 400, opacity: gridIn,
         }}>
           OECD Wages 2024 (PPP-adjusted) · OECD Hours 2022
@@ -1426,7 +1426,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   boxShadow: "0 4px 24px rgba(0,0,0,0.5), 0 0 1px rgba(240,237,232,0.1)",
                 }}>
                   <div style={{
-                    fontSize: Math.round(24 * tooltipScale), fontWeight: 700, color: BG,
+                    fontSize: Math.max(20, Math.round(24 * tooltipScale)), fontWeight: 700, color: BG,
                     backgroundColor: "rgba(240, 237, 232, 0.85)",
                     borderRadius: 4, padding: `${Math.round(5 * tooltipScale)}px ${Math.round(14 * tooltipScale)}px`, letterSpacing: 1.5,
                     display: "inline-block", marginBottom: Math.round(12 * tooltipScale),
@@ -1439,9 +1439,9 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                       padding: `${Math.round(6 * tooltipScale)}px 0`,
                       borderBottom: di < dataEntries.length - 1 ? "1px solid rgba(240, 237, 232, 0.06)" : "none",
                     }}>
-                      <span style={{ color: MUTED, fontSize: Math.round(20 * tooltipScale), fontWeight: 500 }}>{key}</span>
+                      <span style={{ color: MUTED, fontSize: Math.max(20, Math.round(20 * tooltipScale)), fontWeight: 500 }}>{key}</span>
                       <span style={{
-                        color: TEXT, fontSize: Math.round(26 * tooltipScale), fontWeight: 700,
+                        color: TEXT, fontSize: Math.max(20, Math.round(26 * tooltipScale)), fontWeight: 700,
                         fontFamily: "JetBrains Mono, monospace",
                       }}>
                         {val}
@@ -1449,7 +1449,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                     </div>
                   ))}
                   {sourceOrNote && (
-                    <div style={{ color: "rgba(240, 237, 232, 0.3)", fontSize: Math.round(16 * tooltipScale), marginTop: Math.round(8 * tooltipScale), fontStyle: "italic" as const }}>
+                    <div style={{ color: "rgba(240, 237, 232, 0.3)", fontSize: Math.max(20, Math.round(16 * tooltipScale)), marginTop: Math.round(8 * tooltipScale), fontStyle: "italic" as const }}>
                       {sourceOrNote}
                     </div>
                   )}
@@ -1499,7 +1499,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   backgroundColor: annStyle.backgroundColor || "rgba(123,167,201,0.2)",
                   border: `1px solid ${annStyle.borderColor || ACCENT_BLUE}`,
                   color: annStyle.color || TEXT,
-                  fontSize: annStyle.fontSize || 13,
+                  fontSize: annStyle.fontSize || 20,
                   fontWeight: 600,
                   padding: "4px 10px",
                   borderRadius: 6,
@@ -1529,7 +1529,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   border: `1px solid ${annStyle.borderColor || ACCENT_BLUE}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   color: annStyle.color || TEXT,
-                  fontSize: annStyle.fontSize || 16,
+                  fontSize: annStyle.fontSize || 20,
                   fontWeight: 700,
                 }}>
                   {ann.icon}
@@ -1552,7 +1552,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
               }}>
                 <span style={{
                    color: annStyle.color || ACCENT_BLUE,
-                  fontSize: annStyle.fontSize || 15,
+                  fontSize: annStyle.fontSize || 20,
                   fontStyle: (annStyle.fontStyle as any) || "italic",
                   fontWeight: 500,
                   backgroundColor: annStyle.backgroundColor || "rgba(26,27,34,0.85)",
@@ -1965,7 +1965,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                                       display: "flex", justifyContent: "space-between", padding: "5px 0",
                                       borderBottom: ti < Object.entries(sd.tooltip!).length - 1 ? "1px solid rgba(240,237,232,0.06)" : "none",
                                     }}>
-                                      <span style={{ color: MUTED, fontSize: 15, fontWeight: 500 }}>{k}</span>
+                                      <span style={{ color: MUTED, fontSize: 20, fontWeight: 500 }}>{k}</span>
                                       <span style={{ color: TEXT, fontSize: 20, fontWeight: 700, fontFamily: "JetBrains Mono, monospace" }}>{v}</span>
                                     </div>
                                   ))}
@@ -2020,7 +2020,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                                       display: "flex", justifyContent: "space-between", padding: "5px 0",
                                       borderBottom: ti < Object.entries(sd.tooltip!).length - 1 ? "1px solid rgba(240,237,232,0.06)" : "none",
                                     }}>
-                                      <span style={{ color: MUTED, fontSize: 15, fontWeight: 500 }}>{k}</span>
+                                      <span style={{ color: MUTED, fontSize: 20, fontWeight: 500 }}>{k}</span>
                                       <span style={{ color: TEXT, fontSize: 20, fontWeight: 700, fontFamily: "JetBrains Mono, monospace" }}>{v}</span>
                                     </div>
                                   ))}
@@ -2174,13 +2174,13 @@ const DivisionOverlayPanel: React.FC<DivisionOverlayPanelProps> = ({
           <div style={{ flex: 1, textAlign: "center" as const }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 8 }}>
               <span style={{
-                fontSize: 12, fontWeight: 700, color: BG,
+                fontSize: 20, fontWeight: 700, color: BG,
                 backgroundColor: "rgba(240, 237, 232, 0.85)",
                 borderRadius: 3, padding: "2px 6px", letterSpacing: 1,
               }}>
                 {overlay.left.code || overlay.left.label?.slice(0, 3).toUpperCase()}
               </span>
-              <span style={{ color: TEXT, fontSize: 16, fontWeight: 600 }}>
+              <span style={{ color: TEXT, fontSize: 20, fontWeight: 600 }}>
                 {overlay.left.label}
               </span>
             </div>
@@ -2204,13 +2204,13 @@ const DivisionOverlayPanel: React.FC<DivisionOverlayPanelProps> = ({
           <div style={{ flex: 1, textAlign: "center" as const }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 8 }}>
               <span style={{
-                fontSize: 12, fontWeight: 700, color: BG,
+                fontSize: 20, fontWeight: 700, color: BG,
                 backgroundColor: "rgba(240, 237, 232, 0.85)",
                 borderRadius: 3, padding: "2px 6px", letterSpacing: 1,
               }}>
                 {overlay.right.code || overlay.right.label?.slice(0, 3).toUpperCase()}
               </span>
-              <span style={{ color: TEXT, fontSize: 16, fontWeight: 600 }}>
+              <span style={{ color: TEXT, fontSize: 20, fontWeight: 600 }}>
                 {overlay.right.label}
               </span>
             </div>
@@ -2230,7 +2230,7 @@ const DivisionOverlayPanel: React.FC<DivisionOverlayPanelProps> = ({
         }}>
           <span style={{
             color: TEXT,
-            fontSize: 15,
+            fontSize: 20,
             fontWeight: 600,
             fontStyle: "italic" as const,
           }}>
@@ -2256,7 +2256,7 @@ const DivisionFormula: React.FC<{ side: DivisionSide; progress: number }> = ({ s
   return (
     <div style={{ opacity: progress }}>
       <div style={{
-        color: MUTED, fontSize: 11, letterSpacing: 1,
+        color: MUTED, fontSize: 20, letterSpacing: 1,
         textTransform: "uppercase" as const, marginBottom: 2,
         fontFamily: "JetBrains Mono, monospace",
       }}>
@@ -2270,7 +2270,7 @@ const DivisionFormula: React.FC<{ side: DivisionSide; progress: number }> = ({ s
       }}>
         ${hourlyWage.toFixed(2)}
       </div>
-      <div style={{ color: MUTED, fontSize: 10, letterSpacing: 1 }}>$/hr</div>
+      <div style={{ color: MUTED, fontSize: 20, letterSpacing: 1 }}>$/hr</div>
     </div>
   );
 };

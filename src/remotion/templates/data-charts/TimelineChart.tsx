@@ -201,10 +201,10 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
                 {isTop ? (
                   <>
                     {item.value !== undefined && (
-                      <div
+                       <div
                         style={{
                           color,
-                          fontSize: 18,
+                          fontSize: 20,
                           fontFamily,
                           fontWeight: 700,
                           lineHeight: 1.3,
@@ -243,7 +243,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
                       <div
                         style={{
                           color,
-                          fontSize: 18,
+                          fontSize: 20,
                           fontFamily,
                           fontWeight: 700,
                           marginTop: 2,

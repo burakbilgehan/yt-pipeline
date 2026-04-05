@@ -198,7 +198,7 @@ const ComparisonPanel: React.FC<{
         <div
           style={{
             fontFamily: FONT_BODY,
-            fontSize: 22,
+            fontSize: 24,
             color: MUTED_TEXT,
             letterSpacing: 0.5,
           }}
@@ -462,7 +462,7 @@ export const MetricScene: React.FC<MetricSceneProps> = ({
                 right: 50,
                 opacity: 0.3,
                 fontFamily: FONT_BODY,
-                fontSize: 16,
+                fontSize: 20,
                 color: MUTED_TEXT,
                 letterSpacing: 1,
               }}

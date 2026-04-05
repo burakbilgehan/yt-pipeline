@@ -91,7 +91,7 @@ const TugOfWar: React.FC<ComparisonTableProps> = ({
         <h2
           style={{
             color: TEXT_COLOR,
-            fontSize: 40,
+            fontSize: 48,
             fontFamily,
             fontWeight: 600,
             margin: 0,
@@ -206,7 +206,7 @@ const TugOfWar: React.FC<ComparisonTableProps> = ({
           <span
             style={{
               color: leftColor,
-              fontSize: 22,
+              fontSize: 24,
               fontFamily,
               fontWeight: 500,
             }}
@@ -216,7 +216,7 @@ const TugOfWar: React.FC<ComparisonTableProps> = ({
           <span
             style={{
               color: MUTED_TEXT,
-              fontSize: 22,
+              fontSize: 24,
               fontFamily,
               fontWeight: 400,
             }}
@@ -226,7 +226,7 @@ const TugOfWar: React.FC<ComparisonTableProps> = ({
           <span
             style={{
               color: rightColor,
-              fontSize: 22,
+              fontSize: 24,
               fontFamily,
               fontWeight: 500,
             }}
@@ -282,7 +282,7 @@ const HorizontalBarList: React.FC<ComparisonTableProps> = ({
         <h2
           style={{
             color: TEXT_COLOR,
-            fontSize: 40,
+            fontSize: 48,
             fontFamily,
             fontWeight: 600,
             margin: 0,
@@ -335,7 +335,7 @@ const HorizontalBarList: React.FC<ComparisonTableProps> = ({
                   width: 200,
                   minWidth: 200,
                   color: MUTED_TEXT,
-                  fontSize: 22,
+                  fontSize: 24,
                   fontFamily,
                   fontWeight: 500,
                   textAlign: "right",
@@ -374,7 +374,7 @@ const HorizontalBarList: React.FC<ComparisonTableProps> = ({
                   width: 120,
                   minWidth: 120,
                   color: TEXT_COLOR,
-                  fontSize: 22,
+                  fontSize: 24,
                   fontFamily,
                   fontWeight: 600,
                   textAlign: "left",
@@ -452,7 +452,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        padding: "48px 100px",
+        padding: "48px 96px",
       }}
     >
       {/* ── Title ── */}
@@ -460,7 +460,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
         <div
           style={{
             color: TEXT_COLOR,
-            fontSize: 36,
+            fontSize: 48,
             fontFamily,
             fontWeight: 600,
             margin: 0,
@@ -517,7 +517,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
         <div
           style={{
             color: MUTED_TEXT,
-            fontSize: 14,
+            fontSize: 20,
             fontFamily,
             fontWeight: 400,
             letterSpacing: 4,
@@ -577,10 +577,10 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
             config: { damping: 14, stiffness: 80 },
           });
 
-          // Per-pair normalization (each metric compared within its own pair)
-          const pairMax = Math.max(pair.leftValue, pair.rightValue);
-          const leftPct = pairMax > 0 ? (pair.leftValue / pairMax) * 100 : 0;
-          const rightPct = pairMax > 0 ? (pair.rightValue / pairMax) * 100 : 0;
+          // Proportional bar sizing (VB-3): each side gets its share of total
+          const total = pair.leftValue + pair.rightValue;
+          const leftPct = total > 0 ? (pair.leftValue / total) * 100 : 50;
+          const rightPct = total > 0 ? (pair.rightValue / total) * 100 : 50;
 
           const textOp = interpolate(rowSpring, [0, 0.5], [0, 1], {
             extrapolateRight: "clamp",
@@ -592,7 +592,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
               <div
                 style={{
                   color: MUTED_TEXT,
-                  fontSize: 17,
+                  fontSize: 20,
                   fontFamily,
                   fontWeight: 500,
                   textAlign: "center",
@@ -621,7 +621,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                     textAlign: "right",
                     paddingRight: 12,
                     color: pair.leftColor,
-                    fontSize: 22,
+                    fontSize: 24,
                     fontFamily,
                     fontWeight: 700,
                     opacity: textOp,
@@ -645,7 +645,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                 >
                   <div
                     style={{
-                      width: `${leftPct * rowSpring}%`,
+                      width: `${100 * rowSpring}%`,
                       height: "100%",
                       backgroundColor: pair.leftColor,
                       borderRadius: 6,
@@ -681,7 +681,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                 >
                   <div
                     style={{
-                      width: `${rightPct * rowSpring}%`,
+                      width: `${100 * rowSpring}%`,
                       height: "100%",
                       backgroundColor: pair.rightColor,
                       borderRadius: 6,
@@ -698,7 +698,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                     textAlign: "left",
                     paddingLeft: 12,
                     color: pair.rightColor,
-                    fontSize: 22,
+                    fontSize: 24,
                     fontFamily,
                     fontWeight: 700,
                     opacity: textOp,

@@ -548,31 +548,6 @@
       }
     },
     {
-      "id": "division-comparison",
-      "layer": "L5",
-      "type": "scene-template",
-      "name": "Division Comparison",
-      "file": "templates/data-charts/DivisionComparison.tsx",
-      "status": "implemented",
-      "useCases": [
-        "Animated division calculation comparing two entities (wage ÷ hours = rate)",
-        "Step-by-step math reveal with conclusion",
-        "Two-card layout with phased animation"
-      ],
-      "keywords": ["division", "math", "calculation", "comparison", "wage", "rate", "step-by-step", "animated-math"],
-      "whenToUse": "When showing a division/ratio calculation between two entities side by side. Multi-phase animation: cards appear → division animates → operator reveals → conclusion.",
-      "whenNotToUse": "When showing static comparisons without math (use comparison-table). When comparing more than 2 entities (use bar-chart).",
-      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'division-comparison'. Provide left/right: {flag, label, wage, hours, result, resultColor}, operator, conclusion.",
-      "exampleScenario": "Portugal ($27K ÷ 1,649 hrs = $16.37/hr) vs Germany ($53K ÷ 1,341 hrs = $39.52/hr) — animated division reveals.",
-      "alternatives": ["comparison-table", "metric-scene"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["counter-up", "stagger-text-reveal"]
-      }
-    },
-
-    {
       "id": "hook-scene",
       "layer": "L5",
       "type": "scene-template",
@@ -661,7 +636,7 @@
       "whenNotToUse": "When comparing aggregate values (use comparison-table). When comparing more than 2 entities (use bar-chart).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'split-comparison'. Provide left/right: {city, country, items: [{name, price}], total}.",
       "exampleScenario": "Zurich vs Mexico City grocery basket — same items (milk, bread, eggs) with dramatically different prices.",
-      "alternatives": ["comparison-table", "division-comparison"],
+      "alternatives": ["comparison-table"],
       "pairs": {
         "surfaces": ["flat"],
         "atmospheres": ["dot-grid"],
@@ -859,151 +834,6 @@
         "surfaces": ["flat"],
         "atmospheres": ["dot-grid"],
         "motions": ["bar-grow", "stagger-text-reveal"]
-      }
-    },
-
-    {
-      "id": "shrinkflation-hook",
-      "layer": "L5",
-      "type": "scene-template",
-      "name": "Shrinkflation Hook",
-      "file": "templates/data-charts/ShrinkflationHook.tsx",
-      "status": "implemented",
-      "useCases": [
-        "Product before/after photo comparison (16oz → 14oz)",
-        "Shrinkflation visual evidence with real product images",
-        "Two-row product reveal synced to voiceover timing"
-      ],
-      "keywords": ["shrinkflation", "hook", "product", "before-after", "photo", "package-size", "visual-evidence"],
-      "whenToUse": "When opening a shrinkflation segment with real product comparison photos. Two rows showing product size changes, synced to voiceover.",
-      "whenNotToUse": "When showing shrinkflation data as charts (use horse-race-chart with shrinkflationMarkers). When showing abstract text hook (use hook-scene).",
-      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'shrinkflation-hook'. Optional: products: [{name, image, oldSize, newSize}]. Defaults to Häagen-Dazs + Folgers examples.",
-      "exampleScenario": "Row 1: Häagen-Dazs 16oz→14oz photo appears. Row 2: Folgers 39oz→30.5oz photo appears. Both hold with subtle breathe animation.",
-      "alternatives": ["hook-scene", "shrinkflation-cards"],
-      "pairs": {
-        "surfaces": [],
-        "atmospheres": ["dot-grid"],
-        "motions": ["blur-fade-in"]
-      }
-    },
-    {
-      "id": "shrinkflation-cards",
-      "layer": "L5",
-      "type": "scene-template",
-      "name": "Shrinkflation Cards",
-      "file": "templates/data-charts/ShrinkflationCards.tsx",
-      "status": "implemented",
-      "useCases": [
-        "Before/after split cards showing product size shrinkage",
-        "Pattern interrupt with red badges showing change percentages",
-        "BLS stat callout after card reveal"
-      ],
-      "keywords": ["shrinkflation", "cards", "before-after", "split-card", "badge", "percentage-change", "BLS"],
-      "whenToUse": "When showing shrinkflation data as styled cards with from→to sizes and change badges. Stacked vertically with staggered entrance. Optional BLS stat callout.",
-      "whenNotToUse": "When showing real product photos (use shrinkflation-hook). When showing shrinkflation trends over time (use horse-race-chart).",
-      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'shrinkflation-cards'. Provide cards: [{product, from, to, change, changeColor?}]. Optional: blsStat: {text, source}.",
-      "exampleScenario": "Card 1: Doritos 12oz → 9.25oz (−23% red badge). Card 2: Bounty 66 sheets → 48 sheets (−27% red badge). BLS stat fades in after 5s.",
-      "alternatives": ["shrinkflation-hook", "comparison-table"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["stagger-text-reveal"]
-      }
-    },
-    {
-      "id": "skimpflation-card",
-      "layer": "L5",
-      "type": "scene-template",
-      "name": "Skimpflation Card",
-      "file": "templates/data-charts/SkimpflationCard.tsx",
-      "status": "implemented",
-      "useCases": [
-        "Single photo showing quality reduction (same price, cheaper ingredients)",
-        "Skimpflation concept card with title and subtitle",
-        "Visual evidence of hidden inflation through quality decline"
-      ],
-      "keywords": ["skimpflation", "quality", "ingredients", "same-price", "photo", "concept-card"],
-      "whenToUse": "When explaining skimpflation with a reference photo showing quality decline. Large title, photo with scale animation, subtitle below.",
-      "whenNotToUse": "When showing size reduction (use shrinkflation-cards). When showing data rather than concept (use bar-chart).",
-      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'skimpflation-card'. Optional: title, subtitle. Image loaded via staticFile().",
-      "exampleScenario": "'SKIMPFLATION' title → photo of degraded food quality → 'Same price. Same size. Cheaper ingredients.' subtitle.",
-      "alternatives": ["shrinkflation-cards", "title-card"],
-      "pairs": {
-        "surfaces": [],
-        "atmospheres": ["dot-grid"],
-        "motions": ["blur-fade-in"]
-      }
-    },
-    {
-      "id": "bls-shrink-explainer",
-      "layer": "L5",
-      "type": "scene-template",
-      "name": "BLS Shrink Explainer",
-      "file": "templates/data-charts/BLSShrinkExplainer.tsx",
-      "status": "implemented",
-      "useCases": [
-        "Animated explanation of BLS per-unit price tracking methodology",
-        "Visual showing how size shrinkage affects unit price",
-        "Product photo with animated shrink + per-unit calculation"
-      ],
-      "keywords": ["BLS", "shrinkflation", "explainer", "per-unit", "price-tracking", "methodology", "calculation", "animated"],
-      "whenToUse": "When explaining how the BLS tracks per-unit prices and catches shrinkflation. Multi-phase animation with product photo, size shrink, and per-unit price reveal.",
-      "whenNotToUse": "When showing multiple products (use shrinkflation-cards). When not explaining BLS methodology specifically.",
-      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'bls-shrink-explainer'. Provide startSize, endSize, stickerPrice, startPerUnit, endPerUnit, blsAttribution.",
-      "exampleScenario": "Product photo → 16oz shrinks to 10oz animation → sticker price stays $4.99 → per-unit price jumps $4.99/lb → $7.99/lb → BLS attribution.",
-      "alternatives": ["metric-scene"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["counter-up", "stagger-text-reveal"]
-      }
-    },
-    {
-      "id": "baseline-reference",
-      "layer": "L5",
-      "type": "scene-template",
-      "name": "Baseline Reference",
-      "file": "templates/data-charts/BaselineReference.tsx",
-      "status": "implemented",
-      "useCases": [
-        "Explaining a metric's baseline value with above/below zones",
-        "Visual reference card: 'RUPI = 1.0 means prices grew at same rate as wages'",
-        "Animated zone reveals with color-coded regions"
-      ],
-      "keywords": ["baseline", "reference", "zones", "above-below", "metric-explanation", "RUPI", "threshold"],
-      "whenToUse": "When explaining what a metric means at its baseline value, with color-coded zones above and below. Animated zone reveals and label entrances.",
-      "whenNotToUse": "When showing actual data values (use bar-chart or counter). When the metric doesn't have a meaningful baseline.",
-      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'baseline-reference'. Provide baselineValue, zones: {above: {color, label}, below: {color, label}, at: {label}}.",
-      "exampleScenario": "RUPI baseline at 1.0 — red zone above (prices outpaced wages), green zone below (wages outpaced prices), with animated gradient fills.",
-      "alternatives": ["title-card", "counter"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["counter-up", "blur-fade-in"]
-      }
-    },
-    {
-      "id": "lens-switch-pivot",
-      "layer": "L5",
-      "type": "scene-template",
-      "name": "Lens Switch Pivot",
-      "file": "templates/data-charts/LensSwitchPivot.tsx",
-      "status": "implemented",
-      "useCases": [
-        "Narrative pivot: summary stat → provocative question → new analysis angle",
-        "Deflator checklist reveal (done/pending indicators)",
-        "Two-phase text sequence: conclusion + 'what if we change the ruler?'"
-      ],
-      "keywords": ["lens", "pivot", "transition", "question", "deflator", "checklist", "narrative-pivot", "ruler"],
-      "whenToUse": "When transitioning between analysis sections. Phase 1: summary + pivot question. Phase 2: new ruler question + deflator checklist. Text-heavy narrative scene.",
-      "whenNotToUse": "When the transition should be a simple title card (use title-card). When data visualization is needed (use any chart component).",
-      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'lens-switch-pivot'. Provide summaryText, pivotQuestion, rulerQuestion, deflators: [{name, status}].",
-      "exampleScenario": "'4 of 6 cheaper' → 'But cheaper… for whom?' → 'What if we change the ruler?' → Deflator checklist: CPI ✓, PCE ✓, Gold ○, Housing ○.",
-      "alternatives": ["title-card", "closing-sequence"],
-      "pairs": {
-        "surfaces": [],
-        "atmospheres": [],
-        "motions": ["stagger-text-reveal", "blur-fade-in"]
       }
     },
 
