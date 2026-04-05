@@ -21,7 +21,6 @@
     "video-status": "tsx src/scripts/video-status.ts",
     "suggest": "tsx src/scripts/youtube-suggest.ts",
     "collect": "tsx src/scripts/collect-stock.ts",
-
     "new-channel": "tsx src/scripts/new-channel.ts",
     "new-video": "tsx src/scripts/new-video.ts",
     "new-project": "tsx src/scripts/new-video.ts",
@@ -33,25 +32,33 @@
   },
   "dependencies": {
     "@andresaya/edge-tts": "^1.8.0",
-    "@remotion/cli": "^4.0.0",
-    "@remotion/google-fonts": "^4.0.429",
-    "@remotion/media": "4.0.429",
-    "@remotion/paths": "4.0.429",
-    "@remotion/renderer": "^4.0.0",
+    "@remotion/cli": "^4.0.445",
+    "@remotion/google-fonts": "^4.0.445",
+    "@remotion/media": "^4.0.445",
+    "@remotion/paths": "^4.0.445",
+    "@remotion/renderer": "^4.0.445",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "dotenv": "^16.4.0",
     "googleapis": "^144.0.0",
+    "lucide-react": "^1.7.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "remotion": "^4.0.0",
-    "zod": "^3.23.0"
+    "remotion": "^4.0.445",
+    "shadcn": "^4.1.2",
+    "tailwind-merge": "^3.5.0",
+    "tw-animate-css": "^1.4.0",
+    "zod": "4.3.6"
   },
   "devDependencies": {
     "@figma/plugin-typings": "^1.123.0",
+    "@remotion/tailwind-v4": "^4.0.445",
     "@types/node": "^22.0.0",
     "esbuild": "^0.27.3",
     "sharp": "^0.34.5",
+    "tailwindcss": "^4.2.2",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
   }

@@ -19,6 +19,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
+import { webpackOverride } from "../remotion/webpack-override";
 import { getLatestVersionedFile, loadProjectConfig, saveProjectConfig, loadChannelConfig, getProjectDir, loadStoryboardResolved } from "../utils/project";
 import { bridgeAllScenes } from "../utils/storyboard-bridge";
 import type { AudioManifest } from "../types/index";
@@ -398,6 +399,7 @@ async function main() {
   // ── Bundle ──
   const bundleLocation = await bundle({
     entryPoint: REMOTION_ENTRY,
+    webpackOverride,
     // Copy project assets to the bundle's public directory
     publicDir: projectDir,
   });

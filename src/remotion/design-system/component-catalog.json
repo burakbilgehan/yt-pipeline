@@ -1,0 +1,237 @@
+{
+  "$schema": "./component-catalog.schema.json",
+  "version": 1,
+  "description": "Design System component catalog — maps visual needs to registered DS primitives. Read by storyboard agent (to pick components) and production agent (to resolve implementations).",
+  "components": [
+    {
+      "id": "stagger-text-reveal",
+      "layer": "L3",
+      "type": "motion",
+      "name": "Stagger Text Reveal",
+      "file": "motion/StaggerTextReveal.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Text appearing on screen for the first time (title cards, section headers)",
+        "Dramatic character-by-character or word-by-word text entrance",
+        "Quote or statement reveal with emphasis"
+      ],
+      "keywords": ["text-entrance", "reveal", "appear", "title-card", "character-animation", "word-animation"],
+      "whenToUse": "A piece of text needs to appear on screen with animation. Each character or word springs in sequentially.",
+      "whenNotToUse": "Text that needs to CHANGE to different text (use text-rotate instead). Text that should just fade in without per-character animation (use blur-fade-in).",
+      "storyboardHint": "In scene detail, set: visual.motion = 'stagger-text-reveal'. Configure with visual.motionConfig.splitBy ('characters' | 'words') and visual.motionConfig.staggerFrom ('first' | 'last' | 'center').",
+      "exampleScenario": "Hook scene title 'The $40 Billion Question' appears word by word from center outward.",
+      "alternatives": ["blur-fade-in", "slide-up"],
+      "pairs": {
+        "surfaces": ["glass", "flat"],
+        "atmospheres": ["dot-grid", "aurora"]
+      }
+    },
+    {
+      "id": "text-rotate",
+      "layer": "L3",
+      "type": "motion",
+      "name": "Text Rotate",
+      "file": "motion/TextRotate.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Cycling through multiple values in the same position (e.g., '$100 → $200 → $500')",
+        "Before/after comparisons where one word changes ('costs $X' → 'costs $Y')",
+        "Showing evolution or progression through text replacement",
+        "Countdown or list items rotating in place"
+      ],
+      "keywords": ["text-change", "text-cycle", "rotate", "swap", "replace", "before-after", "comparison", "evolve"],
+      "whenToUse": "Multiple text values need to appear sequentially in the SAME position. The text exits, container resizes, new text enters — a 3-phase cycle.",
+      "whenNotToUse": "Text appearing once and staying (use stagger-text-reveal). A number counting up smoothly (use counter-up). Two texts shown side by side (use comparison layout, not rotation).",
+      "storyboardHint": "In scene detail, set: visual.motion = 'text-rotate'. Provide visual.motionConfig.texts = ['value1', 'value2', ...] for the rotation sequence.",
+      "exampleScenario": "Scene shows 'Average salary: $X' where X rotates through '$52K → $65K → $78K' to show progression over decades.",
+      "alternatives": ["counter-up"],
+      "pairs": {
+        "surfaces": ["glass", "flat", "glow"],
+        "atmospheres": ["dot-grid", "film-grain"]
+      }
+    },
+    {
+      "id": "counter-up",
+      "layer": "L3",
+      "type": "motion",
+      "name": "Counter Up",
+      "file": null,
+      "status": "planned",
+      "useCases": [
+        "Numeric value counting up from 0 to target (e.g., '$0 → $1,234,567')",
+        "Percentage animations (0% → 85%)",
+        "Statistics reveal with smooth number interpolation"
+      ],
+      "keywords": ["number", "count", "stat", "metric", "percentage", "amount", "value-reveal"],
+      "whenToUse": "A single numeric value needs to animate from one number to another smoothly. The number itself is the visual focus.",
+      "whenNotToUse": "Text changing to different text (use text-rotate). Multiple numbers shown as a list (use stagger-text-reveal for the list, counter-up for individual numbers).",
+      "storyboardHint": "In scene detail, set: visual.motion = 'counter-up'. Provide visual.motionConfig.from and visual.motionConfig.to numbers, optional visual.motionConfig.prefix ('$') and visual.motionConfig.suffix ('%').",
+      "exampleScenario": "Big stat scene: '$0' counts up to '$2.4 Trillion' with a prefix dollar sign.",
+      "alternatives": ["text-rotate"],
+      "pairs": {
+        "surfaces": ["glass", "glow"],
+        "atmospheres": ["particles", "aurora"]
+      }
+    },
+    {
+      "id": "bar-grow",
+      "layer": "L3",
+      "type": "motion",
+      "name": "Bar Grow",
+      "file": null,
+      "status": "planned",
+      "useCases": [
+        "Horizontal or vertical bars animating from 0 to their target width/height",
+        "Progress bar filling up",
+        "Bar chart bars growing in"
+      ],
+      "keywords": ["bar", "chart", "grow", "progress", "fill", "horizontal-bar", "vertical-bar"],
+      "whenToUse": "A rectangular bar shape needs to animate from empty to its target size. Used inside data visualizations or as standalone progress indicators.",
+      "whenNotToUse": "Pie/donut charts (different primitive). Line charts (different primitive). Just a number changing (use counter-up).",
+      "storyboardHint": "In scene detail, set: visual.motion = 'bar-grow'. Provide visual.motionConfig.direction ('horizontal' | 'vertical').",
+      "exampleScenario": "Comparison bars for 'US vs EU spending' grow from left to right, staggered.",
+      "alternatives": [],
+      "pairs": {
+        "surfaces": ["flat", "elevated"],
+        "atmospheres": ["dot-grid"]
+      }
+    },
+    {
+      "id": "blur-fade-in",
+      "layer": "L3",
+      "type": "motion",
+      "name": "Blur Fade In",
+      "file": null,
+      "status": "planned",
+      "useCases": [
+        "Subtle content entrance — blurred and transparent → sharp and opaque",
+        "Background element appearing without drawing too much attention",
+        "Secondary text or labels fading in"
+      ],
+      "keywords": ["blur", "fade", "subtle", "entrance", "soft-reveal", "background-text"],
+      "whenToUse": "Content should appear subtly, going from blurry+transparent to clear. Less dramatic than stagger-text-reveal.",
+      "whenNotToUse": "Hero text that needs dramatic entrance (use stagger-text-reveal). Text that cycles through values (use text-rotate).",
+      "storyboardHint": "In scene detail, set: visual.motion = 'blur-fade-in'.",
+      "exampleScenario": "Source citation text fades in at bottom of screen during a data scene.",
+      "alternatives": ["stagger-text-reveal", "slide-up"],
+      "pairs": {
+        "surfaces": ["glass", "frosted"],
+        "atmospheres": ["film-grain"]
+      }
+    },
+    {
+      "id": "dot-grid",
+      "layer": "L2",
+      "type": "atmosphere",
+      "file": null,
+      "status": "planned",
+      "name": "Dot Grid",
+      "useCases": [
+        "Data-focused or analytical scenes — gives a technical, clean feel",
+        "Explainer scenes where the visual is mostly text/charts"
+      ],
+      "keywords": ["grid", "dots", "technical", "data", "analytical", "clean", "minimal"],
+      "whenToUse": "Scene has a data/analytical tone. Works well behind charts, metrics, or comparison layouts.",
+      "whenNotToUse": "Cinematic/emotional scenes (use aurora or particles). Scenes with busy stock footage behind (atmosphere competes with video).",
+      "storyboardHint": "In scene detail, set: visual.atmosphere = 'dot-grid'.",
+      "exampleScenario": "Background for a bar chart comparison scene — subtle animated dots behind the chart.",
+      "alternatives": ["film-grain", "none"],
+      "pairs": {
+        "surfaces": ["glass", "flat"],
+        "motions": ["counter-up", "bar-grow", "stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "film-grain",
+      "layer": "L2",
+      "type": "atmosphere",
+      "file": null,
+      "status": "planned",
+      "name": "Film Grain",
+      "useCases": [
+        "Cinematic or documentary-style scenes",
+        "Historical content — adds a vintage/archival feel",
+        "Narrative-heavy scenes where mood matters"
+      ],
+      "keywords": ["grain", "cinematic", "film", "vintage", "documentary", "texture", "mood"],
+      "whenToUse": "Scene needs a cinematic, textured feel. Great for narrative sections, historical context, or emotional moments.",
+      "whenNotToUse": "Clean data visualization scenes (use dot-grid). Bright/modern/techy aesthetic (use particles).",
+      "storyboardHint": "In scene detail, set: visual.atmosphere = 'film-grain'.",
+      "exampleScenario": "Historical context scene about 1970s economic policy — film grain adds era-appropriate texture.",
+      "alternatives": ["dot-grid", "none"],
+      "pairs": {
+        "surfaces": ["frosted", "glass"],
+        "motions": ["stagger-text-reveal", "blur-fade-in"]
+      }
+    },
+    {
+      "id": "glass",
+      "layer": "L4",
+      "type": "surface",
+      "file": null,
+      "status": "planned",
+      "name": "Glass Surface",
+      "useCases": [
+        "Cards floating over a background — glassmorphism effect",
+        "Data cards, stat boxes, comparison panels",
+        "Any container that should feel modern and semi-transparent"
+      ],
+      "keywords": ["glass", "blur", "transparent", "card", "container", "modern", "glassmorphism"],
+      "whenToUse": "A container/card needs to feel like frosted glass floating over the background. Content inside should be readable against the blurred backdrop.",
+      "whenNotToUse": "Fully opaque cards with no transparency (use flat). Cards that need to glow/pulse for emphasis (use glow).",
+      "storyboardHint": "In scene detail, set: visual.surface = 'glass'.",
+      "exampleScenario": "Stat card showing '$2.4T' floats over an aurora atmosphere with glassmorphic background.",
+      "alternatives": ["flat", "frosted"],
+      "pairs": {
+        "atmospheres": ["aurora", "particles", "dot-grid"],
+        "motions": ["counter-up", "stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "flat",
+      "layer": "L4",
+      "type": "surface",
+      "file": null,
+      "status": "planned",
+      "name": "Flat Surface",
+      "useCases": [
+        "Clean, minimal card with solid or near-solid background",
+        "Data tables, comparison grids",
+        "When background atmosphere should not show through the card"
+      ],
+      "keywords": ["flat", "solid", "clean", "minimal", "opaque", "card"],
+      "whenToUse": "Container should be clean and opaque — content readability is the priority, not visual flair.",
+      "whenNotToUse": "When background atmosphere should show through (use glass or frosted).",
+      "storyboardHint": "In scene detail, set: visual.surface = 'flat'.",
+      "exampleScenario": "Comparison table with two columns — solid dark cards with white text, no transparency.",
+      "alternatives": ["glass", "elevated"],
+      "pairs": {
+        "atmospheres": ["dot-grid", "none"],
+        "motions": ["bar-grow", "stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "glow",
+      "layer": "L4",
+      "type": "surface",
+      "file": null,
+      "status": "planned",
+      "name": "Glow Surface",
+      "useCases": [
+        "Hero stat or key number that needs maximum visual emphasis",
+        "Call-to-action cards",
+        "Highlight cards in a grid (one card glows, others are flat)"
+      ],
+      "keywords": ["glow", "highlight", "emphasis", "hero", "cta", "pulse", "attention"],
+      "whenToUse": "A card/container needs to demand attention — animated glow border that pulses or shifts color.",
+      "whenNotToUse": "Subtle or secondary content (use glass or flat). Many cards in a grid (glow on ALL cards is visual noise — use glow selectively).",
+      "storyboardHint": "In scene detail, set: visual.surface = 'glow'.",
+      "exampleScenario": "Hero stat '$2.4 Trillion' in a glowing card that pulses — the single most important number in the video.",
+      "alternatives": ["glass", "elevated"],
+      "pairs": {
+        "atmospheres": ["aurora", "particles"],
+        "motions": ["counter-up", "scale-in"]
+      }
+    }
+  ]
+}

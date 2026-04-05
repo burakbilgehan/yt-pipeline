@@ -22,13 +22,24 @@ L1: DESIGN TOKENS       "Numeric values"           colors, typography, spacing, 
 
 These are non-negotiable. Every component in this system must follow them.
 
-1. **Remotion-native only.** Use `useCurrentFrame()`, `spring()`, `interpolate()`, `AbsoluteFill`, `Sequence`. No framer-motion, no GSAP, no anime.js.
-2. **No Tailwind, no `cn()` utility.** All styling via inline `style={{}}` objects. Remotion renders in a headless browser — CSS utility classes add complexity for zero benefit.
-3. **No external CSS files.** Everything self-contained in the component.
-4. **Pure functions where possible.** Motion primitives that don't need React state should be plain `(frame, config) => MotionResult` functions registered in the motion registry.
-5. **React components for visual layers.** Atmospheres (L2) and Surfaces (L4) are React components because they render DOM. Motion primitives (L3) can be either functions or components depending on complexity.
-6. **Spring physics over easing curves.** Prefer `spring()` for organic movement. Use `interpolate()` with easing only when spring is inappropriate (linear progress bars, etc.).
-7. **Mobile-first font sizes.** Minimum body text: 32px. Minimum heading: 48px. Hero numbers: 120px+. Viewers watch on phones.
+1. **Remotion-native animation.** Use `useCurrentFrame()`, `spring()`, `interpolate()`, `AbsoluteFill`, `Sequence` for animation. No framer-motion, no GSAP, no anime.js.
+2. **Tailwind CSS v4 + `cn()` for styling.** Use Tailwind utility classes and the `cn()` helper from `@/lib/utils` for all styling. Inline `style={{}}` is allowed only for dynamic/animated values (e.g., `transform`, `opacity` driven by `interpolate()`). Static layout, colors, spacing, typography → always Tailwind classes.
+3. **shadcn/ui components available.** Use shadcn/ui primitives (Card, Badge, Button, etc.) where appropriate. Add new ones via `npx shadcn add <component>`. Components live in `src/components/ui/`.
+4. **No external animation libraries.** No framer-motion, GSAP, anime.js, react-spring. Remotion's `spring()` + `interpolate()` are the only animation primitives.
+5. **Pure functions where possible.** Motion primitives that don't need React state should be plain `(frame, config) => MotionResult` functions registered in the motion registry.
+6. **React components for visual layers.** Atmospheres (L2) and Surfaces (L4) are React components because they render DOM. Motion primitives (L3) can be either functions or components depending on complexity.
+7. **Spring physics over easing curves.** Prefer `spring()` for organic movement. Use `interpolate()` with easing only when spring is inappropriate (linear progress bars, etc.).
+8. **Mobile-first font sizes.** Minimum body text: 32px. Minimum heading: 48px. Hero numbers: 120px+. Viewers watch on phones.
+
+### Styling Decision Tree
+
+```
+Is the value animated (changes per frame)?
+  YES → inline style={{ }} with interpolate()/spring()
+  NO  → Is it a standard layout/color/spacing/typography property?
+          YES → Tailwind class via cn()
+          NO  → inline style={{ }} (e.g., exotic CSS properties)
+```
 
 ## Layer Details
 
@@ -192,44 +203,108 @@ Existing showcases:
 ## File Map
 
 ```
-src/remotion/design-system/
-├── DESIGN-SYSTEM.md          ← This file (reference doc)
-├── types.ts                  ← L1-L5 TypeScript interfaces
-├── registry.ts               ← Runtime registries (register*/get*)
-├── index.ts                  ← Barrel exports
-├── atmospheres/
-│   └── index.ts              ← L2 exports + registrations
-├── motion/
-│   ├── index.ts              ← L3 exports + registrations
-│   ├── StaggerTextReveal.tsx ← Per-char/word spring reveal
-│   └── TextRotate.tsx        ← 3-phase text cycling
-├── surfaces/
-│   └── index.ts              ← L4 exports + registrations
-└── showcase/
-    └── TextMotionShowcase.tsx ← DS-TextMotion demo composition
+src/
+├── remotion/
+│   ├── styles.css                ← Tailwind v4 + shadcn theme variables
+│   ├── webpack-override.ts       ← Shared webpack override (enables Tailwind)
+│   └── design-system/
+│       ├── DESIGN-SYSTEM.md      ← This file (reference doc)
+│       ├── types.ts              ← L1-L5 TypeScript interfaces
+│       ├── registry.ts           ← Runtime registries (register*/get*)
+│       ├── index.ts              ← Barrel exports
+│       ├── atmospheres/
+│       │   └── index.ts          ← L2 exports + registrations
+│       ├── motion/
+│       │   ├── index.ts          ← L3 exports + registrations
+│       │   ├── StaggerTextReveal.tsx
+│       │   └── TextRotate.tsx
+│       ├── surfaces/
+│       │   └── index.ts          ← L4 exports + registrations
+│       └── showcase/
+│           └── TextMotionShowcase.tsx
+├── components/
+│   └── ui/                       ← shadcn/ui components (added via `npx shadcn add`)
+├── lib/
+│   └── utils.ts                  ← cn() helper (clsx + tailwind-merge)
 ```
+
+### Infrastructure Files (outside design-system)
+
+| File | Purpose |
+|------|---------|
+| `remotion.config.ts` | CLI webpack override for Tailwind v4 |
+| `components.json` | shadcn CLI configuration |
+| `src/remotion/webpack-override.ts` | Shared `enableTailwind()` for CLI + Node.js API |
+| `src/remotion/styles.css` | Tailwind import + shadcn CSS variables (dark theme default) |
+| `src/lib/utils.ts` | `cn()` utility — `twMerge(clsx(...))` |
 
 Future directories (create when needed):
 - `blocks/` — composed primitives (molecule level)
 - `templates/` — scene-level defaults (organism level)
 
+## Component Catalog
+
+The machine-readable catalog is at `component-catalog.json` (same directory). It maps every DS primitive to:
+
+- **useCases** — when this component is the right choice
+- **keywords** — semantic tags for matching visual needs to components
+- **whenToUse / whenNotToUse** — decision guidance
+- **storyboardHint** — exact fields the storyboard agent should set
+- **pairs** — which surfaces/atmospheres/motions work well together
+- **alternatives** — what to use instead if this doesn't fit
+
+**Agents must read `component-catalog.json` when:**
+- Storyboard agent is assigning visuals to scenes
+- Production agent is resolving storyboard hints to actual implementations
+- Critic is verifying component choices make sense for the scene context
+
+## Quick Decision Guide
+
+### "I need text to appear" → Which motion?
+
+| Situation | Use | Not |
+|-----------|-----|-----|
+| Title/heading enters dramatically | `stagger-text-reveal` | |
+| Text cycles through multiple values | `text-rotate` | `stagger-text-reveal` |
+| Number counts up smoothly | `counter-up` | `text-rotate` |
+| Subtle label or caption fades in | `blur-fade-in` | `stagger-text-reveal` |
+
+### "I need a container" → Which surface?
+
+| Situation | Use | Not |
+|-----------|-----|-----|
+| Card floating over atmospheric bg | `glass` | `flat` |
+| Clean data table, max readability | `flat` | `glass` |
+| Hero stat demanding attention | `glow` | `flat` |
+| Soft transparent card, vintage feel | `frosted` | `glow` |
+
+### "I need a background" → Which atmosphere?
+
+| Situation | Use | Not |
+|-----------|-----|-----|
+| Data/analytical scene | `dot-grid` | `aurora` |
+| Cinematic/emotional scene | `film-grain` | `dot-grid` |
+| Futuristic/techy scene | `particles` | `film-grain` |
+| Dramatic hero moment | `aurora` | `dot-grid` |
+| Stock footage background | `none` | anything (it competes) |
+
 ## Current Inventory
 
 ### Implemented
-| Layer | ID | Component/File | Status |
-|-------|----|---------------|--------|
-| L3 Motion | `stagger-text-reveal` | `StaggerTextReveal.tsx` | Done, showcased |
-| L3 Motion | `text-rotate` | `TextRotate.tsx` | Done, showcased |
+| Layer | ID | File | Use When |
+|-------|----|------|----------|
+| L3 Motion | `stagger-text-reveal` | `StaggerTextReveal.tsx` | Text appearing for the first time — character/word entrance |
+| L3 Motion | `text-rotate` | `TextRotate.tsx` | Multiple values cycling in same position — before/after, progression |
 
 ### Planned (not yet implemented)
-| Layer | ID | Notes |
-|-------|----|-------|
-| L2 Atmosphere | `dot-grid` | Common in data/explainer videos |
-| L2 Atmosphere | `film-grain` | Cinematic texture |
-| L2 Atmosphere | `particles` | Floating ambient particles |
-| L4 Surface | `glass` | Glassmorphism card (blur + transparency) |
-| L4 Surface | `flat` | Clean flat card with subtle border |
-| L4 Surface | `glow` | Card with animated glow border |
-| L3 Motion | `counter-up` | Animated number counting |
-| L3 Motion | `bar-grow` | Horizontal/vertical bar animation |
-| L3 Motion | `blur-fade-in` | Blur → sharp reveal |
+| Layer | ID | Use When |
+|-------|----|----------|
+| L2 Atmosphere | `dot-grid` | Data/analytical scene backgrounds |
+| L2 Atmosphere | `film-grain` | Cinematic/documentary texture |
+| L2 Atmosphere | `particles` | Futuristic/ambient floating particles |
+| L4 Surface | `glass` | Semi-transparent cards over atmospheric backgrounds |
+| L4 Surface | `flat` | Clean opaque cards for maximum readability |
+| L4 Surface | `glow` | Hero stats or CTAs that need maximum emphasis |
+| L3 Motion | `counter-up` | Numeric values animating from 0 to target |
+| L3 Motion | `bar-grow` | Bar charts / progress bars filling up |
+| L3 Motion | `blur-fade-in` | Subtle content entrance — blur to sharp |

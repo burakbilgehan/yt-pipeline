@@ -8,9 +8,13 @@
  * See: https://www.remotion.dev/docs/config
  */
 import { Config } from "@remotion/cli/config";
+import { webpackOverride } from "./src/remotion/webpack-override";
 
 // ── Entry point ──
 Config.setEntryPoint("./src/remotion/index.ts");
+
+// ── Webpack (Tailwind CSS v4) ──
+Config.overrideWebpackConfig(webpackOverride);
 
 // ── Performance ──
 // Default concurrency for CLI renders. Use --concurrency=N to override.

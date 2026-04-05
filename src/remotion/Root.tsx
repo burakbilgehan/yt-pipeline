@@ -1,5 +1,6 @@
 import React from "react";
 import { Composition, staticFile } from "remotion";
+import "./styles.css";
 import { videoCompositionSchema, dataChartCompositionSchema, shortsCompositionSchema, horseRaceCompositionSchema, thumbnailCompositionSchema, thumbnailOverlayCompositionSchema } from "./schemas";
 import { customVideoCompositionSchema } from "./compositions/CustomVideoComposition";
 import { ensureFontsLoaded } from "../fonts/load-fonts";

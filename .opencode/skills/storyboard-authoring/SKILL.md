@@ -73,10 +73,91 @@ channels/<channel>/videos/<slug>/storyboard/
     "description": "Full detailed description...",
     "searchQuery": "tired commuters morning subway",
     "textOverlay": null,
-    "dataVisualization": null
+    "dataVisualization": null,
+    "motion": null,
+    "motionConfig": {},
+    "surface": null,
+    "surfaceConfig": {},
+    "atmosphere": null,
+    "atmosphereConfig": {}
   },
   "transition": "cut",
   "notes": "Production notes, aiImagePrompt, verify flags"
+}
+```
+
+### Design System Hints (visual.motion, visual.surface, visual.atmosphere)
+
+Every scene detail can specify DS primitives for the production agent to use. **These fields are optional** — omit them when a scene uses stock footage with no overlay animation. But when a scene involves text animation, styled containers, or custom backgrounds, these hints are how you tell the production agent WHAT to use.
+
+**Before assigning DS primitives, read `src/remotion/design-system/component-catalog.json`.** It contains:
+- Every available primitive with `useCases`, `whenToUse`, `whenNotToUse`
+- `keywords` for matching visual needs to components
+- `pairs` showing which components work well together
+- `storyboardHint` with exact field instructions
+
+| Field | Layer | What it controls | Example value |
+|-------|-------|-----------------|---------------|
+| `visual.motion` | L3 | How content animates | `"stagger-text-reveal"`, `"text-rotate"`, `"counter-up"` |
+| `visual.motionConfig` | L3 | Motion parameters | `{ "splitBy": "words", "staggerFrom": "center" }` |
+| `visual.surface` | L4 | Container treatment | `"glass"`, `"flat"`, `"glow"` |
+| `visual.surfaceConfig` | L4 | Surface parameters | `{ "blur": 12, "opacity": 0.15 }` |
+| `visual.atmosphere` | L2 | Background layer | `"dot-grid"`, `"film-grain"`, `"aurora"` |
+| `visual.atmosphereConfig` | L2 | Atmosphere parameters | `{ "opacity": 0.3, "speed": 1 }` |
+
+**Rules:**
+1. Only reference IDs that exist in `component-catalog.json`. If a visual need has no matching component, add a note: `"notes": "NEEDS DS COMPONENT: animated pie chart"`.
+2. Check `status` field in catalog — if `"planned"` (not yet implemented), still assign the hint but add a note that production may need to implement it or fall back.
+3. Use `pairs` from the catalog to pick complementary combinations (e.g., `glass` surface + `dot-grid` atmosphere).
+4. Not every scene needs all three layers. Stock footage scenes typically only need `motion` (for text overlay animation) and skip `surface`/`atmosphere`.
+
+**Example — text cycling scene:**
+```json
+{
+  "id": "scene-005",
+  "visual": {
+    "type": "text-overlay",
+    "description": "Average salary cycles through decades: $52K → $65K → $78K",
+    "textOverlay": "Average salary:",
+    "motion": "text-rotate",
+    "motionConfig": {
+      "texts": ["$52,000", "$65,000", "$78,000"],
+      "splitBy": "characters"
+    },
+    "surface": "glass",
+    "atmosphere": "dot-grid"
+  }
+}
+```
+
+**Example — hero stat scene:**
+```json
+{
+  "id": "scene-012",
+  "visual": {
+    "type": "text-overlay",
+    "description": "Big reveal: $2.4 Trillion counts up with glowing card",
+    "textOverlay": "$2.4 Trillion",
+    "motion": "counter-up",
+    "motionConfig": { "from": 0, "to": 2400000000000, "prefix": "$", "format": "compact" },
+    "surface": "glow",
+    "atmosphere": "aurora"
+  }
+}
+```
+
+**Example — stock footage with animated title:**
+```json
+{
+  "id": "scene-002",
+  "visual": {
+    "type": "stock-video",
+    "description": "City skyline timelapse with title overlay",
+    "searchQuery": "city skyline timelapse evening",
+    "textOverlay": "The Hidden Cost",
+    "motion": "stagger-text-reveal",
+    "motionConfig": { "splitBy": "words", "staggerFrom": "first" }
+  }
 }
 ```
 
