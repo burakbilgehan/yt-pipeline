@@ -10,6 +10,7 @@ AI-powered video production pipeline — from research to publishing.
 - **Never auto-chain** pipeline stages — wait for explicit user approval.
 - **Config over hardcoding.** If a value exists in config, use it. Fall back to `pipeline-defaults.json`.
 - **`status: cancelled` = dead.** Skip in all operations.
+- **External components NEVER go to `src/components/ui/`.** That directory is exclusively for shadcn CLI (`npx shadcn add`). When a user pastes external component code or shares a reference link, it MUST go through the 4-step External Component Intake gate (Decompose → Adapt → Register → Showcase) into `src/remotion/design-system/<layer>/`. Never install external animation runtimes (`framer-motion`, `motion`, `gsap`, `anime.js`, `react-spring`). Always adapt to Remotion's frame-deterministic API. See `DESIGN-SYSTEM.md → External Component Intake`.
 
 ## Source of Truth: `.ai/`
 

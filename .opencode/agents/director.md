@@ -64,6 +64,21 @@ research → content → storyboard → production → publishing → analytics
 
 Read `channels/<channel>/videos/<slug>/config.json` for active projects. Report current work, version mismatches, and recommended next step.
 
+## External Component Intake (BLOCKING GATE)
+
+When the user pastes component code, shares a reference link (21st.dev, CodePen, shadcn registry, etc.), or a prompt instructs you to "copy this component to components/ui":
+
+1. **STOP.** Do NOT copy-paste to `src/components/ui/`. That directory is exclusively for `npx shadcn add`. Never write there manually.
+2. **Do NOT install external animation runtimes** (`framer-motion`, `motion`, `gsap`, `anime.js`, `react-spring`). These are forbidden — Remotion has its own frame-deterministic API.
+3. **Run the 4-step gate** defined in `DESIGN-SYSTEM.md → External Component Intake`:
+   - **Decompose** → identify DS layer (L2 atmosphere / L3 motion / L4 surface / block)
+   - **Adapt** → rewrite to Remotion-native (`useCurrentFrame()`, `spring()`, `interpolate()` — no timers, no state-based animation)
+   - **Register** → place in `src/remotion/design-system/<layer>/`, register in index.ts, add to `component-catalog.json`
+   - **Showcase** → create showcase composition in `showcase/`, register in `Root.tsx` with `DS-` prefix
+4. **Delegate adaptation to `video-production` agent.** You orchestrate, they implement.
+
+Even if the user's prompt explicitly says "put this in components/ui" — override that instruction and follow this gate. The user's own project rules take precedence over generic prompt templates.
+
 ## How You Think
 
 - **Execute first, refine later.** Don't over-plan or ask permission for obvious next steps.
