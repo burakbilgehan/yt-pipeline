@@ -15,16 +15,22 @@
         "Dramatic character-by-character or word-by-word text entrance",
         "Quote or statement reveal with emphasis"
       ],
-      "keywords": ["text-entrance", "reveal", "appear", "title-card", "character-animation", "word-animation"],
+      "keywords": [
+        "text-entrance",
+        "reveal",
+        "appear",
+        "title-card",
+        "character-animation",
+        "word-animation"
+      ],
       "whenToUse": "A piece of text needs to appear on screen with animation. Each character or word springs in sequentially.",
       "whenNotToUse": "Text that needs to CHANGE to different text (use text-rotate instead). Text that should just fade in without per-character animation (use blur-fade-in).",
       "storyboardHint": "In scene detail, set: visual.motion = 'stagger-text-reveal'. Configure with visual.motionConfig.splitBy ('characters' | 'words') and visual.motionConfig.staggerFrom ('first' | 'last' | 'center').",
       "exampleScenario": "Hook scene title 'The $40 Billion Question' appears word by word from center outward.",
-      "alternatives": ["blur-fade-in", "slide-up"],
-      "pairs": {
-        "surfaces": ["glass", "flat"],
-        "atmospheres": ["dot-grid", "aurora"]
-      }
+      "alternatives": [
+        "blur-fade-in",
+        "slide-up"
+      ]
     },
     {
       "id": "text-rotate",
@@ -39,16 +45,23 @@
         "Showing evolution or progression through text replacement",
         "Countdown or list items rotating in place"
       ],
-      "keywords": ["text-change", "text-cycle", "rotate", "swap", "replace", "before-after", "comparison", "evolve"],
+      "keywords": [
+        "text-change",
+        "text-cycle",
+        "rotate",
+        "swap",
+        "replace",
+        "before-after",
+        "comparison",
+        "evolve"
+      ],
       "whenToUse": "Multiple text values need to appear sequentially in the SAME position. The text exits, container resizes, new text enters — a 3-phase cycle.",
       "whenNotToUse": "Text appearing once and staying (use stagger-text-reveal). A number counting up smoothly (use counter-up). Two texts shown side by side (use comparison layout, not rotation).",
       "storyboardHint": "In scene detail, set: visual.motion = 'text-rotate'. Provide visual.motionConfig.texts = ['value1', 'value2', ...] for the rotation sequence.",
       "exampleScenario": "Scene shows 'Average salary: $X' where X rotates through '$52K → $65K → $78K' to show progression over decades.",
-      "alternatives": ["counter-up"],
-      "pairs": {
-        "surfaces": ["glass", "flat", "glow"],
-        "atmospheres": ["dot-grid", "film-grain"]
-      }
+      "alternatives": [
+        "counter-up"
+      ]
     },
     {
       "id": "container-text-flip",
@@ -62,16 +75,23 @@
         "Hero text with rotating keywords and blur entrance",
         "Container that auto-sizes with a pill background"
       ],
-      "keywords": ["blur", "fade", "flip", "cycle", "word-rotate", "pill", "container-resize"],
+      "keywords": [
+        "blur",
+        "fade",
+        "flip",
+        "cycle",
+        "word-rotate",
+        "pill",
+        "container-resize"
+      ],
       "whenToUse": "Multiple words need to cycle in place with a soft blur-fade transition. Softer feel than text-rotate's slide animation. Optional pill/badge background.",
       "whenNotToUse": "When you need dramatic slide-in motion (use text-rotate). Single text entrance (use stagger-text-reveal). Just blur fade without cycling (use blur-fade-in).",
       "storyboardHint": "In scene detail, set: visual.motion = 'container-text-flip'. Provide visual.motionConfig.texts = ['word1', 'word2', ...]. Optional visual.motionConfig.showPill = true for badge style.",
       "exampleScenario": "Hero scene: 'Make your code [better/modern/beautiful/awesome]' with words cycling in a soft blur-fade inside a gradient pill.",
-      "alternatives": ["text-rotate", "stagger-text-reveal"],
-      "pairs": {
-        "surfaces": ["glass", "flat", "glow"],
-        "atmospheres": ["aurora", "dot-grid"]
-      }
+      "alternatives": [
+        "text-rotate",
+        "stagger-text-reveal"
+      ]
     },
     {
       "id": "counter-up",
@@ -85,16 +105,22 @@
         "Percentage animations (0% → 85%)",
         "Statistics reveal with smooth number interpolation"
       ],
-      "keywords": ["number", "count", "stat", "metric", "percentage", "amount", "value-reveal"],
+      "keywords": [
+        "number",
+        "count",
+        "stat",
+        "metric",
+        "percentage",
+        "amount",
+        "value-reveal"
+      ],
       "whenToUse": "A single numeric value needs to animate from one number to another smoothly. The number itself is the visual focus.",
       "whenNotToUse": "Text changing to different text (use text-rotate). Multiple numbers shown as a list (use stagger-text-reveal for the list, counter-up for individual numbers).",
       "storyboardHint": "In scene detail, set: visual.motion = 'counter-up'. Provide visual.motionConfig.from and visual.motionConfig.to numbers, optional visual.motionConfig.prefix ('$') and visual.motionConfig.suffix ('%').",
       "exampleScenario": "Big stat scene: '$0' counts up to '$2.4 Trillion' with a prefix dollar sign.",
-      "alternatives": ["text-rotate"],
-      "pairs": {
-        "surfaces": ["glass", "glow"],
-        "atmospheres": ["particles", "aurora"]
-      }
+      "alternatives": [
+        "text-rotate"
+      ]
     },
     {
       "id": "bar-grow",
@@ -108,16 +134,20 @@
         "Progress bar filling up",
         "Bar chart bars growing in"
       ],
-      "keywords": ["bar", "chart", "grow", "progress", "fill", "horizontal-bar", "vertical-bar"],
+      "keywords": [
+        "bar",
+        "chart",
+        "grow",
+        "progress",
+        "fill",
+        "horizontal-bar",
+        "vertical-bar"
+      ],
       "whenToUse": "A rectangular bar shape needs to animate from empty to its target size. Used inside data visualizations or as standalone progress indicators.",
       "whenNotToUse": "Pie/donut charts (different primitive). Line charts (different primitive). Just a number changing (use counter-up).",
       "storyboardHint": "In scene detail, set: visual.motion = 'bar-grow'. Provide visual.motionConfig.direction ('horizontal' | 'vertical').",
       "exampleScenario": "Comparison bars for 'US vs EU spending' grow from left to right, staggered.",
-      "alternatives": [],
-      "pairs": {
-        "surfaces": ["flat", "elevated"],
-        "atmospheres": ["dot-grid"]
-      }
+      "alternatives": []
     },
     {
       "id": "blur-fade-in",
@@ -131,16 +161,22 @@
         "Background element appearing without drawing too much attention",
         "Secondary text or labels fading in"
       ],
-      "keywords": ["blur", "fade", "subtle", "entrance", "soft-reveal", "background-text"],
+      "keywords": [
+        "blur",
+        "fade",
+        "subtle",
+        "entrance",
+        "soft-reveal",
+        "background-text"
+      ],
       "whenToUse": "Content should appear subtly, going from blurry+transparent to clear. Less dramatic than stagger-text-reveal.",
       "whenNotToUse": "Hero text that needs dramatic entrance (use stagger-text-reveal). Text that cycles through values (use text-rotate).",
       "storyboardHint": "In scene detail, set: visual.motion = 'blur-fade-in'.",
       "exampleScenario": "Source citation text fades in at bottom of screen during a data scene.",
-      "alternatives": ["stagger-text-reveal", "slide-up"],
-      "pairs": {
-        "surfaces": ["glass", "frosted"],
-        "atmospheres": ["film-grain"]
-      }
+      "alternatives": [
+        "stagger-text-reveal",
+        "slide-up"
+      ]
     },
     {
       "id": "dot-grid",
@@ -153,16 +189,23 @@
         "Data-focused or analytical scenes — gives a technical, clean feel",
         "Explainer scenes where the visual is mostly text/charts"
       ],
-      "keywords": ["grid", "dots", "technical", "data", "analytical", "clean", "minimal"],
+      "keywords": [
+        "grid",
+        "dots",
+        "technical",
+        "data",
+        "analytical",
+        "clean",
+        "minimal"
+      ],
       "whenToUse": "Scene has a data/analytical tone. Works well behind charts, metrics, or comparison layouts.",
       "whenNotToUse": "Cinematic/emotional scenes (use aurora or particles). Scenes with busy stock footage behind (atmosphere competes with video).",
       "storyboardHint": "In scene detail, set: visual.atmosphere = 'dot-grid'.",
       "exampleScenario": "Background for a bar chart comparison scene — subtle animated dots behind the chart.",
-      "alternatives": ["film-grain", "none"],
-      "pairs": {
-        "surfaces": ["glass", "flat"],
-        "motions": ["counter-up", "bar-grow", "stagger-text-reveal"]
-      }
+      "alternatives": [
+        "film-grain",
+        "none"
+      ]
     },
     {
       "id": "film-grain",
@@ -176,16 +219,23 @@
         "Historical content — adds a vintage/archival feel",
         "Narrative-heavy scenes where mood matters"
       ],
-      "keywords": ["grain", "cinematic", "film", "vintage", "documentary", "texture", "mood"],
+      "keywords": [
+        "grain",
+        "cinematic",
+        "film",
+        "vintage",
+        "documentary",
+        "texture",
+        "mood"
+      ],
       "whenToUse": "Scene needs a cinematic, textured feel. Great for narrative sections, historical context, or emotional moments.",
       "whenNotToUse": "Clean data visualization scenes (use dot-grid). Bright/modern/techy aesthetic (use particles).",
       "storyboardHint": "In scene detail, set: visual.atmosphere = 'film-grain'.",
       "exampleScenario": "Historical context scene about 1970s economic policy — film grain adds era-appropriate texture.",
-      "alternatives": ["dot-grid", "none"],
-      "pairs": {
-        "surfaces": ["frosted", "glass"],
-        "motions": ["stagger-text-reveal", "blur-fade-in"]
-      }
+      "alternatives": [
+        "dot-grid",
+        "none"
+      ]
     },
     {
       "id": "glass",
@@ -199,16 +249,23 @@
         "Data cards, stat boxes, comparison panels",
         "Any container that should feel modern and semi-transparent"
       ],
-      "keywords": ["glass", "blur", "transparent", "card", "container", "modern", "glassmorphism"],
+      "keywords": [
+        "glass",
+        "blur",
+        "transparent",
+        "card",
+        "container",
+        "modern",
+        "glassmorphism"
+      ],
       "whenToUse": "A container/card needs to feel like frosted glass floating over the background. Content inside should be readable against the blurred backdrop.",
       "whenNotToUse": "Fully opaque cards with no transparency (use flat). Cards that need to glow/pulse for emphasis (use glow).",
       "storyboardHint": "In scene detail, set: visual.surface = 'glass'.",
       "exampleScenario": "Stat card showing '$2.4T' floats over an aurora atmosphere with glassmorphic background.",
-      "alternatives": ["flat", "frosted"],
-      "pairs": {
-        "atmospheres": ["aurora", "particles", "dot-grid"],
-        "motions": ["counter-up", "stagger-text-reveal"]
-      }
+      "alternatives": [
+        "flat",
+        "frosted"
+      ]
     },
     {
       "id": "flat",
@@ -222,16 +279,22 @@
         "Data tables, comparison grids",
         "When background atmosphere should not show through the card"
       ],
-      "keywords": ["flat", "solid", "clean", "minimal", "opaque", "card"],
+      "keywords": [
+        "flat",
+        "solid",
+        "clean",
+        "minimal",
+        "opaque",
+        "card"
+      ],
       "whenToUse": "Container should be clean and opaque — content readability is the priority, not visual flair.",
       "whenNotToUse": "When background atmosphere should show through (use glass or frosted).",
       "storyboardHint": "In scene detail, set: visual.surface = 'flat'.",
       "exampleScenario": "Comparison table with two columns — solid dark cards with white text, no transparency.",
-      "alternatives": ["glass", "elevated"],
-      "pairs": {
-        "atmospheres": ["dot-grid", "none"],
-        "motions": ["bar-grow", "stagger-text-reveal"]
-      }
+      "alternatives": [
+        "glass",
+        "elevated"
+      ]
     },
     {
       "id": "glow",
@@ -245,18 +308,24 @@
         "Call-to-action cards",
         "Highlight cards in a grid (one card glows, others are flat)"
       ],
-      "keywords": ["glow", "highlight", "emphasis", "hero", "cta", "pulse", "attention"],
+      "keywords": [
+        "glow",
+        "highlight",
+        "emphasis",
+        "hero",
+        "cta",
+        "pulse",
+        "attention"
+      ],
       "whenToUse": "A card/container needs to demand attention — animated glow border that pulses or shifts color.",
       "whenNotToUse": "Subtle or secondary content (use glass or flat). Many cards in a grid (glow on ALL cards is visual noise — use glow selectively).",
       "storyboardHint": "In scene detail, set: visual.surface = 'glow'.",
       "exampleScenario": "Hero stat '$2.4 Trillion' in a glowing card that pulses — the single most important number in the video.",
-      "alternatives": ["glass", "elevated"],
-      "pairs": {
-        "atmospheres": ["aurora", "particles"],
-        "motions": ["counter-up", "scale-in"]
-      }
+      "alternatives": [
+        "glass",
+        "elevated"
+      ]
     },
-
     {
       "id": "bar-chart",
       "layer": "L5",
@@ -269,17 +338,24 @@
         "Ranked data with visual bar lengths",
         "Side-by-side category comparison with staggered animation"
       ],
-      "keywords": ["bar", "chart", "comparison", "quantity", "category", "vertical-bar", "horizontal-bar", "ranking"],
+      "keywords": [
+        "bar",
+        "chart",
+        "comparison",
+        "quantity",
+        "category",
+        "vertical-bar",
+        "horizontal-bar",
+        "ranking"
+      ],
       "whenToUse": "When comparing discrete categories by a numeric value. Supports both horizontal (default) and vertical orientation.",
       "whenNotToUse": "When showing trends over time (use line-chart). When showing proportions of a whole (use pie-chart). When comparing exactly 2 entities head-to-head (use comparison-table).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'bar-chart'. Provide items: [{label, value}]. Optional: orientation = 'vertical' | 'horizontal', colors array, unit prefix.",
       "exampleScenario": "5 countries' average salaries as horizontal bars, growing left to right with staggered springs.",
-      "alternatives": ["horizontal-bar-chart", "comparison-table"],
-      "pairs": {
-        "surfaces": ["flat", "glass"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["bar-grow", "counter-up"]
-      }
+      "alternatives": [
+        "horizontal-bar-chart",
+        "comparison-table"
+      ]
     },
     {
       "id": "horizontal-bar-chart",
@@ -293,17 +369,23 @@
         "Gradient-colored ranking bars (green-to-red spectrum)",
         "Re-sort animation showing ranking changes between metrics"
       ],
-      "keywords": ["horizontal", "bar", "chart", "ranking", "gradient", "country", "stagger", "re-sort"],
+      "keywords": [
+        "horizontal",
+        "bar",
+        "chart",
+        "ranking",
+        "gradient",
+        "country",
+        "stagger",
+        "re-sort"
+      ],
       "whenToUse": "When you need dedicated horizontal bars with gradient coloring, displayValue formatting, and optional re-sort animation. More specialized than BarChart.",
       "whenNotToUse": "Simple bar comparisons without gradient or re-sort (use bar-chart). Vertical bars (use bar-chart with orientation='vertical').",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'horizontal-bar-chart'. Provide bars: [{label, code, value, displayValue}]. Optional: gradientColors, animation.",
       "exampleScenario": "10 countries ranked by nominal salary with green→red gradient bars, then re-sorting by PPP-adjusted values.",
-      "alternatives": ["bar-chart"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["bar-grow"]
-      }
+      "alternatives": [
+        "bar-chart"
+      ]
     },
     {
       "id": "line-chart",
@@ -317,17 +399,24 @@
         "Continuous data with labeled X-axis points",
         "Area-under-curve visualization with subtle fill"
       ],
-      "keywords": ["line", "chart", "trend", "time-series", "area", "progress", "continuous", "SVG"],
+      "keywords": [
+        "line",
+        "chart",
+        "trend",
+        "time-series",
+        "area",
+        "progress",
+        "continuous",
+        "SVG"
+      ],
       "whenToUse": "When showing continuous data trends over time. Line draws progressively with spring physics, points appear staggered.",
       "whenNotToUse": "When comparing discrete categories (use bar-chart). When showing proportions (use pie-chart). When needing multi-series racing animation (use horse-race-chart).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'line-chart'. Provide items: [{label, value}] as time-ordered points. Optional: colors[0] for line color, unit.",
       "exampleScenario": "CPI inflation trend 2000–2025 drawn as a line with subtle area fill underneath.",
-      "alternatives": ["horse-race-chart", "timeline-chart"],
-      "pairs": {
-        "surfaces": ["flat", "glass"],
-        "atmospheres": ["dot-grid", "film-grain"],
-        "motions": ["counter-up"]
-      }
+      "alternatives": [
+        "horse-race-chart",
+        "timeline-chart"
+      ]
     },
     {
       "id": "pie-chart",
@@ -341,17 +430,24 @@
         "Donut chart with animated segment sweep",
         "Category distribution with legend"
       ],
-      "keywords": ["pie", "donut", "chart", "proportion", "percentage", "distribution", "segment", "sweep"],
+      "keywords": [
+        "pie",
+        "donut",
+        "chart",
+        "proportion",
+        "percentage",
+        "distribution",
+        "segment",
+        "sweep"
+      ],
       "whenToUse": "When showing how parts make up a whole. Segments sweep in clockwise with staggered spring animation. Renders as donut (55% inner radius).",
       "whenNotToUse": "When comparing absolute values (use bar-chart). When there are more than 8 categories (too many slices). When showing time-based data (use line-chart).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'pie-chart'. Provide items: [{label, value}]. Optional: colors array, title.",
       "exampleScenario": "Government spending breakdown: Defense 25%, Healthcare 30%, Education 20%, Other 25% — donut with legend.",
-      "alternatives": ["progress-ring", "bar-chart"],
-      "pairs": {
-        "surfaces": ["glass"],
-        "atmospheres": ["dot-grid", "film-grain"],
-        "motions": ["counter-up"]
-      }
+      "alternatives": [
+        "progress-ring",
+        "bar-chart"
+      ]
     },
     {
       "id": "counter",
@@ -365,17 +461,24 @@
         "Big number with optional breakdown bars below",
         "KPI display with contextual title and accent line"
       ],
-      "keywords": ["counter", "number", "stat", "metric", "hero", "big-number", "KPI", "breakdown"],
+      "keywords": [
+        "counter",
+        "number",
+        "stat",
+        "metric",
+        "hero",
+        "big-number",
+        "KPI",
+        "breakdown"
+      ],
       "whenToUse": "When a single large number is the visual focus. Counts from 0 to target with spring physics. Optional breakdown bars show composition.",
       "whenNotToUse": "When multiple metrics need equal weight (use comparison-table). When the number should cycle through values (use text-rotate).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'counter'. Provide counterValue, counterPrefix ('$'), counterSuffix ('%'). Optional: items for breakdown bars.",
       "exampleScenario": "Hero scene: '$2.4 Trillion' counts up from 0 with a pulse effect, followed by 3 breakdown bars.",
-      "alternatives": ["progress-ring", "metric-scene"],
-      "pairs": {
-        "surfaces": ["glass", "glow"],
-        "atmospheres": ["dot-grid", "film-grain"],
-        "motions": ["counter-up", "stagger-text-reveal"]
-      }
+      "alternatives": [
+        "progress-ring",
+        "metric-scene"
+      ]
     },
     {
       "id": "comparison-table",
@@ -389,17 +492,24 @@
         "Multi-metric duel comparison (butterfly chart with paired bars)",
         "Multi-item ranked comparison (3+ items: horizontal bar list)"
       ],
-      "keywords": ["comparison", "table", "versus", "tug-of-war", "duel", "butterfly", "head-to-head", "ranked"],
+      "keywords": [
+        "comparison",
+        "table",
+        "versus",
+        "tug-of-war",
+        "duel",
+        "butterfly",
+        "head-to-head",
+        "ranked"
+      ],
       "whenToUse": "When comparing entities. Auto-selects mode: 2 items = tug-of-war, 3+ items = horizontal bars, duel config = butterfly chart.",
       "whenNotToUse": "When showing time trends (use line-chart). When showing proportions (use pie-chart). Simple category bars without comparison context (use bar-chart).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'comparison-table'. For duel mode: provide duel: {left, right} + paired items. For tug-of-war: 2 items. For list: 3+ items.",
       "exampleScenario": "US vs EU butterfly chart comparing GDP, Population, Military spending — bars grow from center outward.",
-      "alternatives": ["bar-chart", "split-comparison"],
-      "pairs": {
-        "surfaces": ["flat", "glass"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["bar-grow", "counter-up"]
-      }
+      "alternatives": [
+        "bar-chart",
+        "split-comparison"
+      ]
     },
     {
       "id": "timeline-chart",
@@ -413,17 +523,22 @@
         "Historical milestones with values at each marker",
         "Policy timeline with alternating top/bottom labels"
       ],
-      "keywords": ["timeline", "chronology", "milestones", "history", "events", "markers", "horizontal"],
+      "keywords": [
+        "timeline",
+        "chronology",
+        "milestones",
+        "history",
+        "events",
+        "markers",
+        "horizontal"
+      ],
       "whenToUse": "When showing events or values at specific points in time on a horizontal axis. Markers alternate above/below the line with staggered entrance.",
       "whenNotToUse": "When showing continuous data trends (use line-chart). When comparing categories without time (use bar-chart).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'timeline'. Provide items: [{label, value}] in chronological order. Optional: unit, colors.",
       "exampleScenario": "Key economic policy events 1970–2020 — markers along a timeline with values showing impact at each event.",
-      "alternatives": ["line-chart"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid", "film-grain"],
-        "motions": ["stagger-text-reveal"]
-      }
+      "alternatives": [
+        "line-chart"
+      ]
     },
     {
       "id": "scale-comparison",
@@ -437,17 +552,23 @@
         "Dramatic 'drop vs gallon' or 'Earth vs Jupiter' comparisons",
         "Making abstract numbers tangible through area-proportional shapes"
       ],
-      "keywords": ["scale", "size", "comparison", "circle", "proportional", "magnitude", "visual-metaphor"],
+      "keywords": [
+        "scale",
+        "size",
+        "comparison",
+        "circle",
+        "proportional",
+        "magnitude",
+        "visual-metaphor"
+      ],
       "whenToUse": "When the ratio between values is the key insight and circles make the difference visceral. Uses area-proportional (sqrt) sizing.",
       "whenNotToUse": "When exact values matter more than visual impact (use bar-chart). When there are many items (use bar-chart). When items are close in value (circles look similar).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'scale-comparison'. Provide items: [{label, value}]. Optional: colors, unit.",
       "exampleScenario": "US military budget ($800B) vs education budget ($80B) — two circles showing 10x scale difference.",
-      "alternatives": ["bar-chart", "counter"],
-      "pairs": {
-        "surfaces": ["glass"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["counter-up"]
-      }
+      "alternatives": [
+        "bar-chart",
+        "counter"
+      ]
     },
     {
       "id": "progress-ring",
@@ -461,17 +582,23 @@
         "Single KPI displayed as a circular gauge",
         "Goal progress visualization"
       ],
-      "keywords": ["progress", "ring", "circular", "gauge", "percentage", "donut", "KPI"],
+      "keywords": [
+        "progress",
+        "ring",
+        "circular",
+        "gauge",
+        "percentage",
+        "donut",
+        "KPI"
+      ],
       "whenToUse": "When showing a single percentage/progress value as a circular indicator. Ring fills with spring animation, counter in center.",
       "whenNotToUse": "When showing multiple categories (use pie-chart). When the value is not percentage-based (use counter). When comparing multiple metrics (use bar-chart).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'progress-ring'. Provide counterValue (0-100), counterSuffix ('%'). Optional: colors[0] for ring color.",
       "exampleScenario": "Employee satisfaction score: ring fills to 78% with the number counting up in the center.",
-      "alternatives": ["counter", "pie-chart"],
-      "pairs": {
-        "surfaces": ["glass", "glow"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["counter-up"]
-      }
+      "alternatives": [
+        "counter",
+        "pie-chart"
+      ]
     },
     {
       "id": "quadrant-scatter",
@@ -486,17 +613,24 @@
         "Spotlight/tooltip overlays on specific data points",
         "Progressive reveal of dots then labels"
       ],
-      "keywords": ["scatter", "quadrant", "2D", "matrix", "plot", "camera-zoom", "tooltip", "spotlight", "country-comparison"],
+      "keywords": [
+        "scatter",
+        "quadrant",
+        "2D",
+        "matrix",
+        "plot",
+        "camera-zoom",
+        "tooltip",
+        "spotlight",
+        "country-comparison"
+      ],
       "whenToUse": "When two dimensions define four meaningful quadrants and data points need to be plotted with rich interactivity (zoom, tooltips, connectors, annotations).",
       "whenNotToUse": "When data is 1-dimensional (use bar-chart). When there are fewer than 5 data points (overkill — use comparison-table). When axes don't form meaningful quadrants.",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'quadrant-scatter'. Provide points: [{label, x, y, quadrant}], xAxis, yAxis configs. Optional: cameraZoom, spotlights, tooltips, connectorLines.",
       "exampleScenario": "33 OECD countries plotted on Hours Worked vs Hourly Wage — camera zooms into 'Dream' quadrant to spotlight Nordic countries.",
-      "alternatives": ["comparison-table"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["blur-fade-in"]
-      }
+      "alternatives": [
+        "comparison-table"
+      ]
     },
     {
       "id": "horse-race-chart",
@@ -511,17 +645,23 @@
         "Event annotations as notification-stack overlays",
         "Shrinkflation markers on the timeline"
       ],
-      "keywords": ["horse-race", "race", "time-lapse", "multi-series", "animation", "year-counter", "sliding-window", "annotation"],
+      "keywords": [
+        "horse-race",
+        "race",
+        "time-lapse",
+        "multi-series",
+        "animation",
+        "year-counter",
+        "sliding-window",
+        "annotation"
+      ],
       "whenToUse": "When multiple time series need to 'race' against each other with a year counter. Supports log scale, Catmull-Rom splines, label collision avoidance, and event annotation stack.",
       "whenNotToUse": "When showing a single trend line (use line-chart). When data is not time-based (use bar-chart). When scene is under 5 seconds (too complex for short scenes).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'horse-race-chart'. Provide series: [{id, label, color, data: [{date, ratio}]}], timeRange, sceneYearRanges. Optional: annotations, shrinkflationMarkers, logScale.",
       "exampleScenario": "Gold vs S&P 500 vs Oil racing from 1970–2025 with sliding window, log scale, and crisis event annotations popping in.",
-      "alternatives": ["line-chart"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["film-grain"],
-        "motions": ["counter-up"]
-      }
+      "alternatives": [
+        "line-chart"
+      ]
     },
     {
       "id": "calendar-grid",
@@ -535,17 +675,23 @@
         "Calendar heatmap showing extra effort days",
         "Country comparison card alongside calendar visualization"
       ],
-      "keywords": ["calendar", "grid", "heatmap", "days", "year", "highlight", "working-days", "comparison-card"],
+      "keywords": [
+        "calendar",
+        "grid",
+        "heatmap",
+        "days",
+        "year",
+        "highlight",
+        "working-days",
+        "comparison-card"
+      ],
       "whenToUse": "When showing a proportion of days in a year visually. 12-month grid with highlighted cells that build progressively. Optional comparison card sidebar.",
       "whenNotToUse": "When comparing values numerically (use bar-chart). When showing time-series trends (use line-chart).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'calendar-grid'. Provide months, highlightedDays, highlightColor. Optional: labels, comparisonCard, connectorLabel.",
       "exampleScenario": "365-day calendar where the last 55 days glow red — representing extra working days needed for purchasing power parity.",
-      "alternatives": ["progress-ring"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["stagger-text-reveal"]
-      }
+      "alternatives": [
+        "progress-ring"
+      ]
     },
     {
       "id": "hook-scene",
@@ -559,17 +705,24 @@
         "Multi-phase hook with text → stock footage hard cuts",
         "Attention-grabbing intro with configurable phase timings"
       ],
-      "keywords": ["hook", "intro", "opening", "question", "attention", "clock", "stock-footage", "hard-cut"],
+      "keywords": [
+        "hook",
+        "intro",
+        "opening",
+        "question",
+        "attention",
+        "clock",
+        "stock-footage",
+        "hard-cut"
+      ],
       "whenToUse": "When the video needs a cinematic opening hook. Shows question text with animated clock, then hard-cuts through stock video clips.",
       "whenNotToUse": "When the hook needs data visualization (use hook-punchline). When the hook is purely text-based without footage (use title-card).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'hook-scene'. Provide questionText, slug, videos: {worldmap, whitecollar, factory}. Optional: phaseTimes for custom cuts.",
       "exampleScenario": "'What is one hour of your life worth?' text with ticking clock → world map footage → white-collar worker → factory worker.",
-      "alternatives": ["hook-punchline", "title-card"],
-      "pairs": {
-        "surfaces": [],
-        "atmospheres": [],
-        "motions": ["stagger-text-reveal"]
-      }
+      "alternatives": [
+        "hook-punchline",
+        "title-card"
+      ]
     },
     {
       "id": "title-card",
@@ -583,17 +736,22 @@
         "Concept introduction card (e.g. 'Purchasing Power Parity')",
         "Minimalist centered text with decorative accent line"
       ],
-      "keywords": ["title", "card", "section-header", "intro", "concept", "centered-text", "accent-line"],
+      "keywords": [
+        "title",
+        "card",
+        "section-header",
+        "intro",
+        "concept",
+        "centered-text",
+        "accent-line"
+      ],
       "whenToUse": "When a concept or section needs a clean, centered title reveal with optional subtitle and decorative line. Minimalist dark-cozy aesthetic.",
       "whenNotToUse": "When the title needs data visualization alongside it (use metric-scene). When it's a video hook (use hook-scene).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'title-card'. Provide title, subtitle. Optional: titleColor, subtitleColor, icon.",
       "exampleScenario": "'Purchasing Power Parity (PPP)' title springs in, accent line draws, subtitle '~3,000 goods tracked by OECD' fades in below.",
-      "alternatives": ["hook-scene"],
-      "pairs": {
-        "surfaces": [],
-        "atmospheres": ["film-grain"],
-        "motions": ["stagger-text-reveal", "blur-fade-in"]
-      }
+      "alternatives": [
+        "hook-scene"
+      ]
     },
     {
       "id": "metric-scene",
@@ -607,17 +765,24 @@
         "Before/after price comparison (e.g. 2000 vs 2025 wages)",
         "Formula explanation with sequential term reveals"
       ],
-      "keywords": ["metric", "split", "comparison", "formula", "before-after", "wages", "prices", "two-phase"],
+      "keywords": [
+        "metric",
+        "split",
+        "comparison",
+        "formula",
+        "before-after",
+        "wages",
+        "prices",
+        "two-phase"
+      ],
       "whenToUse": "When showing a before/after comparison followed by a formula explanation. Phase 1: split cards with counter animations. Phase 2: formula parts appear sequentially.",
       "whenNotToUse": "When only showing a formula without comparison (use composite-phases). When just comparing two entities without formula (use comparison-table).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'metric-scene'. Provide phase1: {left: {year, wage, product, price}, right: {...}}, phase2: {formulaParts: [...]}.",
       "exampleScenario": "2000 ($572/week, eggs $0.91) vs 2025 ($1,206/week, eggs $4.25) split card → 'Price Growth ÷ Wage Growth = RUPI' formula build.",
-      "alternatives": ["counter", "comparison-table"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["counter-up", "stagger-text-reveal"]
-      }
+      "alternatives": [
+        "counter",
+        "comparison-table"
+      ]
     },
     {
       "id": "split-comparison",
@@ -631,17 +796,23 @@
         "Grocery basket comparison (same items, different prices)",
         "Split-screen visual PPP explanation"
       ],
-      "keywords": ["split", "side-by-side", "grocery", "basket", "city", "prices", "itemized", "PPP"],
+      "keywords": [
+        "split",
+        "side-by-side",
+        "grocery",
+        "basket",
+        "city",
+        "prices",
+        "itemized",
+        "PPP"
+      ],
       "whenToUse": "When comparing two cities/countries with itemized price lists side by side. Items appear staggered with totals revealed at the end.",
       "whenNotToUse": "When comparing aggregate values (use comparison-table). When comparing more than 2 entities (use bar-chart).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'split-comparison'. Provide left/right: {city, country, items: [{name, price}], total}.",
       "exampleScenario": "Zurich vs Mexico City grocery basket — same items (milk, bread, eggs) with dramatically different prices.",
-      "alternatives": ["comparison-table"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["stagger-text-reveal"]
-      }
+      "alternatives": [
+        "comparison-table"
+      ]
     },
     {
       "id": "end-card-scene",
@@ -655,17 +826,23 @@
         "YouTube end screen with subscribe/next-video placeholders",
         "Channel watermark display"
       ],
-      "keywords": ["end-card", "outro", "fade-to-black", "subscribe", "end-screen", "watermark", "closing"],
+      "keywords": [
+        "end-card",
+        "outro",
+        "fade-to-black",
+        "subscribe",
+        "end-screen",
+        "watermark",
+        "closing"
+      ],
       "whenToUse": "When the video needs a final end card with YouTube end screen elements. Supports fade-to-black, final question text, and configurable end screen placements.",
       "whenNotToUse": "When the closing needs narrative text sequences (use closing-sequence). When closing involves chart + video + end card (use closing-scene).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'end-card'. Provide fadeToBlack: true, channelName. Optional: finalQuestion, youtubeEndScreen config.",
       "exampleScenario": "Final question 'What is your hour really worth?' fades in, holds, then fades to black with YouTube end screen overlay zone.",
-      "alternatives": ["closing-sequence", "closing-scene"],
-      "pairs": {
-        "surfaces": [],
-        "atmospheres": ["film-grain"],
-        "motions": ["blur-fade-in"]
-      }
+      "alternatives": [
+        "closing-sequence",
+        "closing-scene"
+      ]
     },
     {
       "id": "closing-scene",
@@ -679,17 +856,22 @@
         "Cinematic video ending with crossfade transitions",
         "Chart-to-footage-to-endscreen pipeline"
       ],
-      "keywords": ["closing", "multi-phase", "crossfade", "chart-to-video", "end-screen", "cinematic-ending"],
+      "keywords": [
+        "closing",
+        "multi-phase",
+        "crossfade",
+        "chart-to-video",
+        "end-screen",
+        "cinematic-ending"
+      ],
       "whenToUse": "When the video closing needs three sequential phases: data chart, stock footage, and end card — all with crossfade transitions.",
       "whenNotToUse": "When closing is simple text + fade (use closing-sequence or end-card-scene). When no stock footage is needed.",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'closing-scene'. Provide chartConfig, chartEndSec, videoSrc, videoStartSec, videoEndSec, endScreenStartSec, endScreenConfig.",
       "exampleScenario": "QuadrantScatter spotlight → earth-from-space footage → EndCardScene with subscribe overlay — smooth crossfades between phases.",
-      "alternatives": ["end-card-scene", "closing-sequence"],
-      "pairs": {
-        "surfaces": [],
-        "atmospheres": ["film-grain"],
-        "motions": ["blur-fade-in"]
-      }
+      "alternatives": [
+        "end-card-scene",
+        "closing-sequence"
+      ]
     },
     {
       "id": "closing-sequence",
@@ -703,17 +885,23 @@
         "Sequential text reveals with underline accents",
         "YouTube end screen safe-zone aware closing"
       ],
-      "keywords": ["closing", "sequence", "text-steps", "outro", "subscribe", "end-screen-safe", "underline"],
+      "keywords": [
+        "closing",
+        "sequence",
+        "text-steps",
+        "outro",
+        "subscribe",
+        "end-screen-safe",
+        "underline"
+      ],
       "whenToUse": "When the closing needs sequential text statements that build toward a final message. Text stays in upper 65% to avoid YouTube end screen zone.",
       "whenNotToUse": "When closing needs chart or stock footage (use closing-scene). When just a simple fade-to-black (use end-card-scene).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'closing-sequence'. Provide textSequence: [{text, weight?, size?, holdSec?, underlineColor?}]. Optional: channelName, showSubscribe.",
       "exampleScenario": "Step 1: 'It's not just about money.' → Step 2: 'It's about time.' → Step 3: 'Your time.' → Step 4: channel name + subscribe.",
-      "alternatives": ["end-card-scene", "closing-scene"],
-      "pairs": {
-        "surfaces": [],
-        "atmospheres": [],
-        "motions": ["stagger-text-reveal", "blur-fade-in"]
-      }
+      "alternatives": [
+        "end-card-scene",
+        "closing-scene"
+      ]
     },
     {
       "id": "hook-punchline",
@@ -727,17 +915,22 @@
         "Pattern interrupt: bars appear briefly, then blur + reveal question",
         "Provocative 'why doesn't it feel that way?' moment"
       ],
-      "keywords": ["hook", "punchline", "blur", "question", "pattern-interrupt", "above-below", "red-green"],
+      "keywords": [
+        "hook",
+        "punchline",
+        "blur",
+        "question",
+        "pattern-interrupt",
+        "above-below",
+        "red-green"
+      ],
       "whenToUse": "When the hook needs a quick data flash followed by a provocative question. Bars flash (red above / green below baseline), blur out, then question text fades in.",
       "whenNotToUse": "When the hook is purely text + footage (use hook-scene). When the hook needs sustained data visualization (use bar-chart).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'hook-punchline'. Provide questionText, aboveLine: ['Eggs', 'Coffee'], belowLine: ['Chips', 'Milk', ...].",
       "exampleScenario": "Quick flash of 6 bars — 2 red (above CPI), 4 green (below CPI) — blurs out → 'So why doesn't it feel that way?' fades in.",
-      "alternatives": ["hook-scene"],
-      "pairs": {
-        "surfaces": [],
-        "atmospheres": [],
-        "motions": ["bar-grow", "blur-fade-in"]
-      }
+      "alternatives": [
+        "hook-scene"
+      ]
     },
     {
       "id": "composite-phases",
@@ -751,19 +944,20 @@
         "SplitComparison → TitleCard → HorizontalBarChart in one scene",
         "Crossfade transitions between sub-scenes within a single scene"
       ],
-      "keywords": ["composite", "multi-phase", "sequential", "crossfade", "sub-scene", "combined"],
+      "keywords": [
+        "composite",
+        "multi-phase",
+        "sequential",
+        "crossfade",
+        "sub-scene",
+        "combined"
+      ],
       "whenToUse": "When a single scene needs to show multiple chart types in sequence with crossfade transitions. Phases get proportional duration within the scene.",
       "whenNotToUse": "When each visualization should be its own scene (split into separate scenes). When phases don't need crossfade (use Sequence directly).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'composite-phases'. Provide phases: [{type, durationSec, ...phaseSpecificConfig}].",
       "exampleScenario": "Scene 003: SplitComparison (15s grocery basket) → TitleCard (5s PPP concept) → HorizontalBarChart (remaining: PPP bars) — all with crossfades.",
-      "alternatives": [],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["stagger-text-reveal", "bar-grow"]
-      }
+      "alternatives": []
     },
-
     {
       "id": "salary-shuffle-scene",
       "layer": "L5",
@@ -776,17 +970,24 @@
         "Country cards that physically move to new positions",
         "Dramatic reveal of ranking changes when switching metrics"
       ],
-      "keywords": ["salary", "shuffle", "resort", "ranking", "swap", "position-change", "country-cards", "animated-sort"],
+      "keywords": [
+        "salary",
+        "shuffle",
+        "resort",
+        "ranking",
+        "swap",
+        "position-change",
+        "country-cards",
+        "animated-sort"
+      ],
       "whenToUse": "When country/entity rankings change dramatically between two metrics and the position-swap animation makes that visceral. Cards physically slide to new positions.",
       "whenNotToUse": "When rankings don't change (use bar-chart). When comparing only 2 entities (use comparison-table). When there's no re-sort moment (use horizontal-bar-chart).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'salary-shuffle'. Provide countries: [{code, label, salary, hourlyRate}], initialSort, resortTo, resortLabel. Optional: resortTriggerFrame.",
       "exampleScenario": "10 countries sorted by salary — at frame 360, cards shuffle to hourly rate order: Switzerland drops, Japan rises dramatically.",
-      "alternatives": ["ranking-resort-scene", "horizontal-bar-chart"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["bar-grow"]
-      }
+      "alternatives": [
+        "ranking-resort-scene",
+        "horizontal-bar-chart"
+      ]
     },
     {
       "id": "ranking-resort-scene",
@@ -800,17 +1001,23 @@
         "Spotlight highlights showing dramatic rank changes",
         "Country rank cards with positive/negative indicators"
       ],
-      "keywords": ["ranking", "resort", "two-column", "rank-change", "spotlight", "positive-negative", "leaderboard"],
+      "keywords": [
+        "ranking",
+        "resort",
+        "two-column",
+        "rank-change",
+        "spotlight",
+        "positive-negative",
+        "leaderboard"
+      ],
       "whenToUse": "When showing how rankings differ between two metrics in a dual-column format. Each column has ranked items with optional positive/negative highlights.",
       "whenNotToUse": "When the re-sort should be animated as position swaps (use salary-shuffle-scene). When comparing only values without ranks (use bar-chart).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'ranking-resort'. Provide leftColumn: {title, items: [{rank, label, value, highlight?}]}, rightColumn: {...}. Optional: spotlightDelay.",
       "exampleScenario": "Left: 'By Salary' (Lux #1, Swiss #2, US #3) vs Right: 'By $/Hour' (Lux #1, US #5, Swiss #7) — Swiss drops highlighted in red.",
-      "alternatives": ["salary-shuffle-scene", "comparison-table"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["stagger-text-reveal"]
-      }
+      "alternatives": [
+        "salary-shuffle-scene",
+        "comparison-table"
+      ]
     },
     {
       "id": "deflator-summary-grid",
@@ -824,19 +1031,25 @@
         "Above/below baseline mini bar charts for each deflator",
         "Summary overview showing which products are above/below inflation"
       ],
-      "keywords": ["deflator", "summary", "grid", "2x2", "above-below", "CPI", "inflation", "mini-bars"],
+      "keywords": [
+        "deflator",
+        "summary",
+        "grid",
+        "2x2",
+        "above-below",
+        "CPI",
+        "inflation",
+        "mini-bars"
+      ],
       "whenToUse": "When comparing multiple deflator/inflation metrics in a grid layout. Each quadrant shows above-baseline (red) and below-baseline (green) bars with staggered entrance.",
       "whenNotToUse": "When showing only one deflator's data (use bar-chart). When comparing deflators over time (use horse-race-chart).",
       "storyboardHint": "In scene detail, set: visual.dataChart.type = 'deflator-summary-grid'. Provide charts: [{deflator, above: [...], below: [...]}]. Optional: title, source.",
       "exampleScenario": "2x2 grid: CPI-U, PCE, Housing Deflator, Gold — each showing which products are above (red) or below (green) their baseline.",
-      "alternatives": ["bar-chart", "comparison-table"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["bar-grow", "stagger-text-reveal"]
-      }
+      "alternatives": [
+        "bar-chart",
+        "comparison-table"
+      ]
     },
-
     {
       "id": "hook-reveal",
       "layer": "L5",
@@ -849,17 +1062,24 @@
         "Before/after number shock with dramatic size transition",
         "Opening hook with context line and counting-ticker variant"
       ],
-      "keywords": ["hook", "reveal", "deflation", "big-number", "shrink", "shock", "before-after", "counting-ticker"],
+      "keywords": [
+        "hook",
+        "reveal",
+        "deflation",
+        "big-number",
+        "shrink",
+        "shock",
+        "before-after",
+        "counting-ticker"
+      ],
       "whenToUse": "When the hook reveals that a big number is misleading by deflating it dramatically. Supports classic (size-shrink) and counting-ticker variants.",
       "whenNotToUse": "When the hook doesn't involve number transformation (use hook-scene). When showing data bars (use hook-punchline).",
       "storyboardHint": "Set visual.sceneType = 'hook-reveal'. Provide bigNumber, smallNumber. Optional: subtitle, contextLine, variant ('classic' | 'counting-ticker'), bigHoldDuration, deflationDuration.",
       "exampleScenario": "Context: 'The Dow Jones · Since 1925' → '26,000%' holds → deflates to '132%' → subtitle: 'in gold terms'.",
-      "alternatives": ["hook-scene", "hook-punchline"],
-      "pairs": {
-        "surfaces": [],
-        "atmospheres": ["film-grain"],
-        "motions": ["counter-up", "stagger-text-reveal"]
-      }
+      "alternatives": [
+        "hook-scene",
+        "hook-punchline"
+      ]
     },
     {
       "id": "formula-card",
@@ -873,17 +1093,23 @@
         "Sequential formula part reveals with example line",
         "Educational formula breakdown for data explainer videos"
       ],
-      "keywords": ["formula", "equation", "explanation", "sequential", "math", "educational", "ratio"],
+      "keywords": [
+        "formula",
+        "equation",
+        "explanation",
+        "sequential",
+        "math",
+        "educational",
+        "ratio"
+      ],
       "whenToUse": "When explaining a formula or calculation concept. Parts slide/fade in sequentially, then example line appears. Clean editorial style.",
       "whenNotToUse": "When the formula needs before/after data comparison (use metric-scene). When showing just a number (use counter).",
       "storyboardHint": "Set visual.sceneType = 'formula-card'. Provide formulaParts: ['Asset Price', '÷', 'Gold Price', '=', 'Gold Ratio']. Optional: example, dataBadge.",
       "exampleScenario": "'Asset Price' slides in → '÷' → 'Gold Price' → '=' → 'Gold Ratio' — then example: 'Oil $67 ÷ Gold $2,990 = 0.022 oz'.",
-      "alternatives": ["metric-scene", "title-card"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": ["dot-grid"],
-        "motions": ["stagger-text-reveal"]
-      }
+      "alternatives": [
+        "metric-scene",
+        "title-card"
+      ]
     },
     {
       "id": "asset-parade",
@@ -897,17 +1123,23 @@
         "Gold ratio calculations for multiple assets in sequence",
         "Parade-style animation: each asset gets its own calculation moment"
       ],
-      "keywords": ["asset", "parade", "sequential", "calculation", "gold-ratio", "showcase", "formula-to-results"],
+      "keywords": [
+        "asset",
+        "parade",
+        "sequential",
+        "calculation",
+        "gold-ratio",
+        "showcase",
+        "formula-to-results"
+      ],
       "whenToUse": "When showing the same formula applied to multiple assets sequentially. Formula shows first, then each asset parades through with its calculation. Light editorial theme.",
       "whenNotToUse": "When showing all assets simultaneously (use bar-chart or scoreboard). When formula isn't needed (use counter).",
       "storyboardHint": "Set visual.sceneType = 'asset-parade'. Provide assets: [{name, price, ratio, color}], goldPrice, formulaParts. Optional: formulaDuration, assetDuration.",
       "exampleScenario": "Formula: 'Price ÷ Gold = Ratio' → Oil $67/0.022oz → Dow $42K/14.0oz → Housing $420K/140.5oz — each asset slides in for 3.5s.",
-      "alternatives": ["formula-card", "scoreboard"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": [],
-        "motions": ["counter-up", "stagger-text-reveal"]
-      }
+      "alternatives": [
+        "formula-card",
+        "scoreboard"
+      ]
     },
     {
       "id": "scoreboard",
@@ -921,17 +1153,24 @@
         "Final results scoreboard with staggered bar entrance",
         "Asset performance summary with period labels"
       ],
-      "keywords": ["scoreboard", "ranked", "bars", "results", "summary", "editorial", "light-theme", "performance"],
+      "keywords": [
+        "scoreboard",
+        "ranked",
+        "bars",
+        "results",
+        "summary",
+        "editorial",
+        "light-theme",
+        "performance"
+      ],
       "whenToUse": "When showing final ranked results in a clean editorial style. Bars stagger in from top to bottom with spring animation. Light background theme.",
       "whenNotToUse": "When dark-cozy theme is required (use bar-chart). When showing time-series data (use horse-race-chart or line-chart).",
       "storyboardHint": "Set visual.sceneType = 'scoreboard'. Provide items: [{label, value, color, suffix?, period?}]. Optional: title, footerText.",
       "exampleScenario": "Gold Ratio Scoreboard: Oil 0.022oz, S&P 14.0oz, Housing 140.5oz — bars staggered with period labels '1925-2025'.",
-      "alternatives": ["bar-chart", "comparison-table"],
-      "pairs": {
-        "surfaces": ["flat"],
-        "atmospheres": [],
-        "motions": ["bar-grow", "counter-up"]
-      }
+      "alternatives": [
+        "bar-chart",
+        "comparison-table"
+      ]
     },
     {
       "id": "closing-cta",
@@ -945,17 +1184,24 @@
         "Light-theme video outro with end screen placeholders",
         "Channel name reveal with separator line"
       ],
-      "keywords": ["closing", "CTA", "subscribe", "end-screen", "outro", "editorial", "light-theme", "channel"],
+      "keywords": [
+        "closing",
+        "CTA",
+        "subscribe",
+        "end-screen",
+        "outro",
+        "editorial",
+        "light-theme",
+        "channel"
+      ],
       "whenToUse": "When the video needs a light-themed closing card with subscribe CTA and YouTube end screen placeholder slots.",
       "whenNotToUse": "When dark-cozy theme is needed for closing (use closing-sequence or end-card-scene). When closing needs data visualization (use closing-scene).",
       "storyboardHint": "Set visual.sceneType = 'closing-cta'. Optional: message, channelName, ctaText, showEndScreen.",
       "exampleScenario": "'Nominal returns are an illusion.' message → 'The World With Numbers' channel name → Subscribe text + two video slot placeholders.",
-      "alternatives": ["closing-sequence", "end-card-scene"],
-      "pairs": {
-        "surfaces": [],
-        "atmospheres": [],
-        "motions": ["blur-fade-in", "stagger-text-reveal"]
-      }
+      "alternatives": [
+        "closing-sequence",
+        "end-card-scene"
+      ]
     },
     {
       "id": "scene-visual",
@@ -969,19 +1215,23 @@
         "Stock footage or AI image as scene background",
         "Text overlay on cinematic gradient when no image available"
       ],
-      "keywords": ["scene-visual", "background", "ken-burns", "stock-footage", "image", "gradient", "text-overlay"],
+      "keywords": [
+        "scene-visual",
+        "background",
+        "ken-burns",
+        "stock-footage",
+        "image",
+        "gradient",
+        "text-overlay"
+      ],
       "whenToUse": "When a scene needs a full-screen image/video background with slow zoom+pan (Ken Burns). Falls back to cinematic gradient when no asset is available.",
       "whenNotToUse": "When the scene needs data charts (use any chart template). When the scene is purely text (use title-card).",
       "storyboardHint": "Set visual.sceneType = 'scene-visual'. Provide visual: {type, assetPath}. For text-overlay: visual: {type: 'text-overlay', lines: [...]}.",
       "exampleScenario": "Stock photo of a city skyline with slow Ken Burns zoom, voiceover plays over it. Ranking badge in corner for composite scenes.",
-      "alternatives": ["title-card"],
-      "pairs": {
-        "surfaces": ["glass"],
-        "atmospheres": ["film-grain"],
-        "motions": ["blur-fade-in"]
-      }
+      "alternatives": [
+        "title-card"
+      ]
     },
-
     {
       "id": "particles",
       "layer": "L2",
@@ -994,16 +1244,22 @@
         "Ambient floating particles for modern aesthetic",
         "Abstract background for hero moments"
       ],
-      "keywords": ["particles", "futuristic", "tech", "ambient", "floating", "modern"],
+      "keywords": [
+        "particles",
+        "futuristic",
+        "tech",
+        "ambient",
+        "floating",
+        "modern"
+      ],
       "whenToUse": "Scene needs a modern, techy feel with floating particles. Good for hero stats and futuristic themes.",
       "whenNotToUse": "Data-heavy analytical scenes (use dot-grid). Cinematic/vintage scenes (use film-grain).",
       "storyboardHint": "In scene detail, set: visual.atmosphere = 'particles'.",
       "exampleScenario": "Hero stat scene with floating particles behind a glowing counter card.",
-      "alternatives": ["dot-grid", "aurora"],
-      "pairs": {
-        "surfaces": ["glass", "glow"],
-        "motions": ["counter-up", "stagger-text-reveal"]
-      }
+      "alternatives": [
+        "dot-grid",
+        "aurora"
+      ]
     },
     {
       "id": "aurora",
@@ -1017,16 +1273,23 @@
         "Emotional or climactic scene backgrounds",
         "Premium feel for key reveals"
       ],
-      "keywords": ["aurora", "gradient", "dramatic", "hero", "flowing", "premium", "climactic"],
+      "keywords": [
+        "aurora",
+        "gradient",
+        "dramatic",
+        "hero",
+        "flowing",
+        "premium",
+        "climactic"
+      ],
       "whenToUse": "Scene needs maximum visual drama — flowing aurora-like gradients behind hero content.",
       "whenNotToUse": "Clean analytical scenes (use dot-grid). Subtle/understated moments (use film-grain).",
       "storyboardHint": "In scene detail, set: visual.atmosphere = 'aurora'.",
       "exampleScenario": "Video's most important stat revealed with aurora gradients pulsing behind a glass surface card.",
-      "alternatives": ["particles", "film-grain"],
-      "pairs": {
-        "surfaces": ["glass", "glow"],
-        "motions": ["counter-up", "stagger-text-reveal"]
-      }
+      "alternatives": [
+        "particles",
+        "film-grain"
+      ]
     },
     {
       "id": "flickering-grid",
@@ -1040,16 +1303,23 @@
         "Data processing or computation visualization",
         "Digital/cyber themed scenes"
       ],
-      "keywords": ["flickering", "grid", "matrix", "tech", "digital", "cyber", "computation"],
+      "keywords": [
+        "flickering",
+        "grid",
+        "matrix",
+        "tech",
+        "digital",
+        "cyber",
+        "computation"
+      ],
       "whenToUse": "Scene needs a digital/matrix-like background with randomly flickering grid cells.",
       "whenNotToUse": "Organic or cinematic scenes (use film-grain). Clean analytical scenes (use dot-grid).",
       "storyboardHint": "In scene detail, set: visual.atmosphere = 'flickering-grid'.",
       "exampleScenario": "Technology comparison scene with flickering grid background behind flat surface cards.",
-      "alternatives": ["dot-grid", "particles"],
-      "pairs": {
-        "surfaces": ["flat", "glass"],
-        "motions": ["stagger-text-reveal", "blur-fade-in"]
-      }
+      "alternatives": [
+        "dot-grid",
+        "particles"
+      ]
     },
     {
       "id": "slide-up",
@@ -1063,16 +1333,22 @@
         "List items appearing one by one from bottom",
         "Card or panel sliding up into position"
       ],
-      "keywords": ["slide", "up", "entrance", "from-below", "list", "panel"],
+      "keywords": [
+        "slide",
+        "up",
+        "entrance",
+        "from-below",
+        "list",
+        "panel"
+      ],
       "whenToUse": "Content should enter from below with spring physics. Clean, purposeful upward motion.",
       "whenNotToUse": "Text that needs per-character animation (use stagger-text-reveal). Content that should fade in without movement (use blur-fade-in).",
       "storyboardHint": "In scene detail, set: visual.motion = 'slide-up'.",
       "exampleScenario": "List of comparison items slide up one by one with staggered delays.",
-      "alternatives": ["blur-fade-in", "scale-in"],
-      "pairs": {
-        "surfaces": ["flat", "glass"],
-        "atmospheres": ["dot-grid"]
-      }
+      "alternatives": [
+        "blur-fade-in",
+        "scale-in"
+      ]
     },
     {
       "id": "scale-in",
@@ -1086,16 +1362,55 @@
         "Emphasis entrance for important elements",
         "Icon or badge pop-in effect"
       ],
-      "keywords": ["scale", "zoom", "pop", "entrance", "emphasis", "badge", "icon"],
+      "keywords": [
+        "scale",
+        "zoom",
+        "pop",
+        "entrance",
+        "emphasis",
+        "badge",
+        "icon"
+      ],
       "whenToUse": "Element should scale from nothing to full size with spring bounce. Good for emphasis on important items.",
       "whenNotToUse": "Text entrance (use stagger-text-reveal). Subtle content appearance (use blur-fade-in).",
       "storyboardHint": "In scene detail, set: visual.motion = 'scale-in'.",
       "exampleScenario": "Hero icon pops in at center, bounces with spring physics, then text appears around it.",
-      "alternatives": ["blur-fade-in", "slide-up"],
-      "pairs": {
-        "surfaces": ["glow", "glass"],
-        "atmospheres": ["aurora", "particles"]
-      }
+      "alternatives": [
+        "blur-fade-in",
+        "slide-up"
+      ]
+    },
+    {
+      "id": "vertical-tabs",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Vertical Tab Scene",
+      "file": "templates/voiceover-visuals/VerticalTabScene.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Narrator walks through N topics sequentially (e.g. 3 health factors, 4 investment strategies)",
+        "Left-side tab list with progress indicator, right-side image/visual for active topic",
+        "Voiceover-synchronized topic switching with smooth transitions"
+      ],
+      "keywords": [
+        "tabs",
+        "vertical-tabs",
+        "topic-list",
+        "sequential",
+        "narrator",
+        "voiceover-sync",
+        "progress-bar",
+        "split-layout"
+      ],
+      "whenToUse": "When the narrator discusses 2-6 topics sequentially and each topic needs a visual. Tabs highlight in sync with voiceover timing. Great for listicle-style segments.",
+      "whenNotToUse": "When comparing two entities head-to-head (use comparison-table or split-comparison). When showing data charts (use specific chart templates). When there's only one topic (use title-card).",
+      "storyboardHint": "Set visual.dataChart.type = 'vertical-tabs'. Provide items: [{id, title, description, image?}]. Optional: activeTimings (frame numbers), title, subtitle, showProgress, imagePosition.",
+      "exampleScenario": "Scene: 'Top 3 factors affecting health' — tabs: Sleep, Nutrition, Exercise. As narrator discusses each, the tab highlights and right side shows relevant image.",
+      "alternatives": [
+        "split-comparison",
+        "title-card",
+        "composite-phases"
+      ]
     },
     {
       "id": "frosted",
@@ -1109,16 +1424,23 @@
         "Background showing through with heavy blur and tint",
         "Narrative or historical content containers"
       ],
-      "keywords": ["frosted", "soft", "vintage", "warm", "tinted", "blur", "narrative"],
+      "keywords": [
+        "frosted",
+        "soft",
+        "vintage",
+        "warm",
+        "tinted",
+        "blur",
+        "narrative"
+      ],
       "whenToUse": "Container should have a soft, warm frosted-glass look — heavier blur and warmer tint than standard glass surface.",
       "whenNotToUse": "Clean modern glass look (use glass). Fully opaque cards (use flat). Attention-demanding cards (use glow).",
       "storyboardHint": "In scene detail, set: visual.surface = 'frosted'.",
       "exampleScenario": "Historical quote card with frosted warm-tinted background over film-grain atmosphere.",
-      "alternatives": ["glass", "flat"],
-      "pairs": {
-        "atmospheres": ["film-grain"],
-        "motions": ["blur-fade-in", "stagger-text-reveal"]
-      }
+      "alternatives": [
+        "glass",
+        "flat"
+      ]
     },
     {
       "id": "elevated",
@@ -1132,16 +1454,335 @@
         "Layered card stacks with visual depth",
         "Important content cards that need to 'pop' from background"
       ],
-      "keywords": ["elevated", "shadow", "depth", "floating", "layered", "pop", "material"],
+      "keywords": [
+        "elevated",
+        "shadow",
+        "depth",
+        "floating",
+        "layered",
+        "pop",
+        "material"
+      ],
       "whenToUse": "Container needs to feel like it's floating above the surface with shadow depth. Material design inspired elevation.",
       "whenNotToUse": "Transparent/glass look needed (use glass). Flat minimal style (use flat). Glowing emphasis (use glow).",
       "storyboardHint": "In scene detail, set: visual.surface = 'elevated'.",
       "exampleScenario": "Data comparison cards stacked with progressive elevation — each card casts a shadow on the one below.",
-      "alternatives": ["flat", "glow"],
-      "pairs": {
-        "atmospheres": ["dot-grid", "none"],
-        "motions": ["slide-up", "scale-in"]
-      }
+      "alternatives": [
+        "flat",
+        "glow"
+      ]
+    },
+    {
+      "id": "tilt-card",
+      "layer": "L3",
+      "type": "motion",
+      "name": "Tilt Card",
+      "file": "motion/TiltCard.tsx",
+      "status": "implemented",
+      "useCases": [
+        "3D tilt showcase effect for cards or containers",
+        "Simulating mouse-hover depth on a card in video",
+        "Adding subtle 3D parallax to any child content"
+      ],
+      "keywords": [
+        "tilt",
+        "3d",
+        "perspective",
+        "rotate",
+        "showcase",
+        "hover",
+        "lissajous",
+        "depth",
+        "parallax"
+      ],
+      "whenToUse": "When a card or container should gently oscillate in 3D space for visual depth. Wrapper component — wrap any children. Uses Lissajous-pattern sine/cos for organic non-repeating tilt.",
+      "whenNotToUse": "When content should stay flat and static (no tilt needed). When the scene is data-heavy and tilt would distract from readability.",
+      "storyboardHint": "In scene detail, set: visual.motion = 'tilt-card'. Optional: visual.motionConfig.maxTilt (default 8), visual.motionConfig.speed (default 1).",
+      "exampleScenario": "Location card with map slowly tilts in 3D, giving a premium showcase feel.",
+      "alternatives": [
+        "blur-fade-in",
+        "scale-in"
+      ]
+    },
+    {
+      "id": "location-map",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Location Map Scene",
+      "file": "templates/voiceover-visuals/LocationMapScene.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Location reveal with animated SVG map drawing",
+        "City or country highlight with pin drop animation",
+        "Geographic context card with coordinates"
+      ],
+      "keywords": [
+        "location",
+        "map",
+        "city",
+        "pin",
+        "coordinates",
+        "geography",
+        "streets",
+        "buildings",
+        "expand"
+      ],
+      "whenToUse": "When revealing a location with visual flair — SVG streets draw progressively, buildings fade in, pin drops with spring. Card starts collapsed and expands. Wrapped in TiltCard for 3D depth.",
+      "whenNotToUse": "When showing multiple locations simultaneously (use comparison-table or split-comparison). When location is just a label without visual emphasis (use title-card).",
+      "storyboardHint": "Set visual.dataChart.type = 'location-map'. Provide location ('Istanbul, Turkey'), coordinates ('41.0082° N, 28.9784° E'). Optional: pinColor, expandAtFrame.",
+      "exampleScenario": "Scene reveals 'Istanbul, Turkey' — card expands, streets draw, buildings appear, pin drops, text fades in with green underline.",
+      "alternatives": [
+        "title-card",
+        "scene-visual"
+      ]
+    },
+    {
+      "id": "retro-grid",
+      "layer": "L2",
+      "type": "atmosphere",
+      "name": "Retro Grid",
+      "file": "atmospheres/RetroGrid.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Vaporwave/synthwave aesthetic backgrounds",
+        "Tech-focused scenes with perspective depth",
+        "Data explainer scenes needing a futuristic floor grid"
+      ],
+      "keywords": [
+        "retro",
+        "grid",
+        "perspective",
+        "vaporwave",
+        "synthwave",
+        "floor",
+        "vanishing-point",
+        "tech"
+      ],
+      "whenToUse": "Scene needs a futuristic, tech-forward background with perspective depth. Grid lines converge to vanishing point and scroll toward viewer.",
+      "whenNotToUse": "Organic or cinematic scenes (use film-grain). Clean minimal backgrounds (use dot-grid). Scenes with busy foreground content that would clash with strong grid lines.",
+      "storyboardHint": "In scene detail, set: visual.atmosphere = \"retro-grid\".",
+      "exampleScenario": "Technology comparison scene with a perspective grid floor scrolling underneath flat data cards.",
+      "alternatives": [
+        "dot-grid",
+        "flickering-grid"
+      ]
+    },
+    {
+      "id": "shooting-stars",
+      "layer": "L2",
+      "type": "atmosphere",
+      "name": "Shooting Stars",
+      "file": "atmospheres/ShootingStars.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Space or cosmic themed scene backgrounds",
+        "Dramatic hero moments with ambient motion",
+        "Dark scenes needing subtle movement without distraction"
+      ],
+      "keywords": [
+        "stars",
+        "shooting",
+        "space",
+        "cosmic",
+        "streak",
+        "ambient",
+        "dark",
+        "night"
+      ],
+      "whenToUse": "Scene needs subtle ambient motion on a dark background. Stars streak diagonally at staggered intervals. Frame-deterministic positioning.",
+      "whenNotToUse": "Bright or analytical scenes (use dot-grid). Scenes needing heavy texture (use film-grain). Already busy backgrounds.",
+      "storyboardHint": "In scene detail, set: visual.atmosphere = \"shooting-stars\".",
+      "exampleScenario": "Hero stat reveal with shooting stars streaking behind a glowing counter card on dark background.",
+      "alternatives": [
+        "particles",
+        "blurry-blob"
+      ]
+    },
+    {
+      "id": "blurry-blob",
+      "layer": "L2",
+      "type": "atmosphere",
+      "name": "Blurry Blob",
+      "file": "atmospheres/BlurryBlob.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Soft ambient colored backgrounds",
+        "Premium feel for key reveals and hero moments",
+        "Organic drifting color behind glass/frosted surfaces"
+      ],
+      "keywords": [
+        "blob",
+        "blur",
+        "soft",
+        "ambient",
+        "color",
+        "drift",
+        "organic",
+        "premium",
+        "gradient"
+      ],
+      "whenToUse": "Scene needs a soft, premium background with slowly drifting colored blobs. Works especially well behind glass surfaces. Uses palette accent colors.",
+      "whenNotToUse": "Clean analytical scenes (use dot-grid). High-energy tech scenes (use retro-grid). Historical/vintage scenes (use film-grain).",
+      "storyboardHint": "In scene detail, set: visual.atmosphere = \"blurry-blob\".",
+      "exampleScenario": "Glass surface card with stat floats over slowly drifting pink and blue blobs.",
+      "alternatives": [
+        "aurora",
+        "particles"
+      ]
+    },
+    {
+      "id": "text-shimmer",
+      "layer": "L3",
+      "type": "motion",
+      "name": "Text Shimmer",
+      "file": "motion/TextShimmer.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Title text with metallic shine sweep",
+        "Emphasis on key words or stats with glossy highlight",
+        "Premium branding text with looping shimmer"
+      ],
+      "keywords": [
+        "shimmer",
+        "shine",
+        "metallic",
+        "highlight",
+        "sweep",
+        "glossy",
+        "premium",
+        "gradient-text"
+      ],
+      "whenToUse": "Text needs a premium metallic shine effect sweeping across it. Supports looping for continuous shimmer or single-pass for entrance.",
+      "whenNotToUse": "Per-character animation needed (use stagger-text-reveal). Text cycling between values (use text-rotate). Subtle entrance only (use blur-fade-in).",
+      "storyboardHint": "In scene detail, set: visual.motion = \"text-shimmer\".",
+      "exampleScenario": "Hero title \"GOLD STANDARD\" with a metallic shimmer continuously sweeping left to right.",
+      "alternatives": [
+        "stagger-text-reveal",
+        "blur-fade-in"
+      ]
+    },
+    {
+      "id": "glitch-text",
+      "layer": "L3",
+      "type": "motion",
+      "name": "Glitch Text",
+      "file": "motion/GlitchText.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Digital/tech aesthetic text with RGB channel split",
+        "Error or warning messages with glitch effect",
+        "Data corruption or system-themed scenes"
+      ],
+      "keywords": [
+        "glitch",
+        "rgb-split",
+        "digital",
+        "error",
+        "corruption",
+        "tech",
+        "jitter",
+        "distortion"
+      ],
+      "whenToUse": "Text should periodically glitch with RGB channel separation and jitter. Creates a digital/techy feel. Deterministic glitch timing from frame.",
+      "whenNotToUse": "Clean professional text (use stagger-text-reveal). Smooth animations (use blur-fade-in). Continuous cycling text (use text-rotate).",
+      "storyboardHint": "In scene detail, set: visual.motion = \"glitch-text\".",
+      "exampleScenario": "Title \"SYSTEM ERROR\" periodically glitches with red/cyan channel split every 12 frames.",
+      "alternatives": [
+        "stagger-text-reveal",
+        "text-shimmer"
+      ]
+    },
+    {
+      "id": "typing-text",
+      "layer": "L3",
+      "type": "motion",
+      "name": "Typing Text",
+      "file": "motion/TypingText.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Typewriter-style text reveal with blinking cursor",
+        "Code or terminal output simulation",
+        "Sequential fact/stat revelation"
+      ],
+      "keywords": [
+        "typing",
+        "typewriter",
+        "cursor",
+        "terminal",
+        "code",
+        "sequential",
+        "character-reveal"
+      ],
+      "whenToUse": "Text should appear character by character like being typed, with a blinking cursor. Cursor disappears after text completes.",
+      "whenNotToUse": "All text should appear at once (use blur-fade-in). Per-word dramatic entrance (use stagger-text-reveal). Text cycling (use text-rotate).",
+      "storyboardHint": "In scene detail, set: visual.motion = \"typing-text\".",
+      "exampleScenario": "Terminal-style: \"The global economy produces  trillion annually.\" types out character by character.",
+      "alternatives": [
+        "stagger-text-reveal",
+        "blur-fade-in"
+      ]
+    },
+    {
+      "id": "neon-gradient",
+      "layer": "L4",
+      "type": "surface",
+      "name": "Neon Gradient Surface",
+      "file": "surfaces/NeonGradientSurface.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Hero cards with animated neon border effect",
+        "Premium highlight cards that demand attention",
+        "Key stat or CTA cards with rotating gradient edge"
+      ],
+      "keywords": [
+        "neon",
+        "gradient",
+        "rotating",
+        "border",
+        "animated",
+        "premium",
+        "hero",
+        "conic-gradient"
+      ],
+      "whenToUse": "Card needs maximum visual impact with a rotating neon gradient border. The conic gradient spins continuously creating a mesmerizing edge effect.",
+      "whenNotToUse": "Subtle or secondary content (use glass or flat). Multiple cards in a grid (too many neon borders = visual noise). Clean data visualization (use flat).",
+      "storyboardHint": "In scene detail, set: visual.surface = \"neon-gradient\".",
+      "exampleScenario": "Hero stat card showing key revenue figure with rotating pink-to-blue neon gradient border.",
+      "alternatives": [
+        "glow",
+        "glass"
+      ]
+    },
+    {
+      "id": "backlight",
+      "layer": "L4",
+      "type": "surface",
+      "name": "Backlight Surface",
+      "file": "surfaces/BacklightSurface.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Cards with colored spotlight glow behind them",
+        "Emphasis cards that float above the background",
+        "Premium content containers with depth illusion"
+      ],
+      "keywords": [
+        "backlight",
+        "spotlight",
+        "glow-behind",
+        "depth",
+        "premium",
+        "floating",
+        "illuminated"
+      ],
+      "whenToUse": "Card should appear illuminated from behind with a large colored glow that extends beyond card edges. Glow pulses gently and drifts for organic feel.",
+      "whenNotToUse": "Fully opaque cards without effects (use flat). Transparent glass look (use glass). Border-focused glow (use glow or neon-gradient).",
+      "storyboardHint": "In scene detail, set: visual.surface = \"backlight\".",
+      "exampleScenario": "Data card with key metric floats with a soft blue backlight glow radiating from behind it.",
+      "alternatives": [
+        "glow",
+        "glass",
+        "elevated"
+      ]
     }
   ]
 }

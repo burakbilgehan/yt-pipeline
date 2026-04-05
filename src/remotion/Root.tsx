@@ -398,6 +398,14 @@ export const RemotionRoot: React.FC = () => {
             width={WIDTH}
             height={HEIGHT}
           />
+          <Composition
+            id="RetroGrid-ShootingStars-BlurryBlob"
+            lazyComponent={() => import("./design-system/showcase/AtmosphereShowcase2")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
         </Folder>
 
         <Folder name="L3-Motion">
@@ -417,12 +425,52 @@ export const RemotionRoot: React.FC = () => {
             width={WIDTH}
             height={HEIGHT}
           />
+          <Composition
+            id="TiltCard"
+            lazyComponent={() => import("./design-system/showcase/TiltCardShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="TextShimmer"
+            lazyComponent={() => import("./design-system/showcase/TextShimmerShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="GlitchText"
+            lazyComponent={() => import("./design-system/showcase/GlitchTextShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="TypingText"
+            lazyComponent={() => import("./design-system/showcase/TypingTextShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
         </Folder>
 
         <Folder name="L4-Surfaces">
           <Composition
             id="Glass-Flat-Glow"
             lazyComponent={() => import("./design-system/showcase/SurfaceShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="NeonGradient-Backlight"
+            lazyComponent={() => import("./design-system/showcase/SurfaceShowcase2")}
             durationInFrames={300}
             fps={FPS}
             width={WIDTH}
@@ -647,6 +695,25 @@ export const RemotionRoot: React.FC = () => {
             id="HookPunchline"
             lazyComponent={() => import("./design-system/showcase/templates/Product/HookPunchlineShowcase")}
             durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+        </Folder>
+
+        <Folder name="Voiceover">
+          <Composition
+            id="VerticalTabScene"
+            lazyComponent={() => import("./design-system/showcase/templates/Voiceover/VerticalTabSceneShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="LocationMapScene"
+            lazyComponent={() => import("./design-system/showcase/templates/Voiceover/LocationMapSceneShowcase")}
+            durationInFrames={240}
             fps={FPS}
             width={WIDTH}
             height={HEIGHT}

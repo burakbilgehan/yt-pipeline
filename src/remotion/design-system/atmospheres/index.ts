@@ -12,11 +12,20 @@
 import { registerAtmosphere } from '../registry';
 import { DotGrid } from './DotGrid';
 import { FilmGrain } from './FilmGrain';
+import { RetroGrid } from './RetroGrid';
+import { ShootingStars } from './ShootingStars';
+import { BlurryBlob } from './BlurryBlob';
 
 // ─── Exports ─────────────────────────────────────────────────
 export { DotGrid } from './DotGrid';
 export { FilmGrain } from './FilmGrain';
+export { RetroGrid } from './RetroGrid';
+export { ShootingStars } from './ShootingStars';
+export { BlurryBlob } from './BlurryBlob';
 
 // ─── Registry registrations ──────────────────────────────────
 registerAtmosphere('dot-grid', DotGrid);
 registerAtmosphere('film-grain', FilmGrain);
+registerAtmosphere('retro-grid', RetroGrid);
+registerAtmosphere('shooting-stars', ShootingStars);
+registerAtmosphere('blurry-blob', BlurryBlob);

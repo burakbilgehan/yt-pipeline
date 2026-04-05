@@ -24,6 +24,14 @@ export { ContainerTextFlip } from './ContainerTextFlip';
 export type { ContainerTextFlipProps } from './ContainerTextFlip';
 export { BlurFadeIn } from './BlurFadeIn';
 export type { BlurFadeInProps } from './BlurFadeIn';
+export { TiltCard } from './TiltCard';
+export type { TiltCardProps } from './TiltCard';
+export { TextShimmer } from './TextShimmer';
+export type { TextShimmerProps } from './TextShimmer';
+export { GlitchText } from './GlitchText';
+export type { GlitchTextProps } from './GlitchText';
+export { TypingText } from './TypingText';
+export type { TypingTextProps } from './TypingText';
 
 // ─── Motion function registrations ──────────────────────────
 
@@ -135,6 +143,105 @@ registerMotion(
         filter: `blur(${blurPx}px)`,
         opacity,
       },
+      progress,
+    };
+  },
+);
+
+/**
+ * text-shimmer: spring-based opacity fade-in.
+ * The real shimmer animation lives in the React component;
+ * the registry entry provides a simple entrance motion.
+ */
+registerMotion(
+  'text-shimmer',
+  (frame: number, config: MotionConfig): MotionResult => {
+    const adjustedFrame = Math.max(0, frame - config.delayFrames);
+    const springDamping = config.springConfig?.damping ?? 20;
+    const springStiffness = config.springConfig?.stiffness ?? 200;
+    const springMass = config.springConfig?.mass ?? 0.8;
+
+    const progress = spring({
+      frame: adjustedFrame,
+      fps: 30,
+      config: {
+        damping: springDamping,
+        stiffness: springStiffness,
+        mass: springMass,
+      },
+      durationInFrames: config.durationFrames,
+    });
+
+    const opacity = interpolate(progress, [0, 1], [0, 1]);
+
+    return {
+      style: { opacity },
+      progress,
+    };
+  },
+);
+
+/**
+ * glitch-text: spring-based opacity fade-in.
+ * The real glitch animation lives in the React component;
+ * the registry entry provides a simple entrance motion.
+ */
+registerMotion(
+  'glitch-text',
+  (frame: number, config: MotionConfig): MotionResult => {
+    const adjustedFrame = Math.max(0, frame - config.delayFrames);
+    const springDamping = config.springConfig?.damping ?? 20;
+    const springStiffness = config.springConfig?.stiffness ?? 200;
+    const springMass = config.springConfig?.mass ?? 0.8;
+
+    const progress = spring({
+      frame: adjustedFrame,
+      fps: 30,
+      config: {
+        damping: springDamping,
+        stiffness: springStiffness,
+        mass: springMass,
+      },
+      durationInFrames: config.durationFrames,
+    });
+
+    const opacity = interpolate(progress, [0, 1], [0, 1]);
+
+    return {
+      style: { opacity },
+      progress,
+    };
+  },
+);
+
+/**
+ * typing-text: spring-based opacity fade-in.
+ * The real typewriter animation lives in the React component;
+ * the registry entry provides a simple entrance motion.
+ */
+registerMotion(
+  'typing-text',
+  (frame: number, config: MotionConfig): MotionResult => {
+    const adjustedFrame = Math.max(0, frame - config.delayFrames);
+    const springDamping = config.springConfig?.damping ?? 20;
+    const springStiffness = config.springConfig?.stiffness ?? 200;
+    const springMass = config.springConfig?.mass ?? 0.8;
+
+    const progress = spring({
+      frame: adjustedFrame,
+      fps: 30,
+      config: {
+        damping: springDamping,
+        stiffness: springStiffness,
+        mass: springMass,
+      },
+      durationInFrames: config.durationFrames,
+    });
+
+    const opacity = interpolate(progress, [0, 1], [0, 1]);
+
+    return {
+      style: { opacity },
       progress,
     };
   },

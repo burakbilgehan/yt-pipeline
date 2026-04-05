@@ -14,13 +14,19 @@ import { registerSurface } from '../registry';
 import { GlassSurface } from './GlassSurface';
 import { FlatSurface } from './FlatSurface';
 import { GlowSurface } from './GlowSurface';
+import { NeonGradientSurface } from './NeonGradientSurface';
+import { BacklightSurface } from './BacklightSurface';
 
 // ─── React component exports ────────────────────────────────
 export { GlassSurface } from './GlassSurface';
 export { FlatSurface } from './FlatSurface';
 export { GlowSurface } from './GlowSurface';
+export { NeonGradientSurface } from './NeonGradientSurface';
+export { BacklightSurface } from './BacklightSurface';
 
 // ─── Surface registrations ──────────────────────────────────
 registerSurface('glass', GlassSurface);
 registerSurface('flat', FlatSurface);
 registerSurface('glow', GlowSurface);
+registerSurface('neon-gradient', NeonGradientSurface);
+registerSurface('backlight', BacklightSurface);
