@@ -185,7 +185,7 @@ function generateOpenCodeJson(
   const agents: Record<string, unknown> = {
     build: {
       mode: "primary",
-      prompt: `You are part of the yt-pipeline YouTube channel factory framework. You help build and implement the video production pipeline. All conversation is in Turkish, but YouTube content is in English. Use TypeScript everywhere. Follow the architecture defined in AGENTS.md.\n\n${SYNC_RULE}`,
+      prompt: `You are part of the yt-pipeline YouTube channel factory framework. You help build and implement the video production pipeline. All conversation is in Turkish. YouTube content language comes from channels/<channel>/channel-config.json → channel.language (default: English). Use TypeScript everywhere. Follow the architecture defined in AGENTS.md.\n\n${SYNC_RULE}`,
     },
     plan: {
       mode: "primary",

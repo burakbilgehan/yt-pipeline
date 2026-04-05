@@ -3,16 +3,16 @@
     "name": "Your Channel Name",
     "handle": "@yourchannel",
     "language": "en",
-    "niche": "educational facts",
-    "description": "A YouTube channel about fascinating facts and data-driven stories.",
+    "niche": "",
+    "description": "",
     "maturity": "seed",
     "videoCount": 0,
     "launchDate": null
   },
   "content": {
-    "defaultTone": "informative, slightly dramatic, curiosity-driven",
-    "targetAudience": "18-35, curious learners, English-speaking",
-    "defaultLength": 180,
+    "defaultTone": "",
+    "targetAudience": "",
+    "defaultLength": null,
     "avoidTopics": [],
     "brandKeywords": []
   },
@@ -21,39 +21,39 @@
     "voiceName": "Achernar",
     "modelId": "gemini-2.5-pro-tts",
     "languageCode": "en-US",
-    "stylePrompt": "Say the following in a calm, authoritative documentary narrator voice",
+    "stylePrompt": "",
     "speed": 1.0,
+    "defaultWPM": null,
     "sampleRateHertz": 44100,
+    "encoding": "LINEAR16",
     "calibration": {
       "measuredWPM": null
-    }
+    },
+    "deviationThresholds": null
   },
   "visuals": {
     "defaultTemplate": "voiceover-visuals",
-    "brandColor": "#6C63FF",
-    "accentColor": "#FF6584",
-    "fontFamily": "Inter, sans-serif",
+    "brandColor": "",
+    "accentColor": "",
+    "fontFamily": "",
     "resolution": { "width": 1920, "height": 1080 },
     "fps": 30,
     "preferredStockSource": "pexels",
     "imageProvider": "gemini",
-    "aiImageStyle": "photorealistic, cinematic lighting, high detail",
-    "aiImageStyleOverrides": {
-      "gemini": "photorealistic, ultra detailed, 8K quality, cinematic lighting",
-      "dalle": "photorealistic, cinematic lighting, high detail"
-    }
+    "aiImageStyle": "",
+    "aiImageStyleOverrides": {}
   },
   "shorts": {
-    "defaultLength": 45,
+    "defaultLength": null,
     "resolution": { "width": 1080, "height": 1920 },
     "fps": 30
   },
   "youtube": {
-    "defaultCategory": "Education",
+    "defaultCategory": "",
     "defaultVisibility": "private",
     "defaultLanguage": "en",
     "channelTrailer": "",
     "defaultTags": [],
-    "endScreenTemplate": "Subscribe button + next video suggestion"
+    "endScreenTemplate": ""
   }
 }

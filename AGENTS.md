@@ -5,7 +5,7 @@ AI-powered video production pipeline — from research to publishing.
 ## Core Rules
 
 - **NEVER batch-write.** Any output expected to exceed ~50 lines MUST be written incrementally: outline first → write to file → expand section by section → revise in place. Never "prepare" a large file in memory and write it all at once. This is the single most important rule in this project. See `incremental-writing` skill for details.
-- **Turkish conversation, English content.** All YouTube output (scripts, metadata, reports) in English.
+- **Turkish conversation, content language from config.** Read `channels/<channel>/channel-config.json → channel.language` for YouTube output language. Default is English.
 - **TypeScript** everywhere in code.
 - **Never auto-chain** pipeline stages — wait for explicit user approval.
 - **Config over hardcoding.** If a value exists in config, use it. Fall back to `pipeline-defaults.json`.
@@ -103,7 +103,8 @@ channels/                                           ← local only, NOT in git
 └── <channel>/
     ├── channel-config.json                         # Channel identity, tone, visuals, TTS config
     ├── channel-assets/                             # Brand assets (logos, guides, design tokens)
-    │   └── brand-guide.md                          # Visual bible
+    │   ├── brand-guide.md                          # Visual bible
+    │   └── design-system.json                      # Per-channel DS tokens and layer selections
     ├── cache/                                      # Analytics runtime cache (auto-managed)
     ├── publishing/                                 # Channel-level publishing docs
     │   └── content-calendar.md                     # Content calendar
@@ -126,22 +127,27 @@ channels/                                           ← local only, NOT in git
             │   │   └── scene-NNN.json              # Per-scene visual details
             │   └── _archive/                       # Superseded storyboard versions
             ├── production/
+            │   ├── asset-log.md                    # Download log for all collected assets
             │   ├── audio/                          # TTS output (.wav)
             │   │   ├── {section}--{scene-id}.wav   # TTS audio files
             │   │   ├── audio-manifest.json         # Duration, word count, speed per block
             │   │   ├── bgm/                        # Background music files
             │   │   └── _archive/                   # Superseded audio versions
             │   ├── visuals/                        # Stock media, AI images, hook videos
-            │   │   └── asset-log.md                # Download log for all collected assets
             │   ├── output/                         # Rendered videos
             │   │   └── final.mp4                   # Final render (only permanent file)
             │   ├── test-renders/                   # Frame-by-frame test stills (.png)
             │   └── render-props.json               # Remotion render configuration
             ├── publishing/
-            │   └── seo-notes-v<N>.md               # SEO optimization notes
+            │   ├── seo-notes-v<N>.md               # SEO optimization notes
+            │   ├── publish-plan-v<N>.md             # Upload strategy and schedule
+            │   ├── metadata-v<N>.json               # Title, description, tags, category
+            │   └── upload-log.md                    # Upload attempts, results, video IDs
             └── analytics/
-                ├── analytics-<YYYY-MM-DD>.json     # Snapshot-based performance data
-                └── qa-report.md                    # QA audit report
+                ├── snapshot-<YYYY-MM-DD>.json     # Snapshot-based performance data
+                ├── report-<YYYY-MM-DD>.md         # Analytics report
+                ├── qa-report.md                    # QA audit report
+                └── qa-log.md                       # QA root-cause analysis log
 ```
 
 ## Canonical Locations
@@ -157,6 +163,11 @@ channels/                                           ← local only, NOT in git
 | Brand assets | `channels/<channel>/channel-assets/` | Channel root |
 | Content calendar | `channels/<channel>/publishing/content-calendar.md` | Repo root |
 | QA report | `channels/<channel>/videos/<slug>/analytics/qa-report.md` | Video root |
+| QA log | `channels/<channel>/videos/<slug>/analytics/qa-log.md` | Video root |
+| Analytics report | `channels/<channel>/videos/<slug>/analytics/report-<YYYY-MM-DD>.md` | Video root |
+| Asset log | `channels/<channel>/videos/<slug>/production/asset-log.md` | `production/visuals/` |
+| Upload log | `channels/<channel>/videos/<slug>/publishing/upload-log.md` | Video root |
+| Design tokens (per-channel) | `channels/<channel>/channel-assets/design-system.json` | Channel root |
 | DS atmosphere components | `src/remotion/design-system/atmospheres/<Name>.tsx` | `src/components/ui/`, repo root |
 | DS motion primitives | `src/remotion/design-system/motion/<Name>.tsx` | `src/components/ui/`, repo root |
 | DS surface components | `src/remotion/design-system/surfaces/<Name>.tsx` | `src/components/ui/`, repo root |
@@ -171,9 +182,9 @@ channels/                                           ← local only, NOT in git
 - **No ad-hoc directories.** Only directories defined in the Directory Structure above are valid. `preview/`, `bgm/` at video root, `background-music/`, `voice-samples/`, `edge-tts-backup/` inside `production/audio/` are all non-standard and must be moved or removed during audit.
 - **No `video-config.json`.** Pipeline state lives in `channels/<channel>/videos/<slug>/config.json`. Remotion render props go in `channels/<channel>/videos/<slug>/production/render-props.json`.
 - **Storyboard format is JSON.** `storyboard-v<N>.json` is canonical. Markdown storyboards (`storyboard-v<N>.md`) are legacy and should not be created for new projects. Existing ones are kept as history.
-- **Pipeline status values** must be one of: `pending`, `in_progress`, `completed`, `cancelled`, `active`. Never use `complete` (missing -d).
+- **Pipeline status values** must be one of: `pending`, `in_progress`, `completed`, `cancelled`. Never use `complete` (missing -d).
 - **Scene files live in `storyboard/scenes/`** — always the current/latest version. Superseded scenes go to `storyboard/_archive/`.
-- **Audio format**: new projects use WAV (from Chirp 3 HD). Legacy projects may have MP3 — don't convert, just note in config.
+- **Audio format**: new projects use WAV (LINEAR16 encoding). Legacy projects may have MP3 — don't convert, just note in config.
 - **History entry format**: use `{ "action": "<stage>.<event>", "at": "<ISO date>", "version": <N>, "reason": "...", "agent": "..." }`. This matches `src/types/index.ts → HistoryEntry` — the single source of truth. Legacy entries with `"event"` or `"timestamp"` keys exist in old projects — do not retroactively fix, do not write new ones in that format.
 
 ## Config Files

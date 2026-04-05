@@ -1,13 +1,13 @@
 ---
 name: voiceover
-description: Adding AI-generated voiceover to Remotion compositions using Google Cloud TTS (Chirp 3: HD)
+description: Adding AI-generated voiceover to Remotion compositions using Google Cloud TTS
 metadata:
-  tags: voiceover, audio, google-cloud-tts, chirp3-hd, tts, speech, ssml, calculateMetadata, dynamic duration
+  tags: voiceover, audio, google-cloud-tts, tts, speech, ssml, calculateMetadata, dynamic duration
 ---
 
 # Adding AI voiceover to a Remotion composition
 
-Use **Google Cloud Text-to-Speech (Chirp 3: HD)** to generate speech audio per scene, then use [`calculateMetadata`](./calculate-metadata) to dynamically size the composition to match the audio.
+Use **Google Cloud Text-to-Speech** to generate speech audio per scene, then use [`calculateMetadata`](./calculate-metadata) to dynamically size the composition to match the audio.
 
 ## Prerequisites
 
@@ -19,18 +19,18 @@ Ensure the environment variable is available when running the generation script:
 node --strip-types generate-voiceover.ts
 ```
 
-## Generating audio with Google Cloud TTS (Chirp 3: HD)
+## Generating audio with Google Cloud TTS
 
-Create a script that reads the config, calls the Google Cloud TTS API for each scene, and writes MP3 files to the `public/` directory so Remotion can access them via `staticFile()`.
+Create a script that reads the config, calls the Google Cloud TTS API for each scene, and writes WAV files to the `public/` directory so Remotion can access them via `staticFile()`.
 
 The core API call for a single scene:
 
 ```ts title="generate-voiceover.ts"
 // Read voice config from channel-config.json → tts
-// voiceName, languageCode, engine, speed come from there — never hardcode
-const { voiceName, languageCode, speed } = channelConfig.tts;
-const fullVoiceName = `${languageCode}-Chirp3-HD-${voiceName}`;
+// voiceName, languageCode, modelId, speed, encoding come from there — never hardcode
+const { voiceName, languageCode, speed, modelId } = channelConfig.tts;
 
+// Voice name format depends on model — construct per API docs
 const response = await fetch(
   `https://texttospeech.googleapis.com/v1/text:synthesize?key=${process.env.GOOGLE_CLOUD_API_KEY}`,
   {
@@ -46,10 +46,10 @@ const response = await fetch(
       },
       voice: {
         languageCode,
-        name: fullVoiceName,
+        name: voiceName,
       },
       audioConfig: {
-        audioEncoding: "MP3",
+        audioEncoding: "LINEAR16",  // WAV — read from channel-config → tts.encoding
         speaking_rate: speed ?? 1.0,
       },
     }),
@@ -58,12 +58,12 @@ const response = await fetch(
 
 const data = await response.json();
 const audioBuffer = Buffer.from(data.audioContent, "base64");
-writeFileSync(`public/voiceover/${compositionId}/${scene.id}.mp3`, audioBuffer);
+writeFileSync(`public/voiceover/${compositionId}/${scene.id}.wav`, audioBuffer);
 ```
 
 ### Input modes
 
-Chirp 3: HD supports three input modes — use the right one for your script:
+Google Cloud TTS supports three input modes — use the right one for your script:
 
 | Input field | When to use | Supports |
 |-------------|-------------|----------|
@@ -71,11 +71,11 @@ Chirp 3: HD supports three input modes — use the right one for your script:
 | `markup` | Scripts with `[pause short/long]` tags | `[pause short]`, `[pause]`, `[pause long]` tags |
 | `ssml` | Full SSML control | `<break>`, `<prosody>`, `<say-as>`, `<phoneme>`, `<p>`, `<s>` |
 
-### SSML tags available (Chirp 3: HD — Preview)
+### SSML tags available (Google Cloud TTS)
 
 - `<speak>` — root element (required for SSML input)
 - `<break time="Xms"/>` — precise pause in milliseconds
-- `<prosody rate="slow" pitch="-1st">` — rate: `x-slow`/`slow`/`medium`/`fast`/`x-fast`; pitch: semitones
+- `<prosody rate="slow">` — rate: `x-slow`/`slow`/`medium`/`fast`/`x-fast`. **Never use `pitch` attribute** — produces robotic output (technical limitation).
 - `<p>`, `<s>` — paragraph and sentence boundaries
 - `<say-as interpret-as="date/characters/cardinal">` — pronunciation hints
 - `<phoneme alphabet="ipa" ph="...">` — custom IPA pronunciation
@@ -86,7 +86,7 @@ Chirp 3: HD supports three input modes — use the right one for your script:
 Use `speaking_rate` in `audioConfig` (0.25 to 2.0, default 1.0):
 
 ```json
-{ "audioConfig": { "audioEncoding": "MP3", "speaking_rate": 0.85 } }
+{ "audioConfig": { "audioEncoding": "LINEAR16", "speaking_rate": 0.85 } }
 ```
 
 ### Custom pronunciations
@@ -117,9 +117,9 @@ import { getAudioDuration } from "./get-audio-duration";
 const FPS = 30;
 
 const SCENE_AUDIO_FILES = [
-  "voiceover/my-comp/scene-01-intro.mp3",
-  "voiceover/my-comp/scene-02-main.mp3",
-  "voiceover/my-comp/scene-03-outro.mp3",
+  "voiceover/my-comp/scene-01-intro.wav",
+  "voiceover/my-comp/scene-02-main.wav",
+  "voiceover/my-comp/scene-03-outro.wav",
 ];
 
 export const calculateMetadata: CalculateMetadataFunction<Props> = async ({

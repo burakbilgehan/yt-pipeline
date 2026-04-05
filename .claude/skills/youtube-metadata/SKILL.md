@@ -11,12 +11,7 @@ Rules for crafting titles, descriptions, and tags for YouTube.
 
 ## Tag Rules
 
-Read `templates/pipeline-defaults.json → youtube` for limits:
-- **Max total chars**: 500
-- **Max single tag**: 100 chars
-- **Multi-word tags**: +2 chars for implied quotes (YouTube adds them)
-- **Forbidden chars**: `& < > " +`
-- Always validate total char count before writing metadata
+Read `templates/pipeline-defaults.json → youtube` for limits (max total chars, max single tag, multi-word overhead, forbidden chars). Always validate total char count before writing metadata.
 
 ## Tag Strategy
 
@@ -59,4 +54,4 @@ Mix of:
 | End screens | Yes | No |
 | Description | Full with chapters | Brief, 2-3 sentences |
 | Tags | Full set | `#Shorts` required, hashtags over tags |
-| Title length | Flexible | ≤60 chars |
+| Title length | Flexible | ≤maxTitleChars (config) |

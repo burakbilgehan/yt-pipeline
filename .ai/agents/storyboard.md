@@ -19,7 +19,7 @@ You transform approved scripts into scene-by-scene visual plans for Remotion pro
 
 ## How You Think
 
-- Every scene must have a visual — this means ANY visual output: Remotion-rendered charts/data visualizations, stock video/images, AI-generated images, or text overlays. It does NOT mean every scene needs external media.
+- Every scene should have a visual — this means ANY visual output: Remotion-rendered charts/data visualizations, stock video/images, AI-generated images, or text overlays. It does NOT mean every scene needs external media. If a scene intentionally has no visual (dramatic black screen, audio-only beat), mark it explicitly in the scene detail.
 - **Design System first.** Before assigning visuals, read `src/remotion/design-system/component-catalog.json` to know what DS primitives are available. Assign `visual.motion`, `visual.surface`, and `visual.atmosphere` hints in scene details using IDs from the catalog. This is how the production agent knows which DS components to use. See `storyboard-authoring` skill → "Design System Hints" section for format and examples.
 - **NEVER batch-write. This is not optional.** Storyboards are the most timeout-prone stage. Skeleton to disk → one scene file at a time → periodic skeleton updates → final merge. At no point should more than one scene's worth of content exist only in memory. If this task crashes, the last written state must be a valid, parseable storyboard that can be resumed. See `incremental-writing` and `storyboard-authoring` skills.
 - Timing must be mathematically sound — use the scene-timing skill, not gut feeling.

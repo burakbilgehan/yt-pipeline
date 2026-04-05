@@ -18,7 +18,7 @@ Remotion uses Chromium which **does not render emoji flags** — they appear as 
 
 ### Never Run Full Renders as Blocking
 Full Remotion renders take **10+ minutes**. Never run them as blocking `npx remotion render ...`. Always:
-- Use `start /B npx remotion render ...` on Windows to background
+- Background long renders (`npm run render <slug> &` on macOS/Linux, `start "" npm run render <slug>` on Windows)
 - For quick checks: `npx remotion still src/remotion/index.ts MainVideo --public-dir "<path>" --frame <N> --output <path>`
 - For interactive preview: `npm run studio -- --public-dir "<project-path>"` (Remotion Studio) — **preferred method**
 - Preview first, render last
@@ -42,7 +42,7 @@ The bridge (`src/utils/storyboard-bridge.ts`) transforms storyboard JSON → Rem
 - Never crashes on missing optional fields
 
 ### Audio is WAV, Not MP3
-The TTS pipeline produces LINEAR16/WAV files (24kHz). Audio file references in manifests use `.wav` extension. The `audio-probe.ts` utility supports both WAV and MP3 header parsing.
+The TTS pipeline produces LINEAR16/WAV files (sample rate from channel config, commonly 24kHz or 44.1kHz). Audio file references in manifests use `.wav` extension. The `audio-probe.ts` utility supports both WAV and MP3 header parsing.
 
 ## Captions
 
@@ -58,7 +58,7 @@ When needing to visualize audio (spectrum bars, waveforms, bass-reactive effects
 
 ## Sound effects
 
-When needing to use sound effects, load the [./rules/sound-effects.md](./rules/sound-effects.md) file for more information.
+When needing to use sound effects, load the [./rules/sfx.md](./rules/sfx.md) file for more information.
 
 ## How to use
 
@@ -93,4 +93,7 @@ Read individual rule files for detailed explanations and code examples:
 - [rules/videos.md](rules/videos.md) - Embedding videos in Remotion - trimming, volume, speed, looping, pitch
 - [rules/parameters.md](rules/parameters.md) - Make a video parametrizable by adding a Zod schema
 - [rules/maps.md](rules/maps.md) - Add a map using Mapbox and animate it
-- [rules/voiceover.md](rules/voiceover.md) - Adding AI-generated voiceover to Remotion compositions using Google Cloud TTS (Chirp 3: HD)
+- [rules/voiceover.md](rules/voiceover.md) - Adding AI-generated voiceover to Remotion compositions using Google Cloud TTS
+- [rules/display-captions.md](rules/display-captions.md) - Displaying captions/subtitles on screen
+- [rules/import-srt-captions.md](rules/import-srt-captions.md) - Importing SRT caption files
+- [rules/transcribe-captions.md](rules/transcribe-captions.md) - Transcribing audio to captions

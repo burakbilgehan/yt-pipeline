@@ -13,12 +13,14 @@ What to do when TTS audio duration doesn't match the target.
 
 Read thresholds from config chain: `channels/<channel>/channel-config.json → tts.deviationThresholds` first, then fall back to `templates/pipeline-defaults.json → tts.deviationThresholds`.
 
+Default thresholds (from `pipeline-defaults.json → tts.deviationThresholds`, overridable per channel):
+
 | Deviation | Action |
 |-----------|--------|
-| ≤3% | No action needed |
-| 3–10% | Accept, or post-process with `ffmpeg atempo` filter |
-| 10–20% | Re-generate specific blocks: `npm run tts <slug> -- --block <id> --speed <X>` |
-| >20% | STOP — script needs adjustment. Route back to content-writer. |
+| ≤ok% | No action needed |
+| ok–postProcess% | Accept, or post-process with `ffmpeg atempo` filter |
+| postProcess–regenBlock% | Re-generate specific blocks: `npm run tts <slug> -- --block <id> --speed <X>` |
+| >regenBlock% | STOP — script needs adjustment. Route back to content-writer. |
 
 ## Post-Process with ffmpeg
 
@@ -34,6 +36,6 @@ ffmpeg -i input.wav -filter:a "atempo=1.05" output.wav
 When re-generating specific blocks:
 1. Identify which blocks are off (from duration report)
 2. Calculate needed speed: `target_duration / actual_duration × current_speed`
-3. Keep within safe range (0.85–1.15) — if outside, script edit is needed
+3. Keep within safe range (read `pipeline-defaults.json → tts.safeSpeedRange`) — if outside, script edit is needed
 4. Re-gen: `npm run tts <slug> -- --block <scene-id> --speed <calculated>`
 5. Verify manifest updated correctly after re-gen

@@ -39,8 +39,7 @@ Standard format for video scripts in this pipeline.
 
 ## Long vs Short Format
 
-- **long**: Full structure with sections, 5-20 min
-- **short**: 15–60s, 50–150 words. Structure: Hook → Core → CTA. No section headers.
+Read format constraints from `templates/pipeline-defaults.json → formats` and `channels/<channel>/channel-config.json`. These define resolution, scene limits, word counts, and transitions per format. Do not hardcode format-specific rules here.
 
 ## Section Naming Rules
 
@@ -75,7 +74,6 @@ At every step the file on disk must be a parseable, coherent script. A timeout a
 
 ## Rules
 
-- Write for spoken delivery — conversational, clear, no jargon
+- Write for spoken delivery — conversational, clear
 - Every section needs a `[VISUAL NOTE]` for the Storyboard agent
-- Don't invent claims — fact-check against research document
 - Present draft, wait for user approval before finalizing

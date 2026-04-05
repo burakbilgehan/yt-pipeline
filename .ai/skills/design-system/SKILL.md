@@ -28,11 +28,7 @@ Read `src/remotion/design-system/DESIGN-SYSTEM.md` for the full reference. That 
 
 ### Styling Decision Tree
 
-```
-Is the value animated (changes per frame)?
-  YES → inline style={{ }} with interpolate()/spring()
-  NO  → Tailwind class via cn()
-```
+See `DESIGN-SYSTEM.md → Styling Decision Tree` for the canonical version. In short: animated values → inline `style={{}}`, everything else → Tailwind class via `cn()`.
 
 ## Adding shadcn Components
 
@@ -79,7 +75,7 @@ It contains for each component:
 - Verify scenes use registered DS components (not ad-hoc inline animations)
 - Check that `visual.motion`/`visual.surface`/`visual.atmosphere` IDs match catalog entries
 - Verify choices make sense per catalog `whenToUse` / `whenNotToUse`
-- Check font sizes meet mobile-first minimums (body 32px+, heading 48px+, hero 120px+)
+- Check font sizes meet VB-4 minimums (see `DESIGN-SYSTEM.md → VB-4: Typography Hierarchy` for exact values)
 - Flag any framer-motion, GSAP, anime.js usage as automatic FAIL
 
 ### Director Agent

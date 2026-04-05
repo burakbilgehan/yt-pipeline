@@ -119,7 +119,9 @@ export interface AtmosphereRegistryEntry {
 export type MotionPrimitiveId =
   | 'counter-up'
   | 'bar-grow'
-  | 'stagger-reveal'
+  | 'stagger-text-reveal'
+  | 'text-rotate'
+  | 'container-text-flip'
   | 'blur-fade-in'
   | 'slide-up'
   | 'scale-in'

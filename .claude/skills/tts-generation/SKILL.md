@@ -12,9 +12,9 @@ Generate voiceover audio from scripts using Google Cloud TTS.
 ## Config Sources
 
 - **Engine/voice/encoding**: `channels/<channel>/channel-config.json → tts` (never hardcode)
-- **WPM/pauses/thresholds**: `channels/<channel>/channel-config.json → tts` first, then fall back to `templates/pipeline-defaults.json → tts`
+- **WPM/pauses/thresholds**: See `duration-budgeting` skill for WPM fallback chain. Pause durations and deviation thresholds from `templates/pipeline-defaults.json → tts`.
 - **Speed**: configurable per channel or per video. Read from `channels/<channel>/videos/<slug>/config.json → tts.speed` (video-level override), then `channels/<channel>/channel-config.json → tts.speed`, then `templates/pipeline-defaults.json → tts.defaultSpeed`. Different channels need different speeds (e.g., data channel = normal pace, storytelling channel = slower).
-- Default engine (as of 2025): Chirp 3: HD → LINEAR16 encoding → **WAV files** (not MP3). Always defer to channel config.
+- Default engine: read from `channel-config.json → tts.modelId` (Gemini TTS and Chirp 3: HD are both supported). Encoding from `tts.encoding`. Always defer to channel config.
 
 ## Command
 
@@ -51,13 +51,13 @@ Preserve all SSML/markup exactly as written in the script — do not strip or mo
 
 ## Speed
 
-- Range: 0.25–2.0 (`speaking_rate`)
-- Safe range without user approval: 0.85–1.15
+- Range: read `pipeline-defaults.json → tts.speedRange` (currently 0.25–2.0)
+- Safe range without user approval: read `pipeline-defaults.json → tts.safeSpeedRange`
 - Read safe range from config chain (channel-config → pipeline-defaults)
 
 ## Pre-flight
 
-The TTS script runs duration prediction before generating audio.
-- **>15% off target**: STOP, warn user — script likely needs adjustment
-- **10-15% off**: proceed with a note to user
-- **<10%**: proceed normally
+The TTS script runs duration prediction before generating audio. Thresholds should align with `templates/pipeline-defaults.json → tts.deviationThresholds`:
+- **>regenBlock%**: STOP, warn user — script likely needs adjustment
+- **postProcess–regenBlock%**: proceed with a note to user
+- **≤postProcess%**: proceed normally

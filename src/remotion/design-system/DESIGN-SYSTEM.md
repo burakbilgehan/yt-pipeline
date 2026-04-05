@@ -7,7 +7,7 @@
 Five layers, bottom-up. Higher layers compose lower ones.
 
 ```
-L5: SCENE TEMPLATES     "What are we showing"     hero, ranking, data-viz, comparison, narrative, cta
+L5: SCENE TEMPLATES     "What are we showing"     hero, list, data-viz, comparison, narrative, cta
 L4: SURFACE TREATMENT   "How does the container"  glass, flat, glow, frosted, elevated
 L3: MOTION PRIMITIVES   "How does it move"        stagger-text-reveal, text-rotate, counter-up, bar-grow
 L2: ATMOSPHERE          "What's the mood"          dot-grid, film-grain, particles, aurora, flickering-grid
@@ -29,7 +29,7 @@ These are non-negotiable. Every component in this system must follow them.
 5. **Pure functions where possible.** Motion primitives that don't need React state should be plain `(frame, config) => MotionResult` functions registered in the motion registry.
 6. **React components for visual layers.** Atmospheres (L2) and Surfaces (L4) are React components because they render DOM. Motion primitives (L3) can be either functions or components depending on complexity.
 7. **Spring physics over easing curves.** Prefer `spring()` for organic movement. Use `interpolate()` with easing only when spring is inappropriate (linear progress bars, etc.).
-8. **Mobile-first font sizes.** Minimum body text: 32px. Minimum heading: 48px. Hero numbers: 120px+. Viewers watch on phones.
+8. **Mobile-first font sizes.** See VB-4 below for the full hierarchy. Hard floor: 20px. Body: 32px+. Heading: 48px+. Hero: 120px+.
 
 ## Visual Behaviour Rules (Non-Negotiable)
 
@@ -41,13 +41,13 @@ Content must fill the frame. Viewers watch on phones — tiny centered content s
 
 | Rule | Minimum | Target |
 |------|---------|--------|
-| Primary content area | 65% of frame area | 75–85% |
-| Max padding per side | 5% (96px at 1920w) | 3–4% (60–80px) |
-| Max vertical padding | 5% (54px at 1080h) | 3–4% |
+| Primary content area | 80% of frame area | 85–90% |
+| Max padding per side | 3% (58px at 1920w) | 2–3% (40–58px) |
+| Max vertical padding | 3% (32px at 1080h) | 2–3% |
 
 **Safe zone exception:** YouTube end screens reserve the bottom-right 30% for clickable elements. ClosingScene/EndCardScene may leave that area clear.
 
-**Test:** If the bounding box of all visible content is less than 65% of the frame, the component fails.
+**Test:** If the bounding box of all visible content is less than 80% of the frame, the component fails.
 
 ### VB-2: Value-to-Color Mapping (Chromatic Scale)
 
@@ -60,16 +60,7 @@ When values represent a spectrum (good → bad, low → high, cheap → expensiv
 | **No binary coloring** | Never assign all items above a threshold to red and all below to green. The human eye reads color intensity as magnitude. |
 | **Neutral midpoint** | For diverging scales (e.g., baseline = 1.0), values near the midpoint should be near-neutral (desaturated / gray). |
 
-**Implementation pattern:**
-```ts
-// Given: values[], NEGATIVE color, POSITIVE color
-const min = Math.min(...values);
-const max = Math.max(...values);
-const t = (value - min) / (max - min); // 0..1
-const color = interpolateColors(t, [0, 1], [NEGATIVE, POSITIVE]);
-```
-
-Use Remotion's `interpolateColors()` for runtime color interpolation between palette endpoints.
+**How to implement:** Normalize each value to a 0–1 range between dataset min and max, then use Remotion's `interpolateColors()` to map that ratio to a color between the negative and positive palette endpoints. The implementation is straightforward — the key is that the color is *proportional*, never binary.
 
 ### VB-3: Proportional Bar Sizing
 
@@ -165,7 +156,8 @@ Full-screen background layers rendered behind all content. Registered via `regis
 
 Known IDs (from types.ts): `dot-grid`, `film-grain`, `particles`, `aurora`, `flickering-grid`, `none`.
 
-**Status**: Registry wired, no implementations yet.
+**Implemented**: `dot-grid` (DotGrid.tsx — SVG circles with wave pulse), `film-grain` (FilmGrain.tsx — SVG feTurbulence overlay).
+**Planned**: `particles`, `aurora`, `flickering-grid`.
 
 ### L3: Motion Primitives
 
@@ -181,6 +173,10 @@ Reusable animation behaviors. Can be **functions** (registered in motion registr
 |----|------|------|-------------|
 | `stagger-text-reveal` | Function + Component | `StaggerTextReveal.tsx` | Per-character/word spring reveal with configurable `staggerFrom` (first/last/center) |
 | `text-rotate` | Function + Component | `TextRotate.tsx` | 3-phase text cycling: exit → resize → enter. Inspired by 21st.dev TextRotate |
+| `container-text-flip` | Component | `ContainerTextFlip.tsx` | 3D flip transition between text values with container height animation |
+| `blur-fade-in` | Component (wrapper) | `BlurFadeIn.tsx` | Wraps children with blur→sharp + fade entrance |
+
+**Planned**: `counter-up`, `bar-grow`, `slide-up`, `scale-in`.
 
 **Key props pattern** (shared across text motion components):
 - `staggerFrames` — delay between each unit's animation start
@@ -198,7 +194,8 @@ Card/container styling components that wrap content. Registered via `registerSur
 
 Known IDs (from types.ts): `glass`, `flat`, `glow`, `frosted`, `elevated`, `none`.
 
-**Status**: Registry wired, no implementations yet.
+**Implemented**: `glass` (GlassSurface.tsx), `flat` (FlatSurface.tsx), `glow` (GlowSurface.tsx).
+**Planned**: `frosted`, `elevated`.
 
 ### L5: Scene Templates
 
@@ -212,7 +209,7 @@ Each template specifies:
 - Default `motions[]` (L3 IDs for content animation)
 - Optional `transitionIn` / `transitionOut` (L3 IDs)
 
-**Status**: Type defined, no defaults populated yet. These will be populated as L2-L4 components are implemented.
+**Status**: Type defined, no L2-L4 default combinations populated yet. However, 33 scene templates exist in `src/remotion/templates/` (26 data-charts, 7 voiceover-visuals). These templates currently use direct styling rather than composing L2-L4 layers.
 
 ## Component Hierarchy
 
@@ -353,7 +350,15 @@ Every new primitive gets a visual demo in Remotion Studio.
 - **Purpose**: Quick visual verification before using in production. Not shipped in final videos.
 
 Existing showcases:
-- `TextMotionShowcase.tsx` → `DS-TextMotion` — demonstrates `StaggerTextReveal` + `TextRotate`
+
+**DS Primitives (5):**
+- `TextMotionShowcase.tsx` → `DS-TextMotion` — StaggerTextReveal + TextRotate
+- `ContainerTextFlipShowcase.tsx` → `DS-ContainerTextFlip` — ContainerTextFlip demo
+- `AtmosphereShowcase.tsx` → `DS-Atmospheres` — DotGrid + FilmGrain
+- `SurfaceShowcase.tsx` → `DS-Surfaces` — Glass, Flat, Glow
+- `LayerComboShowcase.tsx` → `DS-LayerCombo` — L2+L3+L4 composed together
+
+**Template Showcases (26)** in `showcase/templates/` — organized by folder: Charts (13), Data (5), Scenes (7), Product (1).
 
 ## File Map
 
@@ -428,18 +433,25 @@ The machine-readable catalog is at `src/remotion/design-system/component-catalog
 ### Implemented
 | Layer | ID | File | Use When |
 |-------|----|------|----------|
+| L2 Atmosphere | `dot-grid` | `DotGrid.tsx` | Data/analytical scene backgrounds — SVG circles with wave pulse |
+| L2 Atmosphere | `film-grain` | `FilmGrain.tsx` | Cinematic/documentary texture — SVG feTurbulence overlay |
 | L3 Motion | `stagger-text-reveal` | `StaggerTextReveal.tsx` | Text appearing for the first time — character/word entrance |
 | L3 Motion | `text-rotate` | `TextRotate.tsx` | Multiple values cycling in same position — before/after, progression |
+| L3 Motion | `container-text-flip` | `ContainerTextFlip.tsx` | 3D flip transition between text values with container height animation |
+| L3 Motion | `blur-fade-in` | `BlurFadeIn.tsx` | Subtle content entrance — blur to sharp wrapper |
+| L4 Surface | `glass` | `GlassSurface.tsx` | Semi-transparent cards over atmospheric backgrounds |
+| L4 Surface | `flat` | `FlatSurface.tsx` | Clean opaque cards for maximum readability |
+| L4 Surface | `glow` | `GlowSurface.tsx` | Hero stats or CTAs that need maximum emphasis |
 
 ### Planned (not yet implemented)
 | Layer | ID | Use When |
 |-------|----|----------|
-| L2 Atmosphere | `dot-grid` | Data/analytical scene backgrounds |
-| L2 Atmosphere | `film-grain` | Cinematic/documentary texture |
 | L2 Atmosphere | `particles` | Futuristic/ambient floating particles |
-| L4 Surface | `glass` | Semi-transparent cards over atmospheric backgrounds |
-| L4 Surface | `flat` | Clean opaque cards for maximum readability |
-| L4 Surface | `glow` | Hero stats or CTAs that need maximum emphasis |
+| L2 Atmosphere | `aurora` | Dramatic hero moments — flowing color gradients |
+| L2 Atmosphere | `flickering-grid` | Tech/matrix aesthetic backgrounds |
 | L3 Motion | `counter-up` | Numeric values animating from 0 to target |
 | L3 Motion | `bar-grow` | Bar charts / progress bars filling up |
-| L3 Motion | `blur-fade-in` | Subtle content entrance — blur to sharp |
+| L3 Motion | `slide-up` | Content entering from below |
+| L3 Motion | `scale-in` | Content scaling from 0 to full size |
+| L4 Surface | `frosted` | Soft transparent card, vintage feel |
+| L4 Surface | `elevated` | Card with depth shadow, floating appearance |

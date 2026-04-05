@@ -1,9 +1,6 @@
 # TTS Delivery Style Guide
 
-Reference for content-writers and storyboard agents. Controls pacing, emphasis, and naturalness in voiceover scripts.
-
-Read `channel-config.json → tts` for engine, voice, and speed settings.  
-Read `pipeline-defaults.json → tts` for WPM, pause durations, and thresholds.
+> **This is a human-readable reference only.** Agents should use the `ssml-writing` skill for authoritative rules. Config values come from `channel-config.json → tts` and `pipeline-defaults.json → tts`.
 
 ## Pacing & Pauses — Three Layers
 
@@ -14,21 +11,24 @@ Read `pipeline-defaults.json → tts` for WPM, pause durations, and thresholds.
 - Comma `,` → short breath pause
 
 ### 2. Markup tags (`[MARKUP]` wrapper)
-- `[pause short]` — brief (~300ms)
-- `[pause]` — medium (~500ms)
-- `[pause long]` — dramatic (~1s)
+
+Pause durations are defined in `templates/pipeline-defaults.json → tts.pauseDurations`. Current values:
+- `[pause short]` — brief pause
+- `[pause]` — medium pause
+- `[pause long]` — dramatic pause
+
+Pauses can be any length via SSML `<break>` tags — there is no upper limit.
 
 ### 3. SSML tags (finest control)
 - `<break time="Xms"/>` — exact pause in ms
-- `<prosody rate="slow" pitch="-1st">` — rate + pitch
+- `<prosody rate="slow">` — rate adjustment
   - Rate: `x-slow`, `slow`, `medium`, `fast`, `x-fast`
-  - Pitch: `-3st` to `+3st` (semitones)
 - `<p>`, `<s>` — paragraph/sentence boundaries
 - `<say-as interpret-as="date">` — number/date pronunciation
 - `<phoneme alphabet="ipa" ph="...">` — custom pronunciation
 - `<sub alias="...">` — pronunciation alias
 
-**AVOID `<prosody pitch="...">` alone** — sounds robotic. Use sparingly with rate.
+**NEVER use `<prosody pitch="...">`** — produces robotic-sounding output regardless of context. This is a technical limitation of current TTS engines. Rate changes via `<prosody rate="...">` are fine.
 
 ## When to Use Which
 
@@ -42,16 +42,11 @@ Read `pipeline-defaults.json → tts` for WPM, pause durations, and thresholds.
 
 ## Emphasis
 
-ALL CAPS sparingly (1–2 words max): `That's a TRILLION dollars.`
+ALL CAPS for emphasis in voiceover text: `That's a TRILLION dollars.`
 
-## Anti-Monotony
+## Delivery Style
 
-Vary delivery across the script:
-- **Hook:** Punchy short sentences, `[pause long]` after hook stat
-- **Build-up:** Slightly faster, flowing, minimal breaks
-- **Key reveals:** `<prosody rate="slow">`, `<break time="800ms"/>` before reveal
-- **Transitions:** `<break time="1200ms"/>` between topics
-- **Closing/CTA:** Measured pace, deliberate pauses
+Read delivery style from `channels/<channel>/channel-config.json → tts.stylePrompt` and `channels/<channel>/channel-assets/brand-guide.md`. Different channels need different pacing — there is no universal formula.
 
 ## Number & Symbol Normalization
 

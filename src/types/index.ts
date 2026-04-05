@@ -44,7 +44,7 @@ export interface ProjectConfig {
 }
 
 export interface StageStatus {
-  status: "pending" | "in_progress" | "completed" | "cancelled" | "active";
+  status: "pending" | "in_progress" | "completed" | "cancelled";
   version: number; // 0 = not started, 1+ = iteration count
   activePath: string | null; // canonical path to the current active file for this stage
   startedAt?: string;
@@ -122,7 +122,10 @@ export interface SceneVisual {
     | "text-overlay"
     | "data-chart"
     | "map"
-    | "composite";
+    | "composite"
+    | "data-visualization"
+    | "remotion-component"
+    | "intentional-black";
   description: string;
   searchQuery?: string;
   textOverlay?: string;
@@ -163,10 +166,10 @@ export interface Asset {
 
 // TTS configuration — used as channel default and video-level override
 export interface TTSConfig {
-  provider?: "elevenlabs" | "edge-tts" | "google"; // default: "google"
+  provider?: "google" | "elevenlabs" | "edge-tts"; // default: "google"
   voiceId?: string; // ElevenLabs voice ID
   voiceName?: string; // human-readable voice name (e.g. "Achernar", "Maisie")
-  modelId?: string; // ElevenLabs: "eleven_multilingual_v2", Google: "gemini-2.5-flash-tts" | "chirp3-hd"
+  modelId?: string; // Google: "gemini-2.5-pro-tts" | "gemini-2.5-flash-tts" | "chirp3-hd", ElevenLabs: "eleven_multilingual_v2"
   stability?: number; // 0.0-1.0, lower = more dynamic/emotional (ElevenLabs only)
   similarityBoost?: number; // 0.0-1.0, voice fidelity (ElevenLabs only)
   style?: number; // 0.0-1.0, amplifies speaker's natural style (ElevenLabs only)
@@ -176,6 +179,9 @@ export interface TTSConfig {
   languageCode?: string; // BCP-47 code, e.g. "en-US" (Google only)
   stylePrompt?: string; // natural language style prompt (Gemini TTS only, e.g. "Calm, authoritative narrator")
   sampleRateHertz?: number; // output sample rate, e.g. 24000 or 44100 (Google only)
+  encoding?: string; // audio encoding, e.g. "LINEAR16" (WAV) or "MP3"
+  defaultWPM?: number | null; // channel-level WPM override (step 2 in duration-budgeting chain)
+  deviationThresholds?: { ok: number; postProcess: number; regenBlock: number } | null; // channel-level override
 }
 
 // TTS calibration — stores measured WPM per voice/model combo
@@ -212,7 +218,7 @@ export interface AudioManifest {
   generatedAt: string; // ISO date
   scriptVersion: number; // which script version this was generated from
   scriptFile: string; // e.g. "script-v2.md"
-  provider: string; // "elevenlabs" | "edge-tts"
+  provider: string; // "google" | "elevenlabs" | "edge-tts"
   modelId?: string; // ElevenLabs model ID
   speed: number; // base speed used
   totalDuration: number; // sum of all block durations

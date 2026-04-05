@@ -12,8 +12,11 @@ Rules and workflows for rendering video with Remotion.
 ## Commands
 
 ```bash
-# Full render (NEVER block — always background on Windows)
-start "" npm run render <slug>
+# Full render (NEVER block — always background)
+# macOS/Linux:
+npm run render <slug> &
+# Windows:
+# start "" npm run render <slug>
 
 # Single frame preview
 npx remotion still <composition-id> --frame <N> --output channels/<channel>/videos/<slug>/production/test-renders/preview.png
@@ -25,18 +28,18 @@ npm run studio -- --public-dir <project-public-dir>
 ## Critical Rules
 
 ### Never Block with Full Renders
-Full renders take 10+ minutes. Always launch in background on Windows using `start ""` (NOT `start /B`). For quick checks, use `remotion still` or the studio.
+Full renders take 10+ minutes. Always launch in background (`&` on macOS/Linux, `start ""` on Windows — NOT `start /B`). For quick checks, use `remotion still` or the studio.
 
 ### Concurrency
-Add `--concurrency=16` to render commands for optimal performance on the current machine.
+Add `--concurrency=<N>` to render commands based on your machine's CPU cores (e.g., `--concurrency=$(sysctl -n hw.ncpu)` on macOS).
 
 ### Use `<OffthreadVideo>` for Stock Footage
 Never use `<Video>` component — causes stuttering with external media. Always `<OffthreadVideo>`.
 
 ### Match Stock FPS to Composition
-Stock footage may have different FPS than the composition (default 30fps). Convert before rendering:
+Stock footage may have different FPS than the composition. Read FPS from `channels/<channel>/channel-config.json → visuals.fps`. Convert before rendering:
 ```bash
-ffmpeg -i input.mp4 -r 30 -c:v libx264 output.mp4
+ffmpeg -i input.mp4 -r <target-fps> -c:v libx264 output.mp4
 ```
 
 ### No Emoji Flags
@@ -65,6 +68,5 @@ Missing config values = feature disabled, not a crash. Every optional field must
 
 ## Image Generation
 
-- Gemini is primary provider, Pexels for generic backgrounds
-- Shorts: `--format short` for 9:16 vertical images
+- Read image provider and style from `channels/<channel>/channel-config.json → visuals.imageProvider` and `visuals.aiImageStyle`
 - **Always read `channels/<channel>/channel-assets/brand-guide.md`** before generating — follow visual bible exactly

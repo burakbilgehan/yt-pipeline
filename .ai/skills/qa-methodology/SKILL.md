@@ -15,7 +15,7 @@ Triggered by: Director, when user gives negative feedback.
 1. Classify: `prompt-gap` / `context-loss` / `misinterpretation` / `data-error` / `tooling-issue` / `scope-creep`
 2. Find structural root cause (not symptoms)
 3. Propose one fix: prompt update, validation rule, or tooling improvement
-4. Log to `qa-log.md`
+4. Log to `channels/<channel>/videos/<slug>/analytics/qa-log.md`
 
 ### 2. Agent Health Check
 Triggered by: Director, when Critic rejects 3+ times.
@@ -31,7 +31,7 @@ Triggered at milestones (after first video, every 5 videos).
 - Process metrics: Critic loops per stage, retries
 - New friction points
 
-## Log Format (`qa-log.md`)
+## Log Format (`channels/<channel>/videos/<slug>/analytics/qa-log.md`)
 
 ```markdown
 ### RCA-<NNN>: <Title>

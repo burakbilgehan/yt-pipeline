@@ -73,7 +73,7 @@ Set `status: "completed"`. `activePath` stays unchanged — it still points to t
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `action` | ✓ | `"<stage>.started"`, `"<stage>.completed"`, `"<stage>.reopened"`, `"<stage>.restarted"`, `"project.created"`, `"project.cancelled"` |
+| `action` | ✓ | `"<stage>.started"`, `"<stage>.completed"`, `"<stage>.reopened"`, `"<stage>.restarted"`, `"<stage>.note"`, `"project.created"`, `"project.cancelled"`, `"project.note"` |
 | `at` | ✓ | ISO date string |
 | `version` | — | Which version was active (omit for project-level events) |
 | `reason` | — | Why this happened (required for reopened/restarted) |

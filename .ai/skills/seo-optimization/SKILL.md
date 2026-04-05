@@ -35,7 +35,7 @@ Total: XXX/500 chars
 - **Read `channels/<channel>/channel-config.json`** for channel tone, style, and audience before making recommendations. SEO strategy varies wildly by channel type.
 - Titles: style depends on channel identity (curiosity-driven, authoritative, playful, etc.) — read channel config, don't assume one style fits all
 - Descriptions: front-load important keywords in first 2 lines (shown in search)
-- Tags: diminishing returns — focus on 15-20 well-chosen tags
+- Tags: focus on a targeted set of well-chosen tags rather than filling to the limit
 - Thumbnails: style is channel-specific (data channels = minimal/graphic, vlogs = human faces, etc.). Read `channels/<channel>/channel-assets/brand-guide.md` for visual direction.
 
 ## Format-Specific

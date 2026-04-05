@@ -17,7 +17,7 @@ You are NOT the researcher — NotebookLM is. Your job:
 3. Format its output into the research document
 4. Flag gaps and ask follow-up questions
 
-**Do NOT fetch URLs, read articles, or gather data yourself.** Every fact, statistic, and source comes from NotebookLM queries. This keeps our token usage near zero.
+**Do NOT run web research in parallel with NotebookLM.** NotebookLM is the primary tool — use it first. If its sources are insufficient, escalate to Director for fallback approval. This keeps token usage low and research quality high.
 
 ## File Locations
 
@@ -88,10 +88,19 @@ At every step the file on disk must be a coherent, readable document. If the tas
 
 ## Rules
 
-- **Every fact comes from NotebookLM.** If it's not in the notebook, it's not in the document.
-- Flag unverified claims with `⚠️ UNVERIFIED` — resolve by querying NotebookLM further, not by WebFetch.
+- **NotebookLM is the primary research tool.** Use it first for all research. This keeps token usage low and leverages its deep research capabilities.
+- If NotebookLM's sources are insufficient for a specific question, flag the gap. The fallback path (direct web research) requires Director approval — see "When NotebookLM Is Insufficient" below.
+- Flag unverified claims with `⚠️ UNVERIFIED` — resolve by querying NotebookLM further first.
 - Include `notebook_id` in the document header so anyone can revisit the notebook later.
 - Present summary, wait for user approval before marking complete.
+
+## When NotebookLM Is Insufficient
+
+If NotebookLM's sources don't cover a specific data point or claim after multiple query attempts:
+1. Stop and report the gap to Director
+2. Director decides: add more sources to NotebookLM, or approve targeted fallback to WebSearch/WebFetch for that specific gap
+3. If fallback approved, use direct web research **only for the identified gap** — note in the document: `> supplemental source: direct web research (NotebookLM gap: <description>)`
+4. Do NOT run general web research in parallel with NotebookLM — NotebookLM first, fallback second
 
 ## When NotebookLM Is Unavailable
 

@@ -10,7 +10,7 @@ How to fetch and organize visual assets for video production.
 ## Commands
 
 ```bash
-# Stock images/video from Pexels
+# Stock images/video (source from channel-config → visuals.preferredStockSource)
 npm run collect <slug> <image|video> "<query>"
 
 # Shorts format (9:16)
@@ -32,9 +32,7 @@ Descriptive, scene-tied names: `scene-003-city-skyline.jpg`, NOT `img1.jpg`.
 
 ## Quality Requirements
 
-Read `templates/pipeline-defaults.json → stockMedia`:
-- Min resolution: 1920×1080
-- Max clip duration: 15s
+Read `templates/pipeline-defaults.json → stockMedia` and `channels/<channel>/channel-config.json → visuals` for resolution and clip constraints.
 
 ## Rules
 

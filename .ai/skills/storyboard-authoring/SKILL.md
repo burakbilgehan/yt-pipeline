@@ -61,6 +61,8 @@ channels/<channel>/videos/<slug>/storyboard/
 }
 ```
 
+**Valid transition types** (from `src/remotion/schemas.ts`): `fade`, `cut`, `slide`, `zoom`, `crossfade`, `morph`, `seamless`, `cross-dissolve`, `fade-to-black`.
+
 ## Scene Detail Format
 
 ```json
@@ -159,14 +161,14 @@ Every scene detail can specify DS primitives for the production agent to use. **
 }
 ```
 
-## Visual Assignment (every scene must have one)
+## Visual Assignment (every scene should have one)
 
-"Visual" = ANY visual output for the scene, including Remotion-rendered content:
+"Visual" = ANY visual output for the scene, including Remotion-rendered content. If a scene intentionally has no visual (e.g., black screen for dramatic pause), mark it explicitly: `"type": "intentional-black"`.
 
 | Type | Field | Source |
 |------|-------|--------|
-| Stock media | `searchQuery` | Pexels stock |
-| AI-generated image | `aiImagePrompt` (in notes) | Gemini image generation |
+| Stock media | `searchQuery` | Stock provider (read channel-config → visuals.preferredStockSource) |
+| AI-generated image | `aiImagePrompt` (in notes) | Image provider (read channel-config → visuals.imageProvider) |
 | Text-only | `textOverlay` | Remotion text component |
 | Data visualization | `dataVisualization` | Remotion chart/data component |
 | Remotion animation | `type: "remotion-component"` | Custom Remotion component |
@@ -180,4 +182,4 @@ Every scene detail can specify DS primitives for the production agent to use. **
 ## Format Rules
 
 - **long**: no scene count limit
-- **short**: 3–5 scenes, 3–8s each, `"cut"` transitions only (read `templates/pipeline-defaults.json → formats.short`)
+- **short**: read `templates/pipeline-defaults.json → formats.short` for scene count, duration, and transition constraints

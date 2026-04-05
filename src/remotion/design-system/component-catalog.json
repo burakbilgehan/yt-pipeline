@@ -980,6 +980,168 @@
         "atmospheres": ["film-grain"],
         "motions": ["blur-fade-in"]
       }
+    },
+
+    {
+      "id": "particles",
+      "layer": "L2",
+      "type": "atmosphere",
+      "file": null,
+      "status": "planned",
+      "name": "Particles",
+      "useCases": [
+        "Futuristic or tech-focused scene backgrounds",
+        "Ambient floating particles for modern aesthetic",
+        "Abstract background for hero moments"
+      ],
+      "keywords": ["particles", "futuristic", "tech", "ambient", "floating", "modern"],
+      "whenToUse": "Scene needs a modern, techy feel with floating particles. Good for hero stats and futuristic themes.",
+      "whenNotToUse": "Data-heavy analytical scenes (use dot-grid). Cinematic/vintage scenes (use film-grain).",
+      "storyboardHint": "In scene detail, set: visual.atmosphere = 'particles'.",
+      "exampleScenario": "Hero stat scene with floating particles behind a glowing counter card.",
+      "alternatives": ["dot-grid", "aurora"],
+      "pairs": {
+        "surfaces": ["glass", "glow"],
+        "motions": ["counter-up", "stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "aurora",
+      "layer": "L2",
+      "type": "atmosphere",
+      "file": null,
+      "status": "planned",
+      "name": "Aurora",
+      "useCases": [
+        "Dramatic hero moments with flowing color gradients",
+        "Emotional or climactic scene backgrounds",
+        "Premium feel for key reveals"
+      ],
+      "keywords": ["aurora", "gradient", "dramatic", "hero", "flowing", "premium", "climactic"],
+      "whenToUse": "Scene needs maximum visual drama — flowing aurora-like gradients behind hero content.",
+      "whenNotToUse": "Clean analytical scenes (use dot-grid). Subtle/understated moments (use film-grain).",
+      "storyboardHint": "In scene detail, set: visual.atmosphere = 'aurora'.",
+      "exampleScenario": "Video's most important stat revealed with aurora gradients pulsing behind a glass surface card.",
+      "alternatives": ["particles", "film-grain"],
+      "pairs": {
+        "surfaces": ["glass", "glow"],
+        "motions": ["counter-up", "stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "flickering-grid",
+      "layer": "L2",
+      "type": "atmosphere",
+      "file": null,
+      "status": "planned",
+      "name": "Flickering Grid",
+      "useCases": [
+        "Tech/matrix aesthetic backgrounds",
+        "Data processing or computation visualization",
+        "Digital/cyber themed scenes"
+      ],
+      "keywords": ["flickering", "grid", "matrix", "tech", "digital", "cyber", "computation"],
+      "whenToUse": "Scene needs a digital/matrix-like background with randomly flickering grid cells.",
+      "whenNotToUse": "Organic or cinematic scenes (use film-grain). Clean analytical scenes (use dot-grid).",
+      "storyboardHint": "In scene detail, set: visual.atmosphere = 'flickering-grid'.",
+      "exampleScenario": "Technology comparison scene with flickering grid background behind flat surface cards.",
+      "alternatives": ["dot-grid", "particles"],
+      "pairs": {
+        "surfaces": ["flat", "glass"],
+        "motions": ["stagger-text-reveal", "blur-fade-in"]
+      }
+    },
+    {
+      "id": "slide-up",
+      "layer": "L3",
+      "type": "motion",
+      "name": "Slide Up",
+      "file": null,
+      "status": "planned",
+      "useCases": [
+        "Content entering from below the frame",
+        "List items appearing one by one from bottom",
+        "Card or panel sliding up into position"
+      ],
+      "keywords": ["slide", "up", "entrance", "from-below", "list", "panel"],
+      "whenToUse": "Content should enter from below with spring physics. Clean, purposeful upward motion.",
+      "whenNotToUse": "Text that needs per-character animation (use stagger-text-reveal). Content that should fade in without movement (use blur-fade-in).",
+      "storyboardHint": "In scene detail, set: visual.motion = 'slide-up'.",
+      "exampleScenario": "List of comparison items slide up one by one with staggered delays.",
+      "alternatives": ["blur-fade-in", "scale-in"],
+      "pairs": {
+        "surfaces": ["flat", "glass"],
+        "atmospheres": ["dot-grid"]
+      }
+    },
+    {
+      "id": "scale-in",
+      "layer": "L3",
+      "type": "motion",
+      "name": "Scale In",
+      "file": null,
+      "status": "planned",
+      "useCases": [
+        "Content scaling from 0 to full size",
+        "Emphasis entrance for important elements",
+        "Icon or badge pop-in effect"
+      ],
+      "keywords": ["scale", "zoom", "pop", "entrance", "emphasis", "badge", "icon"],
+      "whenToUse": "Element should scale from nothing to full size with spring bounce. Good for emphasis on important items.",
+      "whenNotToUse": "Text entrance (use stagger-text-reveal). Subtle content appearance (use blur-fade-in).",
+      "storyboardHint": "In scene detail, set: visual.motion = 'scale-in'.",
+      "exampleScenario": "Hero icon pops in at center, bounces with spring physics, then text appears around it.",
+      "alternatives": ["blur-fade-in", "slide-up"],
+      "pairs": {
+        "surfaces": ["glow", "glass"],
+        "atmospheres": ["aurora", "particles"]
+      }
+    },
+    {
+      "id": "frosted",
+      "layer": "L4",
+      "type": "surface",
+      "name": "Frosted Surface",
+      "file": null,
+      "status": "planned",
+      "useCases": [
+        "Soft transparent card with vintage or warm feel",
+        "Background showing through with heavy blur and tint",
+        "Narrative or historical content containers"
+      ],
+      "keywords": ["frosted", "soft", "vintage", "warm", "tinted", "blur", "narrative"],
+      "whenToUse": "Container should have a soft, warm frosted-glass look — heavier blur and warmer tint than standard glass surface.",
+      "whenNotToUse": "Clean modern glass look (use glass). Fully opaque cards (use flat). Attention-demanding cards (use glow).",
+      "storyboardHint": "In scene detail, set: visual.surface = 'frosted'.",
+      "exampleScenario": "Historical quote card with frosted warm-tinted background over film-grain atmosphere.",
+      "alternatives": ["glass", "flat"],
+      "pairs": {
+        "atmospheres": ["film-grain"],
+        "motions": ["blur-fade-in", "stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "elevated",
+      "layer": "L4",
+      "type": "surface",
+      "name": "Elevated Surface",
+      "file": null,
+      "status": "planned",
+      "useCases": [
+        "Card with depth shadow giving floating appearance",
+        "Layered card stacks with visual depth",
+        "Important content cards that need to 'pop' from background"
+      ],
+      "keywords": ["elevated", "shadow", "depth", "floating", "layered", "pop", "material"],
+      "whenToUse": "Container needs to feel like it's floating above the surface with shadow depth. Material design inspired elevation.",
+      "whenNotToUse": "Transparent/glass look needed (use glass). Flat minimal style (use flat). Glowing emphasis (use glow).",
+      "storyboardHint": "In scene detail, set: visual.surface = 'elevated'.",
+      "exampleScenario": "Data comparison cards stacked with progressive elevation — each card casts a shadow on the one below.",
+      "alternatives": ["flat", "glow"],
+      "pairs": {
+        "atmospheres": ["dot-grid", "none"],
+        "motions": ["slide-up", "scale-in"]
+      }
     }
   ]
 }

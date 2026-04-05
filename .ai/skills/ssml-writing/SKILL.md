@@ -19,13 +19,13 @@ Full reference: `templates/tts-style-guide.md` (reference only — actual config
 
 ### 2. Markup Tags
 
-Pause durations are approximate and depend on the TTS engine. These values are calibrated for Google Cloud TTS (Chirp 3: HD). If the TTS provider changes, these values must be re-calibrated.
+Pause durations are defined in `templates/pipeline-defaults.json → tts.pauseDurations` (single source of truth). Current values are calibrated for Google Cloud TTS. If the TTS provider changes, update the JSON — not this skill file.
 
-- `[pause short]` — ~300ms
-- `[pause]` — ~500ms
-- `[pause long]` — ~1000ms
+- `[pause short]` — short pause
+- `[pause]` — medium pause
+- `[pause long]` — long pause
 
-**Note:** The `scene-timing` skill uses these same values for duration calculation. Both skills must stay in sync — if you change pause durations here, update scene-timing too.
+**Note:** The `scene-timing` skill reads the same `pipeline-defaults.json` values for duration calculation. Both skills reference the same source — no manual sync needed.
 
 ### 3. SSML (finest control, Google Cloud TTS specific)
 - `<break time="Xms"/>` — exact pause
@@ -33,16 +33,11 @@ Pause durations are approximate and depend on the TTS engine. These values are c
 - `<say-as interpret-as="date">` — pronunciation
 - `<sub alias="...">` — pronunciation alias
 
-**NEVER use `<prosody pitch="...">`** — sounds robotic. Rate changes are fine, pitch alteration is banned.
+**NEVER use `<prosody pitch="...">`** — produces robotic-sounding output regardless of context. This is a technical limitation of current TTS engines, not a creative preference. Rate changes via `<prosody rate="...">` are fine.
 
 ## Anti-Monotony Pattern
 
-Vary delivery across the script:
-- **Hook**: Punchy, short sentences. `[pause long]` after hook stat.
-- **Build-up**: Slightly faster, flowing, minimal breaks.
-- **Key reveals**: `[pause long]` before reveal, then slow measured delivery.
-- **Transitions**: `<break time="1200ms"/>` between topics.
-- **CTA**: Measured pace, deliberate pauses.
+Read delivery style preferences from `channels/<channel>/channel-config.json → tts.stylePrompt` and `channels/<channel>/channel-assets/brand-guide.md`. Different channels need different pacing patterns — there is no universal formula.
 
 ## Number Normalization
 
@@ -54,4 +49,4 @@ Write numbers in spoken form in `[VOICEOVER]` blocks:
 
 ## Emphasis
 
-ALL CAPS sparingly — 1-2 words max: `That's a TRILLION dollars.`
+ALL CAPS for emphasis in voiceover text: `That's a TRILLION dollars.` Use judiciously — read channel voice guidelines from channel-config.

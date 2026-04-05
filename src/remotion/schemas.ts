@@ -10,7 +10,7 @@ export const sceneVisualInputSchema = z.object({
   type: z.enum([
     "stock-video", "stock-image", "ai-image",
     "text-overlay", "data-chart", "map", "composite",
-    "data-visualization", "remotion-component",
+    "data-visualization", "remotion-component", "intentional-black",
   ]),
   description: z.string(),
   searchQuery: z.string().optional(),
