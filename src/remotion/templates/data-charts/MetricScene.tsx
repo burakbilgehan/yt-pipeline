@@ -43,6 +43,8 @@ interface MetricSceneProps {
   };
   brandColor: string;
   fontFamily: string;
+  /** Fallback formula parts when chart.phase2.formulaParts is empty/missing. */
+  defaultFormulaParts?: string[];
 }
 
 // ─── Design Tokens ────────────────────────────────────────────
@@ -240,6 +242,7 @@ export const MetricScene: React.FC<MetricSceneProps> = ({
   chart,
   brandColor,
   fontFamily,
+  defaultFormulaParts = ["Price Growth", "\u00F7", "Wage Growth", "=", "RUPI"],
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -250,7 +253,7 @@ export const MetricScene: React.FC<MetricSceneProps> = ({
     right: { year: 2025, wage: "$1,206/week", product: "Eggs", price: "$4.25/dozen" },
   };
   const phase2 = chart.phase2 || {
-    formulaParts: ["Price Growth", "\u00F7", "Wage Growth", "=", "RUPI"],
+    formulaParts: defaultFormulaParts,
   };
   const phaseSplitSec = chart.phaseSplitSec ?? 20;
   const blsLogoSrc = chart.blsLogoSrc as string | undefined;

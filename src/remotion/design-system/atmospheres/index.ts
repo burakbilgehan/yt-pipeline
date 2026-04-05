@@ -9,4 +9,14 @@
  * 2. Export a React.FC<AtmosphereComponentProps>
  * 3. Register it in this index.ts
  */
-export {};
+import { registerAtmosphere } from '../registry';
+import { DotGrid } from './DotGrid';
+import { FilmGrain } from './FilmGrain';
+
+// ─── Exports ─────────────────────────────────────────────────
+export { DotGrid } from './DotGrid';
+export { FilmGrain } from './FilmGrain';
+
+// ─── Registry registrations ──────────────────────────────────
+registerAtmosphere('dot-grid', DotGrid);
+registerAtmosphere('film-grain', FilmGrain);

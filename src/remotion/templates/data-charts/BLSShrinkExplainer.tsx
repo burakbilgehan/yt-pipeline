@@ -25,6 +25,8 @@ export interface BLSShrinkExplainerProps {
   };
   brandColor: string;
   fontFamily: string;
+  /** Path passed to staticFile() for the product comparison photo. */
+  imageSrc?: string;
 }
 
 // ─── Design Tokens (from brand-guide.md) ──────────────────────
@@ -146,6 +148,7 @@ export const BLSShrinkExplainer: React.FC<BLSShrinkExplainerProps> = ({
   chart,
   brandColor,
   fontFamily,
+  imageSrc = "shrinkflation-decoded/folgers.jpg",
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -309,7 +312,7 @@ export const BLSShrinkExplainer: React.FC<BLSShrinkExplainerProps> = ({
           }}
         >
           <Img
-            src={staticFile("shrinkflation-decoded/folgers.jpg")}
+            src={staticFile(imageSrc)}
             style={{
               width: PHOTO_WIDTH,
               height: PHOTO_HEIGHT,

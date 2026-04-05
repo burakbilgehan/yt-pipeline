@@ -1,10 +1,11 @@
 import React from "react";
-import { Composition, staticFile } from "remotion";
+import { Composition, Folder, staticFile } from "remotion";
 import "./styles.css";
 import { videoCompositionSchema, dataChartCompositionSchema, shortsCompositionSchema, horseRaceCompositionSchema, thumbnailCompositionSchema, thumbnailOverlayCompositionSchema } from "./schemas";
 import { customVideoCompositionSchema } from "./compositions/CustomVideoComposition";
 import { ensureFontsLoaded } from "../fonts/load-fonts";
 import { bridgeAllScenes } from "../utils/storyboard-bridge";
+import { resolveHorseRaceScenes } from "../utils/horse-race-resolver";
 import { BG } from "./palette";
 import { START_PADDING_SEC, END_PADDING_SEC } from "./compositions/MainComposition";
 import type { z } from "zod";
@@ -111,259 +112,11 @@ async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSch
     bridgeAllScenes(resolvedScenes);
 
     // ── Inject HorseRaceChart data into horse-race scenes ──
-    // Load RUPI series data and attach to each horse-race scene's dataChart
     try {
       const rupiRes = await fetch(staticFile("production/rupi-data.json"));
       if (rupiRes.ok) {
-        const rupiData = (await rupiRes.json()) as Record<string, any[]>;
-        // Map storyboard deflator names → rupi-data.json keys
-        const deflatorKeyMap: Record<string, string> = {
-          "Median Wage": "wage",
-          "median wage": "wage",
-          "wage": "wage",
-          "CPI": "cpi",
-          "cpi": "cpi",
-          "Federal Minimum Wage": "minWage",
-          "Minimum Wage": "minWage",
-          "minWage": "minWage",
-          "Gold": "gold",
-          "gold": "gold",
-        };
-
-        // ── Pass 1: Inject series data + per-scene defaults ──
-        const horseRaceScenes: Array<{ scene: any; dc: any }> = [];
-
-        for (const scene of resolvedScenes) {
-          const dc = scene.visual?.dataChart;
-          if (!dc || dc.type !== "horse-race") continue;
-
-          horseRaceScenes.push({ scene, dc });
-
-          // Determine which deflator's series to use
-          const deflatorName: string = dc.deflator || "Median Wage";
-          const dataKey = deflatorKeyMap[deflatorName] || "wage";
-          const series = rupiData[dataKey];
-          if (series && Array.isArray(series)) {
-            dc.series = series;
-          }
-
-          // Set time range from scene's yearRange or full range
-          const yr = dc.yearRange;
-          dc.timeRange = {
-            start: yr?.[0] ?? 2000,
-            end: yr?.[1] ?? 2025,
-          };
-
-          // Defaults for camera/annotations (per-scene overrides can be added later)
-          if (!dc.cameraKeyframes) {
-            dc.cameraKeyframes = [{ year: dc.timeRange.start, zoom: 1.0, speed: 1.0 }];
-          }
-
-          // Use transparent background so SceneVisual layer shows through
-          dc.backgroundColor = "transparent";
-
-          // Linear scale for RUPI (0–3.5 range) — log scale not appropriate here
-          if (dc.logScale === undefined) {
-            dc.logScale = false;
-          }
-
-          // Y-axis label based on deflator
-          if (!dc.yAxisLabel) {
-            const yLabels: Record<string, string> = {
-              wage: "RUPI (Wage-Deflated)",
-              cpi: "RUPI (CPI-Deflated)",
-              minWage: "RUPI (Min Wage-Deflated)",
-              gold: "RUPI (Gold-Deflated)",
-            };
-            dc.yAxisLabel = yLabels[dataKey] || "RUPI";
-          }
-        }
-
-        // ── Pass 2: Build per-scene sceneYearRanges ──
-        // MainComposition renders each scene inside its own <Sequence from={startFrame}>,
-        // so useCurrentFrame() in HorseRaceChart returns scene-local frames (0..sceneDuration).
-        // Each scene therefore needs a single-entry sceneYearRanges covering 0..sceneDurationSec
-        // mapped to the appropriate yearStart..yearEnd for that scene.
-        if (horseRaceScenes.length > 0) {
-          let lastYearEnd = 2000;
-
-          for (const { scene, dc } of horseRaceScenes) {
-            const sceneDurationSec = (scene.endTime || 0) - (scene.startTime || 0);
-            const yr = dc.yearRange;
-            const state: string = dc.state || "";
-
-            let yearStart: number;
-            let yearEnd: number;
-
-            if (state === "start-position") {
-              // Use explicit yearRange if provided (e.g. [1999,2003] for wider chart window),
-              // otherwise default to frozen at year 2000.
-              if (yr && Array.isArray(yr) && yr.length === 2) {
-                yearStart = yr[0];
-                yearEnd = yr[1];
-              } else {
-                yearStart = 2000;
-                yearEnd = 2000;
-              }
-            } else if (state.startsWith("frozen") || state.startsWith("paused")) {
-              const frozenYear = parseInt(state.replace(/\D/g, "")) || lastYearEnd;
-              yearStart = frozenYear;
-              yearEnd = frozenYear;
-            } else if (dc.deflator && dc.deflator !== "Median Wage" && dc.deflator !== "median wage" && dc.deflator !== "wage") {
-              // Deflator switch scenes (021–025): chart at full extent, lines morph
-              yearStart = 2025;
-              yearEnd = 2025;
-            } else if (yr && Array.isArray(yr) && yr.length === 2) {
-              yearStart = yr[0];
-              yearEnd = yr[1];
-            } else {
-              yearStart = lastYearEnd;
-              yearEnd = lastYearEnd;
-            }
-
-            // Single-entry range: scene-local time 0 → sceneDuration maps to yearStart → yearEnd
-            dc.sceneYearRanges = [{
-              sceneStartSec: 0,
-              sceneEndSec: sceneDurationSec,
-              yearStart,
-              yearEnd,
-            }];
-            lastYearEnd = yearEnd;
-          }
-        }
-
-        // ── Pass 3: Build annotations + shrinkflation markers from storyboard data ──
-        if (horseRaceScenes.length > 0) {
-          const allAnnotations: Array<{
-            year: number;
-            text: string;
-            style: string;
-            asset?: string;
-            duration?: number;
-            icon?: string;
-          }> = [];
-
-          // Separate collection for shrinkflation markers (vertical dashed lines)
-          const shrinkMarkers: Array<{ year: number; label: string; color?: string }> = [];
-          const seenMarkers = new Set<string>();
-
-          for (const { dc } of horseRaceScenes) {
-            // eventMarker → annotation
-            if (dc.eventMarker) {
-              const em = dc.eventMarker;
-              const textStr: string = (em.title || em.text || "").toLowerCase();
-              const isMajor = textStr.includes("avian") ||
-                              textStr.includes("covid") ||
-                              (em.type || "") === "covid-annotation";
-              allAnnotations.push({
-                year: em.year,
-                text: em.title || em.text,
-                style: isMajor ? "major-crisis-flash" : "crisis-flash",
-                duration: 2,
-              });
-            }
-
-            // annotation (singular object, e.g. scene-008)
-            if (dc.annotation && typeof dc.annotation === "object" && !Array.isArray(dc.annotation)) {
-              allAnnotations.push({
-                year: dc.annotation.year,
-                text: dc.annotation.text,
-                style: "milestone-flash",
-                asset: dc.annotation.product,
-                duration: 2,
-              });
-            }
-
-            // annotations (array from storyboard)
-            if (dc.annotations && Array.isArray(dc.annotations)) {
-              for (const a of dc.annotations) {
-                if (a.year && a.text) {
-                  // Shrinkflation annotations → both general annotations AND shrinkflation markers
-                  if (a.type === "shrinkflation") {
-                    const markerKey = `${a.year}-${a.text}`;
-                    if (!seenMarkers.has(markerKey)) {
-                      seenMarkers.add(markerKey);
-                      shrinkMarkers.push({
-                        year: a.year,
-                        label: a.text,
-                      });
-                    }
-                    allAnnotations.push({
-                      year: a.year,
-                      text: a.text,
-                      style: "shrinkflation-callout",
-                      asset: a.product,
-                      duration: 2,
-                    });
-                  } else if (a.near || a.product) {
-                    // Regular product annotations (with near or product field)
-                    allAnnotations.push({
-                      year: a.year,
-                      text: a.text,
-                      style: "leader-callout",
-                      asset: a.near || a.product,
-                      duration: 2,
-                    });
-                  } else {
-                    // Event-type annotations (no product/near, e.g. "Global commodity boom")
-                    allAnnotations.push({
-                      year: a.year,
-                      text: a.text,
-                      style: "event-flash",
-                      duration: 2,
-                    });
-                  }
-                }
-              }
-            }
-
-            // crossings (from deflator switch scenes)
-            if (dc.crossings && Array.isArray(dc.crossings)) {
-              for (const c of dc.crossings) {
-                allAnnotations.push({
-                  year: 2025,
-                  text: `${c.product} crosses 1.0`,
-                  style: "crossing-alert",
-                  asset: c.product,
-                  duration: 2,
-                });
-              }
-            }
-
-            // overlays with type "shrinkflation" (from overlays array)
-            if (dc.overlays && Array.isArray(dc.overlays)) {
-              for (const o of dc.overlays) {
-                if (o.type === "shrinkflation" && o.year && o.text) {
-                  const markerKey = `${o.year}-${o.text}`;
-                  if (!seenMarkers.has(markerKey)) {
-                    seenMarkers.add(markerKey);
-                    shrinkMarkers.push({
-                      year: o.year,
-                      label: o.text,
-                    });
-                  }
-                }
-              }
-            }
-          }
-
-          // Deduplicate annotations by year+text
-          const seen = new Set<string>();
-          const uniqueAnnotations = allAnnotations.filter((a) => {
-            const key = `${a.year}-${a.text}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-
-          // Inject annotations + shrinkflation markers into all horse-race scenes
-          for (const { dc } of horseRaceScenes) {
-            dc.annotations = uniqueAnnotations;
-            if (shrinkMarkers.length > 0) {
-              dc.shrinkflationMarkers = shrinkMarkers;
-            }
-          }
-        }
+        const rupiData = await rupiRes.json();
+        resolveHorseRaceScenes(resolvedScenes, rupiData);
       }
     } catch { /* no RUPI data — horse-race scenes show placeholder */ }
 
@@ -625,15 +378,337 @@ export const RemotionRoot: React.FC = () => {
         }}
       />
 
-      {/* Design System Showcase — text motion primitives */}
-      <Composition
-        id="DS-TextMotion"
-        lazyComponent={() => import("./design-system/showcase/TextMotionShowcase")}
-        durationInFrames={300}
-        fps={FPS}
-        width={WIDTH}
-        height={HEIGHT}
-      />
+      {/* ═══ Design System Showcases ═══ */}
+      <Folder name="DS">
+        <Composition
+          id="LayerCombo-L2-L3-L4-L5"
+          lazyComponent={() => import("./design-system/showcase/LayerComboShowcase")}
+          durationInFrames={300}
+          fps={FPS}
+          width={WIDTH}
+          height={HEIGHT}
+        />
+
+        <Folder name="L2-Atmospheres">
+          <Composition
+            id="DotGrid-FilmGrain"
+            lazyComponent={() => import("./design-system/showcase/AtmosphereShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+        </Folder>
+
+        <Folder name="L3-Motion">
+          <Composition
+            id="StaggerTextReveal-TextRotate"
+            lazyComponent={() => import("./design-system/showcase/TextMotionShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="ContainerTextFlip"
+            lazyComponent={() => import("./design-system/showcase/ContainerTextFlipShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+        </Folder>
+
+        <Folder name="L4-Surfaces">
+          <Composition
+            id="Glass-Flat-Glow"
+            lazyComponent={() => import("./design-system/showcase/SurfaceShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+        </Folder>
+      </Folder>
+
+      {/* ═══ Template Showcases ═══ */}
+      <Folder name="Templates">
+        <Folder name="Charts">
+          <Composition
+            id="BarChart"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/BarChartShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="BarChartVertical"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/BarChartVerticalShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="LineChart"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/LineChartShowcase")}
+            durationInFrames={210}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="PieChart"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/PieChartShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="Counter"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/CounterShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="HorizontalBarChart"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/HorizontalBarChartShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="ComparisonTable"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/ComparisonTableShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="ComparisonTableDuel"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/ComparisonTableDuelShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="TimelineChart"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/TimelineChartShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="ScaleComparison"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/ScaleComparisonShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="ProgressRing"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/ProgressRingShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="QuadrantScatter"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/QuadrantScatterShowcase")}
+            durationInFrames={210}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="HorseRaceChart"
+            lazyComponent={() => import("./design-system/showcase/templates/Charts/HorseRaceChartShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+        </Folder>
+
+        <Folder name="Scenes">
+          <Composition
+            id="HookScene"
+            lazyComponent={() => import("./design-system/showcase/templates/Scenes/HookSceneShowcase")}
+            durationInFrames={210}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="TitleCard"
+            lazyComponent={() => import("./design-system/showcase/templates/Scenes/TitleCardShowcase")}
+            durationInFrames={150}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="MetricScene"
+            lazyComponent={() => import("./design-system/showcase/templates/Scenes/MetricSceneShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="SplitComparison"
+            lazyComponent={() => import("./design-system/showcase/templates/Scenes/SplitComparisonShowcase")}
+            durationInFrames={210}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="EndCardScene"
+            lazyComponent={() => import("./design-system/showcase/templates/Scenes/EndCardSceneShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="ClosingScene"
+            lazyComponent={() => import("./design-system/showcase/templates/Scenes/ClosingSceneShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="ClosingSequence"
+            lazyComponent={() => import("./design-system/showcase/templates/Scenes/ClosingSequenceShowcase")}
+            durationInFrames={420}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+        </Folder>
+
+        <Folder name="Data">
+          <Composition
+            id="SalaryShuffleScene"
+            lazyComponent={() => import("./design-system/showcase/templates/Data/SalaryShuffleSceneShowcase")}
+            durationInFrames={240}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="RankingResortScene"
+            lazyComponent={() => import("./design-system/showcase/templates/Data/RankingResortSceneShowcase")}
+            durationInFrames={240}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="CalendarGrid"
+            lazyComponent={() => import("./design-system/showcase/templates/Data/CalendarGridShowcase")}
+            durationInFrames={210}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="DivisionComparison"
+            lazyComponent={() => import("./design-system/showcase/templates/Data/DivisionComparisonShowcase")}
+            durationInFrames={210}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="DeflatorSummaryGrid"
+            lazyComponent={() => import("./design-system/showcase/templates/Data/DeflatorSummaryGridShowcase")}
+            durationInFrames={240}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="CompositePhases"
+            lazyComponent={() => import("./design-system/showcase/templates/Data/CompositePhasesShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+        </Folder>
+
+        <Folder name="Product">
+          <Composition
+            id="ShrinkflationHook"
+            lazyComponent={() => import("./design-system/showcase/templates/Product/ShrinkflationHookShowcase")}
+            durationInFrames={240}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="ShrinkflationCards"
+            lazyComponent={() => import("./design-system/showcase/templates/Product/ShrinkflationCardsShowcase")}
+            durationInFrames={210}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="SkimpflationCard"
+            lazyComponent={() => import("./design-system/showcase/templates/Product/SkimpflationCardShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="BLSShrinkExplainer"
+            lazyComponent={() => import("./design-system/showcase/templates/Product/BLSShrinkExplainerShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="BaselineReference"
+            lazyComponent={() => import("./design-system/showcase/templates/Product/BaselineReferenceShowcase")}
+            durationInFrames={210}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="LensSwitchPivot"
+            lazyComponent={() => import("./design-system/showcase/templates/Product/LensSwitchPivotShowcase")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="HookPunchline"
+            lazyComponent={() => import("./design-system/showcase/templates/Product/HookPunchlineShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+        </Folder>
+      </Folder>
     </>
   );
 };

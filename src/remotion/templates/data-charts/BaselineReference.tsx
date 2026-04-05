@@ -33,6 +33,8 @@ export interface BaselineReferenceProps {
   };
   brandColor: string;
   fontFamily: string;
+  /** Label shown next to the baseline value (e.g. "RUPI"). */
+  metricLabel?: string;
 }
 
 // ─── Design Tokens (from brand-guide.md) ──────────────────────
@@ -69,6 +71,7 @@ const STAGGER_FRAMES = 10;
 export const BaselineReference: React.FC<BaselineReferenceProps> = ({
   chart,
   fontFamily,
+  metricLabel = "RUPI",
 }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
@@ -234,7 +237,7 @@ export const BaselineReference: React.FC<BaselineReferenceProps> = ({
         }}
       />
 
-      {/* ── Baseline value label: "RUPI = 1.0" ── */}
+      {/* ── Baseline value label: "{metricLabel} = X.X" ── */}
       <div
         style={{
           position: "absolute",
@@ -257,7 +260,7 @@ export const BaselineReference: React.FC<BaselineReferenceProps> = ({
             textTransform: "uppercase",
           }}
         >
-          RUPI
+          {metricLabel}
         </span>
         <span
           style={{

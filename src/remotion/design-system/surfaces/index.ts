@@ -10,4 +10,17 @@
  * 2. Export a React.FC<SurfaceComponentProps>
  * 3. Register it in this index.ts
  */
-export {};
+import { registerSurface } from '../registry';
+import { GlassSurface } from './GlassSurface';
+import { FlatSurface } from './FlatSurface';
+import { GlowSurface } from './GlowSurface';
+
+// ─── React component exports ────────────────────────────────
+export { GlassSurface } from './GlassSurface';
+export { FlatSurface } from './FlatSurface';
+export { GlowSurface } from './GlowSurface';
+
+// ─── Surface registrations ──────────────────────────────────
+registerSurface('glass', GlassSurface);
+registerSurface('flat', FlatSurface);
+registerSurface('glow', GlowSurface);

@@ -7,7 +7,6 @@ import { TextRotate } from '../motion/TextRotate';
  * DS-TextMotion showcase — demonstrates StaggerTextReveal + TextRotate
  * 1920×1080, 300 frames @ 30fps (10 seconds)
  *
- * Inspired by 21st.dev/community/components/danielpetho/text-rotate
  * Key visual traits:
  *   - Characters pop in with bouncy spring overshoot (low damping)
  *   - staggerFrom: "last" — last character enters first, creating a ripple
@@ -41,7 +40,7 @@ const TextMotionShowcase: React.FC = () => {
           }}
         >
           <StaggerTextReveal
-            text="26,000%"
+            text="1,250,000"
             startFrame={10}
             staggerFrames={2}
             staggerFrom="last"
@@ -53,7 +52,7 @@ const TextMotionShowcase: React.FC = () => {
             springConfig={{ damping: 12, stiffness: 400, mass: 0.8 }}
           />
           <StaggerTextReveal
-            text="Price Increase Since 1970"
+            text="Stagger Reveal Demo"
             startFrame={25}
             staggerFrames={1}
             staggerFrom="first"
@@ -110,10 +109,10 @@ const TextMotionShowcase: React.FC = () => {
           >
             <TextRotate
               texts={[
-                'Shrinkflation',
-                'Hidden Costs',
-                'Real Prices',
-                'The Truth',
+                'Typography',
+                'Animation',
+                'Composable',
+                'Powerful',
               ]}
               frameDuration={60}
               staggerFrames={1}

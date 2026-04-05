@@ -23,6 +23,13 @@ import { BG, TEXT, TEXT_SECONDARY, SAGE, ACCENT_PINK } from "../../palette";
 
 // ─── Types ──────────────────────────────────────────────────────
 
+interface ProductData {
+  name: string;
+  image: string;
+  oldSize: string;
+  newSize: string;
+}
+
 interface ShrinkflationHookProps {
   chart: {
     type: "shrinkflation-hook";
@@ -30,6 +37,8 @@ interface ShrinkflationHookProps {
   };
   brandColor: string;
   fontFamily: string;
+  /** Product comparison data. Falls back to default Häagen-Dazs + Folgers examples. */
+  products?: ProductData[];
 }
 
 // ─── Constants ──────────────────────────────────────────────────
@@ -41,6 +50,14 @@ const PHOTO_HEIGHT = 340;
 
 // ─── Product Data ───────────────────────────────────────────────
 
+const DEFAULT_PRODUCTS: ProductData[] = [
+  { name: "Ice Cream", image: "shrinkflation-decoded/haagen-dazs.jpg", oldSize: "16 oz", newSize: "14 oz" },
+  { name: "Coffee", image: "shrinkflation-decoded/folgers.jpg", oldSize: "39 oz", newSize: "30.5 oz" },
+];
+
+// Entrance times per row index (seconds)
+const ENTRANCE_TIMES = [0.5, 4.0, 7.5, 11.0];
+
 interface ProductRow {
   name: string;
   sizeLabel: string;
@@ -48,20 +65,15 @@ interface ProductRow {
   entranceTime: number;
 }
 
-const ROWS: ProductRow[] = [
-  {
-    name: "Ice Cream",
-    sizeLabel: "16 oz → 14 oz",
-    image: "shrinkflation-decoded/haagen-dazs.jpg",
-    entranceTime: 0.5,
-  },
-  {
-    name: "Coffee",
-    sizeLabel: "39 oz → 30.5 oz",
-    image: "shrinkflation-decoded/folgers.jpg",
-    entranceTime: 4.0,
-  },
-];
+/** Convert ProductData[] to internal ProductRow[] with computed fields */
+function toProductRows(products: ProductData[]): ProductRow[] {
+  return products.map((p, i) => ({
+    name: p.name,
+    sizeLabel: `${p.oldSize} → ${p.newSize}`,
+    image: p.image,
+    entranceTime: ENTRANCE_TIMES[i] ?? 0.5 + i * 3.5,
+  }));
+}
 
 // ─── Sub-components ─────────────────────────────────────────────
 
@@ -98,10 +110,13 @@ const DotGrid: React.FC = () => {
 
 export const ShrinkflationHook: React.FC<ShrinkflationHookProps> = ({
   fontFamily,
+  products = DEFAULT_PRODUCTS,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const time = frame / fps;
+
+  const ROWS = toProductRows(products);
 
   // ── Breathe animation for hold phase (8s+) ─────────────────
   const breathePhase = Math.max(0, time - 8);

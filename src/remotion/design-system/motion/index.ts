@@ -20,6 +20,10 @@ export { StaggerTextReveal } from './StaggerTextReveal';
 export type { StaggerTextRevealProps } from './StaggerTextReveal';
 export { TextRotate } from './TextRotate';
 export type { TextRotateProps } from './TextRotate';
+export { ContainerTextFlip } from './ContainerTextFlip';
+export type { ContainerTextFlipProps } from './ContainerTextFlip';
+export { BlurFadeIn } from './BlurFadeIn';
+export type { BlurFadeInProps } from './BlurFadeIn';
 
 // ─── Motion function registrations ──────────────────────────
 
@@ -93,6 +97,42 @@ registerMotion(
     return {
       style: {
         transform: `translateY(${translateY}%)`,
+        opacity,
+      },
+      progress,
+    };
+  },
+);
+
+/**
+ * container-text-flip: blur-fade transition for cycling text.
+ * Per-character blur + opacity animation — softer than text-rotate's slide.
+ */
+registerMotion(
+  'container-text-flip',
+  (frame: number, config: MotionConfig): MotionResult => {
+    const adjustedFrame = Math.max(0, frame - config.delayFrames);
+    const springDamping = config.springConfig?.damping ?? 20;
+    const springStiffness = config.springConfig?.stiffness ?? 300;
+    const springMass = config.springConfig?.mass ?? 0.8;
+
+    const progress = spring({
+      frame: adjustedFrame,
+      fps: 30,
+      config: {
+        damping: springDamping,
+        stiffness: springStiffness,
+        mass: springMass,
+      },
+      durationInFrames: config.durationFrames,
+    });
+
+    const blurPx = interpolate(progress, [0, 1], [10, 0]);
+    const opacity = interpolate(progress, [0, 1], [0, 1]);
+
+    return {
+      style: {
+        filter: `blur(${blurPx}px)`,
         opacity,
       },
       progress,

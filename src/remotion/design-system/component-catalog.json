@@ -51,6 +51,29 @@
       }
     },
     {
+      "id": "container-text-flip",
+      "layer": "L3",
+      "type": "motion",
+      "name": "Container Text Flip",
+      "file": "motion/ContainerTextFlip.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Word cycling with blur-fade transition (softer than slide)",
+        "Hero text with rotating keywords and blur entrance",
+        "Container that auto-sizes with a pill background"
+      ],
+      "keywords": ["blur", "fade", "flip", "cycle", "word-rotate", "pill", "container-resize"],
+      "whenToUse": "Multiple words need to cycle in place with a soft blur-fade transition. Softer feel than text-rotate's slide animation. Optional pill/badge background.",
+      "whenNotToUse": "When you need dramatic slide-in motion (use text-rotate). Single text entrance (use stagger-text-reveal). Just blur fade without cycling (use blur-fade-in).",
+      "storyboardHint": "In scene detail, set: visual.motion = 'container-text-flip'. Provide visual.motionConfig.texts = ['word1', 'word2', ...]. Optional visual.motionConfig.showPill = true for badge style.",
+      "exampleScenario": "Hero scene: 'Make your code [better/modern/beautiful/awesome]' with words cycling in a soft blur-fade inside a gradient pill.",
+      "alternatives": ["text-rotate", "stagger-text-reveal"],
+      "pairs": {
+        "surfaces": ["glass", "flat", "glow"],
+        "atmospheres": ["aurora", "dot-grid"]
+      }
+    },
+    {
       "id": "counter-up",
       "layer": "L3",
       "type": "motion",
@@ -101,8 +124,8 @@
       "layer": "L3",
       "type": "motion",
       "name": "Blur Fade In",
-      "file": null,
-      "status": "planned",
+      "file": "motion/BlurFadeIn.tsx",
+      "status": "implemented",
       "useCases": [
         "Subtle content entrance — blurred and transparent → sharp and opaque",
         "Background element appearing without drawing too much attention",
@@ -123,8 +146,8 @@
       "id": "dot-grid",
       "layer": "L2",
       "type": "atmosphere",
-      "file": null,
-      "status": "planned",
+      "file": "atmospheres/DotGrid.tsx",
+      "status": "implemented",
       "name": "Dot Grid",
       "useCases": [
         "Data-focused or analytical scenes — gives a technical, clean feel",
@@ -145,8 +168,8 @@
       "id": "film-grain",
       "layer": "L2",
       "type": "atmosphere",
-      "file": null,
-      "status": "planned",
+      "file": "atmospheres/FilmGrain.tsx",
+      "status": "implemented",
       "name": "Film Grain",
       "useCases": [
         "Cinematic or documentary-style scenes",
@@ -168,8 +191,8 @@
       "id": "glass",
       "layer": "L4",
       "type": "surface",
-      "file": null,
-      "status": "planned",
+      "file": "surfaces/GlassSurface.tsx",
+      "status": "implemented",
       "name": "Glass Surface",
       "useCases": [
         "Cards floating over a background — glassmorphism effect",
@@ -191,8 +214,8 @@
       "id": "flat",
       "layer": "L4",
       "type": "surface",
-      "file": null,
-      "status": "planned",
+      "file": "surfaces/FlatSurface.tsx",
+      "status": "implemented",
       "name": "Flat Surface",
       "useCases": [
         "Clean, minimal card with solid or near-solid background",
@@ -214,8 +237,8 @@
       "id": "glow",
       "layer": "L4",
       "type": "surface",
-      "file": null,
-      "status": "planned",
+      "file": "surfaces/GlowSurface.tsx",
+      "status": "implemented",
       "name": "Glow Surface",
       "useCases": [
         "Hero stat or key number that needs maximum visual emphasis",
@@ -231,6 +254,901 @@
       "pairs": {
         "atmospheres": ["aurora", "particles"],
         "motions": ["counter-up", "scale-in"]
+      }
+    },
+
+    {
+      "id": "bar-chart",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Bar Chart",
+      "file": "templates/data-charts/BarChart.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Comparing quantities across discrete categories (e.g. GDP by country)",
+        "Ranked data with visual bar lengths",
+        "Side-by-side category comparison with staggered animation"
+      ],
+      "keywords": ["bar", "chart", "comparison", "quantity", "category", "vertical-bar", "horizontal-bar", "ranking"],
+      "whenToUse": "When comparing discrete categories by a numeric value. Supports both horizontal (default) and vertical orientation.",
+      "whenNotToUse": "When showing trends over time (use line-chart). When showing proportions of a whole (use pie-chart). When comparing exactly 2 entities head-to-head (use comparison-table).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'bar-chart'. Provide items: [{label, value}]. Optional: orientation = 'vertical' | 'horizontal', colors array, unit prefix.",
+      "exampleScenario": "5 countries' average salaries as horizontal bars, growing left to right with staggered springs.",
+      "alternatives": ["horizontal-bar-chart", "comparison-table"],
+      "pairs": {
+        "surfaces": ["flat", "glass"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["bar-grow", "counter-up"]
+      }
+    },
+    {
+      "id": "horizontal-bar-chart",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Horizontal Bar Chart",
+      "file": "templates/data-charts/HorizontalBarChart.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Country-level salary or GDP comparisons with labeled bars",
+        "Gradient-colored ranking bars (green-to-red spectrum)",
+        "Re-sort animation showing ranking changes between metrics"
+      ],
+      "keywords": ["horizontal", "bar", "chart", "ranking", "gradient", "country", "stagger", "re-sort"],
+      "whenToUse": "When you need dedicated horizontal bars with gradient coloring, displayValue formatting, and optional re-sort animation. More specialized than BarChart.",
+      "whenNotToUse": "Simple bar comparisons without gradient or re-sort (use bar-chart). Vertical bars (use bar-chart with orientation='vertical').",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'horizontal-bar-chart'. Provide bars: [{label, code, value, displayValue}]. Optional: gradientColors, animation.",
+      "exampleScenario": "10 countries ranked by nominal salary with green→red gradient bars, then re-sorting by PPP-adjusted values.",
+      "alternatives": ["bar-chart"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["bar-grow"]
+      }
+    },
+    {
+      "id": "line-chart",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Line Chart",
+      "file": "templates/data-charts/LineChart.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Showing trends over time (e.g. inflation rate 2000–2025)",
+        "Continuous data with labeled X-axis points",
+        "Area-under-curve visualization with subtle fill"
+      ],
+      "keywords": ["line", "chart", "trend", "time-series", "area", "progress", "continuous", "SVG"],
+      "whenToUse": "When showing continuous data trends over time. Line draws progressively with spring physics, points appear staggered.",
+      "whenNotToUse": "When comparing discrete categories (use bar-chart). When showing proportions (use pie-chart). When needing multi-series racing animation (use horse-race-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'line-chart'. Provide items: [{label, value}] as time-ordered points. Optional: colors[0] for line color, unit.",
+      "exampleScenario": "CPI inflation trend 2000–2025 drawn as a line with subtle area fill underneath.",
+      "alternatives": ["horse-race-chart", "timeline-chart"],
+      "pairs": {
+        "surfaces": ["flat", "glass"],
+        "atmospheres": ["dot-grid", "film-grain"],
+        "motions": ["counter-up"]
+      }
+    },
+    {
+      "id": "pie-chart",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Pie Chart",
+      "file": "templates/data-charts/PieChart.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Showing proportions of a whole (e.g. budget allocation)",
+        "Donut chart with animated segment sweep",
+        "Category distribution with legend"
+      ],
+      "keywords": ["pie", "donut", "chart", "proportion", "percentage", "distribution", "segment", "sweep"],
+      "whenToUse": "When showing how parts make up a whole. Segments sweep in clockwise with staggered spring animation. Renders as donut (55% inner radius).",
+      "whenNotToUse": "When comparing absolute values (use bar-chart). When there are more than 8 categories (too many slices). When showing time-based data (use line-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'pie-chart'. Provide items: [{label, value}]. Optional: colors array, title.",
+      "exampleScenario": "Government spending breakdown: Defense 25%, Healthcare 30%, Education 20%, Other 25% — donut with legend.",
+      "alternatives": ["progress-ring", "bar-chart"],
+      "pairs": {
+        "surfaces": ["glass"],
+        "atmospheres": ["dot-grid", "film-grain"],
+        "motions": ["counter-up"]
+      }
+    },
+    {
+      "id": "counter",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Counter",
+      "file": "templates/data-charts/Counter.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Hero stat reveal with animated counting (e.g. '$2,400,000')",
+        "Big number with optional breakdown bars below",
+        "KPI display with contextual title and accent line"
+      ],
+      "keywords": ["counter", "number", "stat", "metric", "hero", "big-number", "KPI", "breakdown"],
+      "whenToUse": "When a single large number is the visual focus. Counts from 0 to target with spring physics. Optional breakdown bars show composition.",
+      "whenNotToUse": "When multiple metrics need equal weight (use comparison-table). When the number should cycle through values (use text-rotate).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'counter'. Provide counterValue, counterPrefix ('$'), counterSuffix ('%'). Optional: items for breakdown bars.",
+      "exampleScenario": "Hero scene: '$2.4 Trillion' counts up from 0 with a pulse effect, followed by 3 breakdown bars.",
+      "alternatives": ["progress-ring", "metric-scene"],
+      "pairs": {
+        "surfaces": ["glass", "glow"],
+        "atmospheres": ["dot-grid", "film-grain"],
+        "motions": ["counter-up", "stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "comparison-table",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Comparison Table",
+      "file": "templates/data-charts/ComparisonTable.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Head-to-head entity comparison (2 items: tug-of-war bar)",
+        "Multi-metric duel comparison (butterfly chart with paired bars)",
+        "Multi-item ranked comparison (3+ items: horizontal bar list)"
+      ],
+      "keywords": ["comparison", "table", "versus", "tug-of-war", "duel", "butterfly", "head-to-head", "ranked"],
+      "whenToUse": "When comparing entities. Auto-selects mode: 2 items = tug-of-war, 3+ items = horizontal bars, duel config = butterfly chart.",
+      "whenNotToUse": "When showing time trends (use line-chart). When showing proportions (use pie-chart). Simple category bars without comparison context (use bar-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'comparison-table'. For duel mode: provide duel: {left, right} + paired items. For tug-of-war: 2 items. For list: 3+ items.",
+      "exampleScenario": "US vs EU butterfly chart comparing GDP, Population, Military spending — bars grow from center outward.",
+      "alternatives": ["bar-chart", "split-comparison"],
+      "pairs": {
+        "surfaces": ["flat", "glass"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["bar-grow", "counter-up"]
+      }
+    },
+    {
+      "id": "timeline-chart",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Timeline Chart",
+      "file": "templates/data-charts/TimelineChart.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Chronological events along a horizontal axis",
+        "Historical milestones with values at each marker",
+        "Policy timeline with alternating top/bottom labels"
+      ],
+      "keywords": ["timeline", "chronology", "milestones", "history", "events", "markers", "horizontal"],
+      "whenToUse": "When showing events or values at specific points in time on a horizontal axis. Markers alternate above/below the line with staggered entrance.",
+      "whenNotToUse": "When showing continuous data trends (use line-chart). When comparing categories without time (use bar-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'timeline'. Provide items: [{label, value}] in chronological order. Optional: unit, colors.",
+      "exampleScenario": "Key economic policy events 1970–2020 — markers along a timeline with values showing impact at each event.",
+      "alternatives": ["line-chart"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid", "film-grain"],
+        "motions": ["stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "scale-comparison",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Scale Comparison",
+      "file": "templates/data-charts/ScaleComparison.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Visual size/magnitude comparison using proportional circles",
+        "Dramatic 'drop vs gallon' or 'Earth vs Jupiter' comparisons",
+        "Making abstract numbers tangible through area-proportional shapes"
+      ],
+      "keywords": ["scale", "size", "comparison", "circle", "proportional", "magnitude", "visual-metaphor"],
+      "whenToUse": "When the ratio between values is the key insight and circles make the difference visceral. Uses area-proportional (sqrt) sizing.",
+      "whenNotToUse": "When exact values matter more than visual impact (use bar-chart). When there are many items (use bar-chart). When items are close in value (circles look similar).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'scale-comparison'. Provide items: [{label, value}]. Optional: colors, unit.",
+      "exampleScenario": "US military budget ($800B) vs education budget ($80B) — two circles showing 10x scale difference.",
+      "alternatives": ["bar-chart", "counter"],
+      "pairs": {
+        "surfaces": ["glass"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["counter-up"]
+      }
+    },
+    {
+      "id": "progress-ring",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Progress Ring",
+      "file": "templates/data-charts/ProgressRing.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Percentage completion indicator (e.g. '85% of budget spent')",
+        "Single KPI displayed as a circular gauge",
+        "Goal progress visualization"
+      ],
+      "keywords": ["progress", "ring", "circular", "gauge", "percentage", "donut", "KPI"],
+      "whenToUse": "When showing a single percentage/progress value as a circular indicator. Ring fills with spring animation, counter in center.",
+      "whenNotToUse": "When showing multiple categories (use pie-chart). When the value is not percentage-based (use counter). When comparing multiple metrics (use bar-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'progress-ring'. Provide counterValue (0-100), counterSuffix ('%'). Optional: colors[0] for ring color.",
+      "exampleScenario": "Employee satisfaction score: ring fills to 78% with the number counting up in the center.",
+      "alternatives": ["counter", "pie-chart"],
+      "pairs": {
+        "surfaces": ["glass", "glow"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["counter-up"]
+      }
+    },
+    {
+      "id": "quadrant-scatter",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Quadrant Scatter",
+      "file": "templates/data-charts/QuadrantScatter.tsx",
+      "status": "implemented",
+      "useCases": [
+        "2D scatter plot with four labeled quadrants (e.g. Dream/Grind/Chill/Trap)",
+        "Multi-country comparison on two axes with camera zoom",
+        "Spotlight/tooltip overlays on specific data points",
+        "Progressive reveal of dots then labels"
+      ],
+      "keywords": ["scatter", "quadrant", "2D", "matrix", "plot", "camera-zoom", "tooltip", "spotlight", "country-comparison"],
+      "whenToUse": "When two dimensions define four meaningful quadrants and data points need to be plotted with rich interactivity (zoom, tooltips, connectors, annotations).",
+      "whenNotToUse": "When data is 1-dimensional (use bar-chart). When there are fewer than 5 data points (overkill — use comparison-table). When axes don't form meaningful quadrants.",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'quadrant-scatter'. Provide points: [{label, x, y, quadrant}], xAxis, yAxis configs. Optional: cameraZoom, spotlights, tooltips, connectorLines.",
+      "exampleScenario": "33 OECD countries plotted on Hours Worked vs Hourly Wage — camera zooms into 'Dream' quadrant to spotlight Nordic countries.",
+      "alternatives": ["comparison-table"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["blur-fade-in"]
+      }
+    },
+    {
+      "id": "horse-race-chart",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Horse Race Chart",
+      "file": "templates/data-charts/HorseRaceChart.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Multi-series time-lapse animation (e.g. asset prices racing over decades)",
+        "Animated year counter with sliding window X-axis",
+        "Event annotations as notification-stack overlays",
+        "Shrinkflation markers on the timeline"
+      ],
+      "keywords": ["horse-race", "race", "time-lapse", "multi-series", "animation", "year-counter", "sliding-window", "annotation"],
+      "whenToUse": "When multiple time series need to 'race' against each other with a year counter. Supports log scale, Catmull-Rom splines, label collision avoidance, and event annotation stack.",
+      "whenNotToUse": "When showing a single trend line (use line-chart). When data is not time-based (use bar-chart). When scene is under 5 seconds (too complex for short scenes).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'horse-race-chart'. Provide series: [{id, label, color, data: [{date, ratio}]}], timeRange, sceneYearRanges. Optional: annotations, shrinkflationMarkers, logScale.",
+      "exampleScenario": "Gold vs S&P 500 vs Oil racing from 1970–2025 with sliding window, log scale, and crisis event annotations popping in.",
+      "alternatives": ["line-chart"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["film-grain"],
+        "motions": ["counter-up"]
+      }
+    },
+    {
+      "id": "calendar-grid",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Calendar Grid",
+      "file": "templates/data-charts/CalendarGrid.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Visualizing working days in a year with highlighted portion",
+        "Calendar heatmap showing extra effort days",
+        "Country comparison card alongside calendar visualization"
+      ],
+      "keywords": ["calendar", "grid", "heatmap", "days", "year", "highlight", "working-days", "comparison-card"],
+      "whenToUse": "When showing a proportion of days in a year visually. 12-month grid with highlighted cells that build progressively. Optional comparison card sidebar.",
+      "whenNotToUse": "When comparing values numerically (use bar-chart). When showing time-series trends (use line-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'calendar-grid'. Provide months, highlightedDays, highlightColor. Optional: labels, comparisonCard, connectorLabel.",
+      "exampleScenario": "365-day calendar where the last 55 days glow red — representing extra working days needed for purchasing power parity.",
+      "alternatives": ["progress-ring"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "division-comparison",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Division Comparison",
+      "file": "templates/data-charts/DivisionComparison.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Animated division calculation comparing two entities (wage ÷ hours = rate)",
+        "Step-by-step math reveal with conclusion",
+        "Two-card layout with phased animation"
+      ],
+      "keywords": ["division", "math", "calculation", "comparison", "wage", "rate", "step-by-step", "animated-math"],
+      "whenToUse": "When showing a division/ratio calculation between two entities side by side. Multi-phase animation: cards appear → division animates → operator reveals → conclusion.",
+      "whenNotToUse": "When showing static comparisons without math (use comparison-table). When comparing more than 2 entities (use bar-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'division-comparison'. Provide left/right: {flag, label, wage, hours, result, resultColor}, operator, conclusion.",
+      "exampleScenario": "Portugal ($27K ÷ 1,649 hrs = $16.37/hr) vs Germany ($53K ÷ 1,341 hrs = $39.52/hr) — animated division reveals.",
+      "alternatives": ["comparison-table", "metric-scene"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["counter-up", "stagger-text-reveal"]
+      }
+    },
+
+    {
+      "id": "hook-scene",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Hook Scene",
+      "file": "templates/data-charts/HookScene.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Video opening hook with question text + clock icon",
+        "Multi-phase hook with text → stock footage hard cuts",
+        "Attention-grabbing intro with configurable phase timings"
+      ],
+      "keywords": ["hook", "intro", "opening", "question", "attention", "clock", "stock-footage", "hard-cut"],
+      "whenToUse": "When the video needs a cinematic opening hook. Shows question text with animated clock, then hard-cuts through stock video clips.",
+      "whenNotToUse": "When the hook needs data visualization (use hook-punchline). When the hook is purely text-based without footage (use title-card).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'hook-scene'. Provide questionText, slug, videos: {worldmap, whitecollar, factory}. Optional: phaseTimes for custom cuts.",
+      "exampleScenario": "'What is one hour of your life worth?' text with ticking clock → world map footage → white-collar worker → factory worker.",
+      "alternatives": ["hook-punchline", "title-card"],
+      "pairs": {
+        "surfaces": [],
+        "atmospheres": [],
+        "motions": ["stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "title-card",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Title Card",
+      "file": "templates/data-charts/TitleCard.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Full-screen section title with subtitle",
+        "Concept introduction card (e.g. 'Purchasing Power Parity')",
+        "Minimalist centered text with decorative accent line"
+      ],
+      "keywords": ["title", "card", "section-header", "intro", "concept", "centered-text", "accent-line"],
+      "whenToUse": "When a concept or section needs a clean, centered title reveal with optional subtitle and decorative line. Minimalist dark-cozy aesthetic.",
+      "whenNotToUse": "When the title needs data visualization alongside it (use metric-scene). When it's a video hook (use hook-scene).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'title-card'. Provide title, subtitle. Optional: titleColor, subtitleColor, icon.",
+      "exampleScenario": "'Purchasing Power Parity (PPP)' title springs in, accent line draws, subtitle '~3,000 goods tracked by OECD' fades in below.",
+      "alternatives": ["hook-scene"],
+      "pairs": {
+        "surfaces": [],
+        "atmospheres": ["film-grain"],
+        "motions": ["stagger-text-reveal", "blur-fade-in"]
+      }
+    },
+    {
+      "id": "metric-scene",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Metric Scene",
+      "file": "templates/data-charts/MetricScene.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Two-phase data scene: split comparison card → formula build",
+        "Before/after price comparison (e.g. 2000 vs 2025 wages)",
+        "Formula explanation with sequential term reveals"
+      ],
+      "keywords": ["metric", "split", "comparison", "formula", "before-after", "wages", "prices", "two-phase"],
+      "whenToUse": "When showing a before/after comparison followed by a formula explanation. Phase 1: split cards with counter animations. Phase 2: formula parts appear sequentially.",
+      "whenNotToUse": "When only showing a formula without comparison (use composite-phases). When just comparing two entities without formula (use comparison-table).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'metric-scene'. Provide phase1: {left: {year, wage, product, price}, right: {...}}, phase2: {formulaParts: [...]}.",
+      "exampleScenario": "2000 ($572/week, eggs $0.91) vs 2025 ($1,206/week, eggs $4.25) split card → 'Price Growth ÷ Wage Growth = RUPI' formula build.",
+      "alternatives": ["counter", "comparison-table"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["counter-up", "stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "split-comparison",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Split Comparison",
+      "file": "templates/data-charts/SplitComparison.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Side-by-side city/country comparison with itemized lists",
+        "Grocery basket comparison (same items, different prices)",
+        "Split-screen visual PPP explanation"
+      ],
+      "keywords": ["split", "side-by-side", "grocery", "basket", "city", "prices", "itemized", "PPP"],
+      "whenToUse": "When comparing two cities/countries with itemized price lists side by side. Items appear staggered with totals revealed at the end.",
+      "whenNotToUse": "When comparing aggregate values (use comparison-table). When comparing more than 2 entities (use bar-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'split-comparison'. Provide left/right: {city, country, items: [{name, price}], total}.",
+      "exampleScenario": "Zurich vs Mexico City grocery basket — same items (milk, bread, eggs) with dramatically different prices.",
+      "alternatives": ["comparison-table", "division-comparison"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "end-card-scene",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "End Card Scene",
+      "file": "templates/data-charts/EndCardScene.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Video outro with fade-to-black and optional final question",
+        "YouTube end screen with subscribe/next-video placeholders",
+        "Channel watermark display"
+      ],
+      "keywords": ["end-card", "outro", "fade-to-black", "subscribe", "end-screen", "watermark", "closing"],
+      "whenToUse": "When the video needs a final end card with YouTube end screen elements. Supports fade-to-black, final question text, and configurable end screen placements.",
+      "whenNotToUse": "When the closing needs narrative text sequences (use closing-sequence). When closing involves chart + video + end card (use closing-scene).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'end-card'. Provide fadeToBlack: true, channelName. Optional: finalQuestion, youtubeEndScreen config.",
+      "exampleScenario": "Final question 'What is your hour really worth?' fades in, holds, then fades to black with YouTube end screen overlay zone.",
+      "alternatives": ["closing-sequence", "closing-scene"],
+      "pairs": {
+        "surfaces": [],
+        "atmospheres": ["film-grain"],
+        "motions": ["blur-fade-in"]
+      }
+    },
+    {
+      "id": "closing-scene",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Closing Scene",
+      "file": "templates/data-charts/ClosingScene.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Multi-phase closing: chart spotlight → stock video → end card",
+        "Cinematic video ending with crossfade transitions",
+        "Chart-to-footage-to-endscreen pipeline"
+      ],
+      "keywords": ["closing", "multi-phase", "crossfade", "chart-to-video", "end-screen", "cinematic-ending"],
+      "whenToUse": "When the video closing needs three sequential phases: data chart, stock footage, and end card — all with crossfade transitions.",
+      "whenNotToUse": "When closing is simple text + fade (use closing-sequence or end-card-scene). When no stock footage is needed.",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'closing-scene'. Provide chartConfig, chartEndSec, videoSrc, videoStartSec, videoEndSec, endScreenStartSec, endScreenConfig.",
+      "exampleScenario": "QuadrantScatter spotlight → earth-from-space footage → EndCardScene with subscribe overlay — smooth crossfades between phases.",
+      "alternatives": ["end-card-scene", "closing-sequence"],
+      "pairs": {
+        "surfaces": [],
+        "atmospheres": ["film-grain"],
+        "motions": ["blur-fade-in"]
+      }
+    },
+    {
+      "id": "closing-sequence",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Closing Sequence",
+      "file": "templates/data-charts/ClosingSequence.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Multi-step text sequence for video conclusion",
+        "Sequential text reveals with underline accents",
+        "YouTube end screen safe-zone aware closing"
+      ],
+      "keywords": ["closing", "sequence", "text-steps", "outro", "subscribe", "end-screen-safe", "underline"],
+      "whenToUse": "When the closing needs sequential text statements that build toward a final message. Text stays in upper 65% to avoid YouTube end screen zone.",
+      "whenNotToUse": "When closing needs chart or stock footage (use closing-scene). When just a simple fade-to-black (use end-card-scene).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'closing-sequence'. Provide textSequence: [{text, weight?, size?, holdSec?, underlineColor?}]. Optional: channelName, showSubscribe.",
+      "exampleScenario": "Step 1: 'It's not just about money.' → Step 2: 'It's about time.' → Step 3: 'Your time.' → Step 4: channel name + subscribe.",
+      "alternatives": ["end-card-scene", "closing-scene"],
+      "pairs": {
+        "surfaces": [],
+        "atmospheres": [],
+        "motions": ["stagger-text-reveal", "blur-fade-in"]
+      }
+    },
+    {
+      "id": "hook-punchline",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Hook Punchline",
+      "file": "templates/data-charts/HookPunchline.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Data-driven hook with quick bar flash then blur-to-question",
+        "Pattern interrupt: bars appear briefly, then blur + reveal question",
+        "Provocative 'why doesn't it feel that way?' moment"
+      ],
+      "keywords": ["hook", "punchline", "blur", "question", "pattern-interrupt", "above-below", "red-green"],
+      "whenToUse": "When the hook needs a quick data flash followed by a provocative question. Bars flash (red above / green below baseline), blur out, then question text fades in.",
+      "whenNotToUse": "When the hook is purely text + footage (use hook-scene). When the hook needs sustained data visualization (use bar-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'hook-punchline'. Provide questionText, aboveLine: ['Eggs', 'Coffee'], belowLine: ['Chips', 'Milk', ...].",
+      "exampleScenario": "Quick flash of 6 bars — 2 red (above CPI), 4 green (below CPI) — blurs out → 'So why doesn't it feel that way?' fades in.",
+      "alternatives": ["hook-scene"],
+      "pairs": {
+        "surfaces": [],
+        "atmospheres": [],
+        "motions": ["bar-grow", "blur-fade-in"]
+      }
+    },
+    {
+      "id": "composite-phases",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Composite Phases",
+      "file": "templates/data-charts/CompositePhases.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Multi-phase scene combining different chart types sequentially",
+        "SplitComparison → TitleCard → HorizontalBarChart in one scene",
+        "Crossfade transitions between sub-scenes within a single scene"
+      ],
+      "keywords": ["composite", "multi-phase", "sequential", "crossfade", "sub-scene", "combined"],
+      "whenToUse": "When a single scene needs to show multiple chart types in sequence with crossfade transitions. Phases get proportional duration within the scene.",
+      "whenNotToUse": "When each visualization should be its own scene (split into separate scenes). When phases don't need crossfade (use Sequence directly).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'composite-phases'. Provide phases: [{type, durationSec, ...phaseSpecificConfig}].",
+      "exampleScenario": "Scene 003: SplitComparison (15s grocery basket) → TitleCard (5s PPP concept) → HorizontalBarChart (remaining: PPP bars) — all with crossfades.",
+      "alternatives": [],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["stagger-text-reveal", "bar-grow"]
+      }
+    },
+
+    {
+      "id": "salary-shuffle-scene",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Salary Shuffle Scene",
+      "file": "templates/data-charts/SalaryShuffleScene.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Animated ranking re-sort (salary → hourly rate) with position swaps",
+        "Country cards that physically move to new positions",
+        "Dramatic reveal of ranking changes when switching metrics"
+      ],
+      "keywords": ["salary", "shuffle", "resort", "ranking", "swap", "position-change", "country-cards", "animated-sort"],
+      "whenToUse": "When country/entity rankings change dramatically between two metrics and the position-swap animation makes that visceral. Cards physically slide to new positions.",
+      "whenNotToUse": "When rankings don't change (use bar-chart). When comparing only 2 entities (use comparison-table). When there's no re-sort moment (use horizontal-bar-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'salary-shuffle'. Provide countries: [{code, label, salary, hourlyRate}], initialSort, resortTo, resortLabel. Optional: resortTriggerFrame.",
+      "exampleScenario": "10 countries sorted by salary — at frame 360, cards shuffle to hourly rate order: Switzerland drops, Japan rises dramatically.",
+      "alternatives": ["ranking-resort-scene", "horizontal-bar-chart"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["bar-grow"]
+      }
+    },
+    {
+      "id": "ranking-resort-scene",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Ranking Resort Scene",
+      "file": "templates/data-charts/RankingResortScene.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Two-column ranked list comparison (e.g. nominal vs PPP rank)",
+        "Spotlight highlights showing dramatic rank changes",
+        "Country rank cards with positive/negative indicators"
+      ],
+      "keywords": ["ranking", "resort", "two-column", "rank-change", "spotlight", "positive-negative", "leaderboard"],
+      "whenToUse": "When showing how rankings differ between two metrics in a dual-column format. Each column has ranked items with optional positive/negative highlights.",
+      "whenNotToUse": "When the re-sort should be animated as position swaps (use salary-shuffle-scene). When comparing only values without ranks (use bar-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'ranking-resort'. Provide leftColumn: {title, items: [{rank, label, value, highlight?}]}, rightColumn: {...}. Optional: spotlightDelay.",
+      "exampleScenario": "Left: 'By Salary' (Lux #1, Swiss #2, US #3) vs Right: 'By $/Hour' (Lux #1, US #5, Swiss #7) — Swiss drops highlighted in red.",
+      "alternatives": ["salary-shuffle-scene", "comparison-table"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "deflator-summary-grid",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Deflator Summary Grid",
+      "file": "templates/data-charts/DeflatorSummaryGrid.tsx",
+      "status": "implemented",
+      "useCases": [
+        "2x2 grid comparing multiple deflators (CPI, PCE, Gold, Housing)",
+        "Above/below baseline mini bar charts for each deflator",
+        "Summary overview showing which products are above/below inflation"
+      ],
+      "keywords": ["deflator", "summary", "grid", "2x2", "above-below", "CPI", "inflation", "mini-bars"],
+      "whenToUse": "When comparing multiple deflator/inflation metrics in a grid layout. Each quadrant shows above-baseline (red) and below-baseline (green) bars with staggered entrance.",
+      "whenNotToUse": "When showing only one deflator's data (use bar-chart). When comparing deflators over time (use horse-race-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'deflator-summary-grid'. Provide charts: [{deflator, above: [...], below: [...]}]. Optional: title, source.",
+      "exampleScenario": "2x2 grid: CPI-U, PCE, Housing Deflator, Gold — each showing which products are above (red) or below (green) their baseline.",
+      "alternatives": ["bar-chart", "comparison-table"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["bar-grow", "stagger-text-reveal"]
+      }
+    },
+
+    {
+      "id": "shrinkflation-hook",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Shrinkflation Hook",
+      "file": "templates/data-charts/ShrinkflationHook.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Product before/after photo comparison (16oz → 14oz)",
+        "Shrinkflation visual evidence with real product images",
+        "Two-row product reveal synced to voiceover timing"
+      ],
+      "keywords": ["shrinkflation", "hook", "product", "before-after", "photo", "package-size", "visual-evidence"],
+      "whenToUse": "When opening a shrinkflation segment with real product comparison photos. Two rows showing product size changes, synced to voiceover.",
+      "whenNotToUse": "When showing shrinkflation data as charts (use horse-race-chart with shrinkflationMarkers). When showing abstract text hook (use hook-scene).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'shrinkflation-hook'. Optional: products: [{name, image, oldSize, newSize}]. Defaults to Häagen-Dazs + Folgers examples.",
+      "exampleScenario": "Row 1: Häagen-Dazs 16oz→14oz photo appears. Row 2: Folgers 39oz→30.5oz photo appears. Both hold with subtle breathe animation.",
+      "alternatives": ["hook-scene", "shrinkflation-cards"],
+      "pairs": {
+        "surfaces": [],
+        "atmospheres": ["dot-grid"],
+        "motions": ["blur-fade-in"]
+      }
+    },
+    {
+      "id": "shrinkflation-cards",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Shrinkflation Cards",
+      "file": "templates/data-charts/ShrinkflationCards.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Before/after split cards showing product size shrinkage",
+        "Pattern interrupt with red badges showing change percentages",
+        "BLS stat callout after card reveal"
+      ],
+      "keywords": ["shrinkflation", "cards", "before-after", "split-card", "badge", "percentage-change", "BLS"],
+      "whenToUse": "When showing shrinkflation data as styled cards with from→to sizes and change badges. Stacked vertically with staggered entrance. Optional BLS stat callout.",
+      "whenNotToUse": "When showing real product photos (use shrinkflation-hook). When showing shrinkflation trends over time (use horse-race-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'shrinkflation-cards'. Provide cards: [{product, from, to, change, changeColor?}]. Optional: blsStat: {text, source}.",
+      "exampleScenario": "Card 1: Doritos 12oz → 9.25oz (−23% red badge). Card 2: Bounty 66 sheets → 48 sheets (−27% red badge). BLS stat fades in after 5s.",
+      "alternatives": ["shrinkflation-hook", "comparison-table"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "skimpflation-card",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Skimpflation Card",
+      "file": "templates/data-charts/SkimpflationCard.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Single photo showing quality reduction (same price, cheaper ingredients)",
+        "Skimpflation concept card with title and subtitle",
+        "Visual evidence of hidden inflation through quality decline"
+      ],
+      "keywords": ["skimpflation", "quality", "ingredients", "same-price", "photo", "concept-card"],
+      "whenToUse": "When explaining skimpflation with a reference photo showing quality decline. Large title, photo with scale animation, subtitle below.",
+      "whenNotToUse": "When showing size reduction (use shrinkflation-cards). When showing data rather than concept (use bar-chart).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'skimpflation-card'. Optional: title, subtitle. Image loaded via staticFile().",
+      "exampleScenario": "'SKIMPFLATION' title → photo of degraded food quality → 'Same price. Same size. Cheaper ingredients.' subtitle.",
+      "alternatives": ["shrinkflation-cards", "title-card"],
+      "pairs": {
+        "surfaces": [],
+        "atmospheres": ["dot-grid"],
+        "motions": ["blur-fade-in"]
+      }
+    },
+    {
+      "id": "bls-shrink-explainer",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "BLS Shrink Explainer",
+      "file": "templates/data-charts/BLSShrinkExplainer.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Animated explanation of BLS per-unit price tracking methodology",
+        "Visual showing how size shrinkage affects unit price",
+        "Product photo with animated shrink + per-unit calculation"
+      ],
+      "keywords": ["BLS", "shrinkflation", "explainer", "per-unit", "price-tracking", "methodology", "calculation", "animated"],
+      "whenToUse": "When explaining how the BLS tracks per-unit prices and catches shrinkflation. Multi-phase animation with product photo, size shrink, and per-unit price reveal.",
+      "whenNotToUse": "When showing multiple products (use shrinkflation-cards). When not explaining BLS methodology specifically.",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'bls-shrink-explainer'. Provide startSize, endSize, stickerPrice, startPerUnit, endPerUnit, blsAttribution.",
+      "exampleScenario": "Product photo → 16oz shrinks to 10oz animation → sticker price stays $4.99 → per-unit price jumps $4.99/lb → $7.99/lb → BLS attribution.",
+      "alternatives": ["metric-scene"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["counter-up", "stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "baseline-reference",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Baseline Reference",
+      "file": "templates/data-charts/BaselineReference.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Explaining a metric's baseline value with above/below zones",
+        "Visual reference card: 'RUPI = 1.0 means prices grew at same rate as wages'",
+        "Animated zone reveals with color-coded regions"
+      ],
+      "keywords": ["baseline", "reference", "zones", "above-below", "metric-explanation", "RUPI", "threshold"],
+      "whenToUse": "When explaining what a metric means at its baseline value, with color-coded zones above and below. Animated zone reveals and label entrances.",
+      "whenNotToUse": "When showing actual data values (use bar-chart or counter). When the metric doesn't have a meaningful baseline.",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'baseline-reference'. Provide baselineValue, zones: {above: {color, label}, below: {color, label}, at: {label}}.",
+      "exampleScenario": "RUPI baseline at 1.0 — red zone above (prices outpaced wages), green zone below (wages outpaced prices), with animated gradient fills.",
+      "alternatives": ["title-card", "counter"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["counter-up", "blur-fade-in"]
+      }
+    },
+    {
+      "id": "lens-switch-pivot",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Lens Switch Pivot",
+      "file": "templates/data-charts/LensSwitchPivot.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Narrative pivot: summary stat → provocative question → new analysis angle",
+        "Deflator checklist reveal (done/pending indicators)",
+        "Two-phase text sequence: conclusion + 'what if we change the ruler?'"
+      ],
+      "keywords": ["lens", "pivot", "transition", "question", "deflator", "checklist", "narrative-pivot", "ruler"],
+      "whenToUse": "When transitioning between analysis sections. Phase 1: summary + pivot question. Phase 2: new ruler question + deflator checklist. Text-heavy narrative scene.",
+      "whenNotToUse": "When the transition should be a simple title card (use title-card). When data visualization is needed (use any chart component).",
+      "storyboardHint": "In scene detail, set: visual.dataChart.type = 'lens-switch-pivot'. Provide summaryText, pivotQuestion, rulerQuestion, deflators: [{name, status}].",
+      "exampleScenario": "'4 of 6 cheaper' → 'But cheaper… for whom?' → 'What if we change the ruler?' → Deflator checklist: CPI ✓, PCE ✓, Gold ○, Housing ○.",
+      "alternatives": ["title-card", "closing-sequence"],
+      "pairs": {
+        "surfaces": [],
+        "atmospheres": [],
+        "motions": ["stagger-text-reveal", "blur-fade-in"]
+      }
+    },
+
+    {
+      "id": "hook-reveal",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Hook Reveal",
+      "file": "templates/voiceover-visuals/HookReveal.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Big number deflation reveal (e.g. '26,000%' shrinks to '132%')",
+        "Before/after number shock with dramatic size transition",
+        "Opening hook with context line and counting-ticker variant"
+      ],
+      "keywords": ["hook", "reveal", "deflation", "big-number", "shrink", "shock", "before-after", "counting-ticker"],
+      "whenToUse": "When the hook reveals that a big number is misleading by deflating it dramatically. Supports classic (size-shrink) and counting-ticker variants.",
+      "whenNotToUse": "When the hook doesn't involve number transformation (use hook-scene). When showing data bars (use hook-punchline).",
+      "storyboardHint": "Set visual.sceneType = 'hook-reveal'. Provide bigNumber, smallNumber. Optional: subtitle, contextLine, variant ('classic' | 'counting-ticker'), bigHoldDuration, deflationDuration.",
+      "exampleScenario": "Context: 'The Dow Jones · Since 1925' → '26,000%' holds → deflates to '132%' → subtitle: 'in gold terms'.",
+      "alternatives": ["hook-scene", "hook-punchline"],
+      "pairs": {
+        "surfaces": [],
+        "atmospheres": ["film-grain"],
+        "motions": ["counter-up", "stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "formula-card",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Formula Card",
+      "file": "templates/voiceover-visuals/FormulaCard.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Animated formula explanation (e.g. 'Asset Price ÷ Gold Price = Gold Ratio')",
+        "Sequential formula part reveals with example line",
+        "Educational formula breakdown for data explainer videos"
+      ],
+      "keywords": ["formula", "equation", "explanation", "sequential", "math", "educational", "ratio"],
+      "whenToUse": "When explaining a formula or calculation concept. Parts slide/fade in sequentially, then example line appears. Clean editorial style.",
+      "whenNotToUse": "When the formula needs before/after data comparison (use metric-scene). When showing just a number (use counter).",
+      "storyboardHint": "Set visual.sceneType = 'formula-card'. Provide formulaParts: ['Asset Price', '÷', 'Gold Price', '=', 'Gold Ratio']. Optional: example, dataBadge.",
+      "exampleScenario": "'Asset Price' slides in → '÷' → 'Gold Price' → '=' → 'Gold Ratio' — then example: 'Oil $67 ÷ Gold $2,990 = 0.022 oz'.",
+      "alternatives": ["metric-scene", "title-card"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": ["dot-grid"],
+        "motions": ["stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "asset-parade",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Asset Parade",
+      "file": "templates/voiceover-visuals/AssetParade.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Sequential asset calculation showcase (formula → per-asset results)",
+        "Gold ratio calculations for multiple assets in sequence",
+        "Parade-style animation: each asset gets its own calculation moment"
+      ],
+      "keywords": ["asset", "parade", "sequential", "calculation", "gold-ratio", "showcase", "formula-to-results"],
+      "whenToUse": "When showing the same formula applied to multiple assets sequentially. Formula shows first, then each asset parades through with its calculation. Light editorial theme.",
+      "whenNotToUse": "When showing all assets simultaneously (use bar-chart or scoreboard). When formula isn't needed (use counter).",
+      "storyboardHint": "Set visual.sceneType = 'asset-parade'. Provide assets: [{name, price, ratio, color}], goldPrice, formulaParts. Optional: formulaDuration, assetDuration.",
+      "exampleScenario": "Formula: 'Price ÷ Gold = Ratio' → Oil $67/0.022oz → Dow $42K/14.0oz → Housing $420K/140.5oz — each asset slides in for 3.5s.",
+      "alternatives": ["formula-card", "scoreboard"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": [],
+        "motions": ["counter-up", "stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "scoreboard",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Scoreboard",
+      "file": "templates/voiceover-visuals/Scoreboard.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Ranked bar chart with editorial light theme",
+        "Final results scoreboard with staggered bar entrance",
+        "Asset performance summary with period labels"
+      ],
+      "keywords": ["scoreboard", "ranked", "bars", "results", "summary", "editorial", "light-theme", "performance"],
+      "whenToUse": "When showing final ranked results in a clean editorial style. Bars stagger in from top to bottom with spring animation. Light background theme.",
+      "whenNotToUse": "When dark-cozy theme is required (use bar-chart). When showing time-series data (use horse-race-chart or line-chart).",
+      "storyboardHint": "Set visual.sceneType = 'scoreboard'. Provide items: [{label, value, color, suffix?, period?}]. Optional: title, footerText.",
+      "exampleScenario": "Gold Ratio Scoreboard: Oil 0.022oz, S&P 14.0oz, Housing 140.5oz — bars staggered with period labels '1925-2025'.",
+      "alternatives": ["bar-chart", "comparison-table"],
+      "pairs": {
+        "surfaces": ["flat"],
+        "atmospheres": [],
+        "motions": ["bar-grow", "counter-up"]
+      }
+    },
+    {
+      "id": "closing-cta",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Closing CTA",
+      "file": "templates/voiceover-visuals/ClosingCTA.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Clean editorial closing card with subscribe CTA",
+        "Light-theme video outro with end screen placeholders",
+        "Channel name reveal with separator line"
+      ],
+      "keywords": ["closing", "CTA", "subscribe", "end-screen", "outro", "editorial", "light-theme", "channel"],
+      "whenToUse": "When the video needs a light-themed closing card with subscribe CTA and YouTube end screen placeholder slots.",
+      "whenNotToUse": "When dark-cozy theme is needed for closing (use closing-sequence or end-card-scene). When closing needs data visualization (use closing-scene).",
+      "storyboardHint": "Set visual.sceneType = 'closing-cta'. Optional: message, channelName, ctaText, showEndScreen.",
+      "exampleScenario": "'Nominal returns are an illusion.' message → 'The World With Numbers' channel name → Subscribe text + two video slot placeholders.",
+      "alternatives": ["closing-sequence", "end-card-scene"],
+      "pairs": {
+        "surfaces": [],
+        "atmospheres": [],
+        "motions": ["blur-fade-in", "stagger-text-reveal"]
+      }
+    },
+    {
+      "id": "scene-visual",
+      "layer": "L5",
+      "type": "scene-template",
+      "name": "Scene Visual",
+      "file": "templates/voiceover-visuals/SceneVisual.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Full-screen background image/video with Ken Burns effect",
+        "Stock footage or AI image as scene background",
+        "Text overlay on cinematic gradient when no image available"
+      ],
+      "keywords": ["scene-visual", "background", "ken-burns", "stock-footage", "image", "gradient", "text-overlay"],
+      "whenToUse": "When a scene needs a full-screen image/video background with slow zoom+pan (Ken Burns). Falls back to cinematic gradient when no asset is available.",
+      "whenNotToUse": "When the scene needs data charts (use any chart template). When the scene is purely text (use title-card).",
+      "storyboardHint": "Set visual.sceneType = 'scene-visual'. Provide visual: {type, assetPath}. For text-overlay: visual: {type: 'text-overlay', lines: [...]}.",
+      "exampleScenario": "Stock photo of a city skyline with slow Ken Burns zoom, voiceover plays over it. Ranking badge in corner for composite scenes.",
+      "alternatives": ["title-card"],
+      "pairs": {
+        "surfaces": ["glass"],
+        "atmospheres": ["film-grain"],
+        "motions": ["blur-fade-in"]
       }
     }
   ]

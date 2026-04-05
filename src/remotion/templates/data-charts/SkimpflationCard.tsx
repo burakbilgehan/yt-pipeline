@@ -11,11 +11,13 @@ interface SkimpflationCardProps {
   chart: { type: "skimpflation-card"; title?: string; subtitle?: string; [k: string]: unknown };
   brandColor: string;
   fontFamily: string;
+  /** Path passed to staticFile() for the skimpflation photo. */
+  imageSrc?: string;
 }
 
 // ─── Main export ───────────────────────────────────────────────
 
-export const SkimpflationCard: React.FC<SkimpflationCardProps> = ({ chart, brandColor: _brandColor, fontFamily }) => {
+export const SkimpflationCard: React.FC<SkimpflationCardProps> = ({ chart, brandColor: _brandColor, fontFamily, imageSrc = "shrinkflation-decoded/skimpflation.png" }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const title = chart.title || "SKIMPFLATION";
@@ -50,7 +52,7 @@ export const SkimpflationCard: React.FC<SkimpflationCardProps> = ({ chart, brand
         transform: `scale(${photoScale})`,
       }}>
         <Img
-          src={staticFile("shrinkflation-decoded/skimpflation.png")}
+          src={staticFile(imageSrc)}
           style={{
             maxWidth: 1200,
             maxHeight: 650,
