@@ -64,7 +64,31 @@ This is the SINGLE SOURCE OF TRUTH for all file and directory locations in the p
 
 ```
 yt-pipeline/                                        ← git repo (infrastructure only)
-├── src/                                            # Remotion, scripts, types, utils
+├── src/
+│   ├── components/
+│   │   └── ui/                                     # shadcn/ui primitives ONLY (npx shadcn add ...)
+│   ├── lib/
+│   │   └── utils.ts                                # cn() helper (clsx + tailwind-merge)
+│   ├── remotion/
+│   │   ├── styles.css                              # Tailwind v4 + shadcn CSS variables
+│   │   ├── design-system/
+│   │   │   ├── DESIGN-SYSTEM.md                    # DS reference doc (source of truth)
+│   │   │   ├── types.ts                            # L1-L5 TypeScript interfaces
+│   │   │   ├── registry.ts                         # Runtime registries (register*/get*)
+│   │   │   ├── component-catalog.json              # Machine-readable component catalog
+│   │   │   ├── index.ts                            # Barrel exports
+│   │   │   ├── atmospheres/                        # L2: full-screen background layers
+│   │   │   │   └── index.ts                        # Exports + registrations
+│   │   │   ├── motion/                             # L3: animation primitives
+│   │   │   │   └── index.ts                        # Exports + registrations
+│   │   │   ├── surfaces/                           # L4: card/container treatments
+│   │   │   │   └── index.ts                        # Exports + registrations
+│   │   │   └── showcase/                           # Visual demo compositions (DS- prefix)
+│   │   ├── components/                             # Shared Remotion components (ProgressBar, etc.)
+│   │   ├── compositions/                           # Remotion entry compositions
+│   │   └── templates/                              # Scene-level templates (data-charts, etc.)
+│   ├── scripts/                                    # CLI scripts (tts, render, upload, etc.)
+│   └── types/                                      # Shared TypeScript types
 ├── .ai/                                            # Agents, skills, commands (source of truth)
 ├── templates/
 │   ├── channel-config.json                         # Channel config template
@@ -132,6 +156,13 @@ channels/                                           ← local only, NOT in git
 | Brand assets | `channels/<channel>/channel-assets/` | Channel root |
 | Content calendar | `channels/<channel>/publishing/content-calendar.md` | Repo root |
 | QA report | `channels/<channel>/videos/<slug>/analytics/qa-report.md` | Video root |
+| DS atmosphere components | `src/remotion/design-system/atmospheres/<Name>.tsx` | `src/components/ui/`, repo root |
+| DS motion primitives | `src/remotion/design-system/motion/<Name>.tsx` | `src/components/ui/`, repo root |
+| DS surface components | `src/remotion/design-system/surfaces/<Name>.tsx` | `src/components/ui/`, repo root |
+| DS showcase compositions | `src/remotion/design-system/showcase/<Name>Showcase.tsx` | `src/remotion/compositions/` |
+| DS reference doc | `src/remotion/design-system/DESIGN-SYSTEM.md` | Anywhere else |
+| Component catalog | `src/remotion/design-system/component-catalog.json` | Anywhere else |
+| shadcn/ui primitives | `src/components/ui/<name>.tsx` | `src/remotion/design-system/` |
 
 ## File & Directory Hygiene
 

@@ -130,9 +130,67 @@ Three levels of composition:
 Blocks live in `src/remotion/design-system/blocks/` (not yet created).
 Scene templates will bridge into the existing vibe system or replace it.
 
+## External Component Intake (MANDATORY)
+
+> **This is a non-negotiable gate.** Every component that arrives from outside this codebase — whether from a user prompt, shadcn registry, 21st.dev, CodePen, Dribbble, or any other source — MUST pass through this protocol before entering the codebase. No exceptions.
+
+### What counts as "external"?
+
+Any code the user pastes, any component from a third-party library or registry, any reference implementation from the web. If it wasn't written inside `src/remotion/design-system/` from scratch, it's external.
+
+### The 4-Step Gate
+
+| # | Step | What happens | Output |
+|---|------|-------------|--------|
+| 1 | **Decompose** | Identify which DS layer(s) the component maps to (L2 atmosphere, L3 motion, L4 surface, or a block/template combining multiple). If it doesn't fit any layer, it doesn't enter the design system. | Layer assignment |
+| 2 | **Adapt** | Rewrite to Remotion-native. Replace: `framer-motion` → `useCurrentFrame()` + `spring()` + `interpolate()`. CSS animations / `@keyframes` → frame-driven interpolation. `setTimeout` / `setInterval` / `requestAnimationFrame` → frame arithmetic. React state-based timers → frame ranges via `Sequence` or manual frame math. The output must be **deterministic per frame** — same frame number = same visual output, always. | Remotion-native `.tsx` file |
+| 3 | **Register** | Place in the correct layer directory, register in the layer's `index.ts`, add entry to `component-catalog.json` | Registry entry + catalog entry |
+| 4 | **Showcase** | Create/update a showcase composition in `showcase/`, register in `Root.tsx` with `DS-` prefix, verify in Remotion Studio | Visual proof |
+
+### Hard rules
+
+- **Never copy-paste external code as-is.** Even if it "works" in a browser, it won't work in Remotion's frame-based renderer.
+- **Every user-provided component goes through the 4-step gate into `src/remotion/design-system/<layer>/`.** No exceptions. `src/components/ui/` is off-limits for any user-provided or externally sourced component — that directory is only touched by the shadcn CLI (`npx shadcn add ...`), never by us manually.
+- **No external animation runtime dependencies.** Never install `framer-motion`, `motion`, `gsap`, `anime.js`, `react-spring`, or any library that runs its own clock. If the source component uses them, that's what Step 2 (Adapt) is for — rewrite using Remotion's own API, don't import the library.
+- **Use the full Remotion API — not just three functions.** Remotion provides a rich toolkit. Use whatever fits:
+
+  | API | Purpose |
+  |-----|---------|
+  | `useCurrentFrame()` | Current frame number — the single source of truth for all animation state |
+  | `interpolate()` | Map frame ranges to any numeric value (opacity, position, scale, blur, color channel, etc.) |
+  | `spring()` | Physics-based easing — organic, bouncy motion |
+  | `Easing.*` | Bezier / ease-in-out / cubic curves — for non-spring easing |
+  | `Sequence` | Time slicing — "start at frame X, run for Y frames" |
+  | `Loop` | Repeating animation cycles |
+  | `AbsoluteFill` | Full-screen layer stacking |
+  | `useVideoConfig()` | Access fps, width, height, durationInFrames |
+  | `measureSpring()` | Calculate how many frames a spring animation takes |
+  | `@remotion/paths` | SVG path morphing and interpolation |
+  | `@remotion/media-utils` | Audio waveform → visual sync (amplitude-driven animation) |
+
+  The principle is **frame-deterministic rendering**: every visual property is derived from the frame number, never from wall-clock time or React state timers.
+
+- **If adaptation is impossible** (e.g., the component fundamentally requires real-time user interaction that doesn't map to frame-based rendering), reject it and explain why to the user.
+
+### Adaptation cheat sheet
+
+| Source pattern | Remotion equivalent |
+|---------------|-------------------|
+| `motion.div animate={{ opacity: 1 }}` | `const frame = useCurrentFrame(); const opacity = interpolate(frame, [0, 30], [0, 1], { extrapolateRight: 'clamp' });` + `style={{ opacity }}` |
+| `transition={{ duration: 0.7 }}` | `durationInFrames: Math.round(0.7 * fps)` |
+| `spring({ stiffness: 300, damping: 25 })` (framer) | `spring({ frame, fps, config: { stiffness: 300, damping: 25 } })` (remotion) |
+| `useState` + `setInterval` for cycling | Frame ranges: `const cycleIndex = Math.floor(frame / framesPerWord) % words.length` |
+| `useEffect` + timer | `const frame = useCurrentFrame()` — derive everything from frame, no effects needed |
+| `animate={{ width }}` (layout animation) | `const width = interpolate(progress, [0, 1], [startWidth, endWidth])` + `style={{ width }}` |
+| `initial={{ filter: 'blur(10px)' }}` | `const blur = interpolate(frame, [delay, delay + 15], [10, 0], { extrapolateRight: 'clamp' }); style={{ filter: \`blur(${blur}px)\` }}` |
+
+---
+
 ## Adding a New Component
 
 When the user shares a reference link (CodePen, 21st.dev, Dribbble, etc.):
+
+> **First: run the External Component Intake gate above.** The steps below assume the component has already been decomposed and adapted.
 
 ### Step 1: Decompose
 
@@ -145,9 +203,9 @@ Analyze the reference and identify which layers it touches:
 ### Step 2: Implement
 
 1. Create the component file in the correct layer directory:
-   - L2: `atmospheres/<Name>.tsx`
-   - L3: `motion/<Name>.tsx`
-   - L4: `surfaces/<Name>.tsx`
+   - L2: `src/remotion/design-system/atmospheres/<Name>.tsx`
+   - L3: `src/remotion/design-system/motion/<Name>.tsx`
+   - L4: `src/remotion/design-system/surfaces/<Name>.tsx`
 2. Follow constraints (Remotion-native, inline styles, spring physics)
 3. Export a typed `Props` interface
 4. Export the component as a named export
@@ -155,14 +213,14 @@ Analyze the reference and identify which layers it touches:
 ### Step 3: Register
 
 1. Import in the layer's `index.ts`
-2. For L3 functions: `registerMotion('kebab-id', fn)` in `motion/index.ts`
-3. For L2 components: `registerAtmosphere('kebab-id', Component)` in `atmospheres/index.ts`
-4. For L4 components: `registerSurface('kebab-id', Component)` in `surfaces/index.ts`
-5. Add the ID to the corresponding type union in `types.ts` if it's a new canonical ID
+2. For L3 functions: `registerMotion('kebab-id', fn)` in `src/remotion/design-system/motion/index.ts`
+3. For L2 components: `registerAtmosphere('kebab-id', Component)` in `src/remotion/design-system/atmospheres/index.ts`
+4. For L4 components: `registerSurface('kebab-id', Component)` in `src/remotion/design-system/surfaces/index.ts`
+5. Add the ID to the corresponding type union in `src/remotion/design-system/types.ts` if it's a new canonical ID
 
 ### Step 4: Showcase
 
-1. Create or update a showcase composition in `showcase/`
+1. Create or update a showcase composition in `src/remotion/design-system/showcase/`
 2. Register the composition in `src/remotion/Root.tsx` with prefix `DS-` (e.g., `DS-TextMotion`, `DS-Surfaces`)
 3. Verify in Remotion Studio: `npm run studio`
 
@@ -202,49 +260,29 @@ Existing showcases:
 
 ## File Map
 
-```
-src/
-├── remotion/
-│   ├── styles.css                ← Tailwind v4 + shadcn theme variables
-│   ├── webpack-override.ts       ← Shared webpack override (enables Tailwind)
-│   └── design-system/
-│       ├── DESIGN-SYSTEM.md      ← This file (reference doc)
-│       ├── types.ts              ← L1-L5 TypeScript interfaces
-│       ├── registry.ts           ← Runtime registries (register*/get*)
-│       ├── index.ts              ← Barrel exports
-│       ├── atmospheres/
-│       │   └── index.ts          ← L2 exports + registrations
-│       ├── motion/
-│       │   ├── index.ts          ← L3 exports + registrations
-│       │   ├── StaggerTextReveal.tsx
-│       │   └── TextRotate.tsx
-│       ├── surfaces/
-│       │   └── index.ts          ← L4 exports + registrations
-│       └── showcase/
-│           └── TextMotionShowcase.tsx
-├── components/
-│   └── ui/                       ← shadcn/ui components (added via `npx shadcn add`)
-├── lib/
-│   └── utils.ts                  ← cn() helper (clsx + tailwind-merge)
-```
+> Canonical directory structure is defined in `AGENTS.md → Directory Structure`. That is the single source of truth for all file locations. Below is a DS-focused extract for quick reference.
 
-### Infrastructure Files (outside design-system)
-
-| File | Purpose |
-|------|---------|
-| `remotion.config.ts` | CLI webpack override for Tailwind v4 |
-| `components.json` | shadcn CLI configuration |
-| `src/remotion/webpack-override.ts` | Shared `enableTailwind()` for CLI + Node.js API |
-| `src/remotion/styles.css` | Tailwind import + shadcn CSS variables (dark theme default) |
-| `src/lib/utils.ts` | `cn()` utility — `twMerge(clsx(...))` |
+| File | Full Path | Purpose |
+|------|-----------|---------|
+| DS reference doc | `src/remotion/design-system/DESIGN-SYSTEM.md` | This file |
+| Type definitions | `src/remotion/design-system/types.ts` | L1-L5 TypeScript interfaces |
+| Runtime registries | `src/remotion/design-system/registry.ts` | `register*()` / `get*()` |
+| Barrel exports | `src/remotion/design-system/index.ts` | Public API |
+| Component catalog | `src/remotion/design-system/component-catalog.json` | Machine-readable component mapping |
+| L2 atmospheres | `src/remotion/design-system/atmospheres/<Name>.tsx` | Full-screen background layers |
+| L3 motion | `src/remotion/design-system/motion/<Name>.tsx` | Animation primitives |
+| L4 surfaces | `src/remotion/design-system/surfaces/<Name>.tsx` | Card/container treatments |
+| Showcases | `src/remotion/design-system/showcase/<Name>Showcase.tsx` | Visual demos (DS- prefix) |
+| shadcn/ui | `src/components/ui/<name>.tsx` | Stock UI primitives (NOT DS components) |
+| cn() utility | `src/lib/utils.ts` | `twMerge(clsx(...))` |
+| Tailwind + theme | `src/remotion/styles.css` | CSS variables, dark theme default |
 
 Future directories (create when needed):
-- `blocks/` — composed primitives (molecule level)
-- `templates/` — scene-level defaults (organism level)
+- `src/remotion/design-system/blocks/` — composed primitives (molecule level)
 
 ## Component Catalog
 
-The machine-readable catalog is at `component-catalog.json` (same directory). It maps every DS primitive to:
+The machine-readable catalog is at `src/remotion/design-system/component-catalog.json`. It maps every DS primitive to:
 
 - **useCases** — when this component is the right choice
 - **keywords** — semantic tags for matching visual needs to components

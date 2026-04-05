@@ -83,7 +83,8 @@ It contains for each component:
 - Flag any framer-motion, GSAP, anime.js usage as automatic FAIL
 
 ### Director Agent
-- When user shares a reference link: decompose into L1-L5, delegate implementation to appropriate agent
-- New components need: implementation → registry entry → **catalog entry** → showcase composition → TypeScript compile check → user visual approval
+- **External Component Intake is mandatory.** When user pastes code or shares a reference link, run the 4-step gate defined in `DESIGN-SYSTEM.md → External Component Intake` BEFORE writing any file. Steps: (1) Decompose → identify DS layer, (2) Adapt → rewrite to Remotion-native, (3) Register → correct directory + catalog, (4) Showcase → visual proof in Studio.
+- **Never copy-paste external code as-is.** Every user-provided component goes through the 4-step gate into `src/remotion/design-system/<layer>/`. `src/components/ui/` is only touched by shadcn CLI, never by us manually. Never install external animation runtimes (framer-motion, gsap, etc.). Always adapt to Remotion's frame-deterministic API.
+- New components need: adaptation → implementation → registry entry → **catalog entry** → showcase composition → TypeScript compile check → user visual approval
 - Never skip the showcase step — every new primitive must be visually verified before production use
 - After adding a new component, update `component-catalog.json` with use cases, keywords, and pairing info
