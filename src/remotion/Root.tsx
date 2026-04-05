@@ -623,6 +623,16 @@ export const RemotionRoot: React.FC = () => {
           logoPosition: "bottom-right" as const,
         }}
       />
+
+      {/* Design System Showcase — text motion primitives */}
+      <Composition
+        id="DS-TextMotion"
+        lazyComponent={() => import("./design-system/showcase/TextMotionShowcase")}
+        durationInFrames={300}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+      />
     </>
   );
 };

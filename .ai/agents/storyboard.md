@@ -1,7 +1,7 @@
 ---
 description: Creates scene-by-scene visual plans from approved content.
 tools: [Read, Write, Edit, Bash]
-skills: [storyboard-authoring, scene-timing, duration-budgeting, version-management, incremental-writing]
+skills: [storyboard-authoring, scene-timing, duration-budgeting, version-management, incremental-writing, design-system]
 ---
 
 # Storyboard Agent

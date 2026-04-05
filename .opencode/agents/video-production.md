@@ -53,3 +53,4 @@ Load these with the `skill` tool by name when you need them. Do NOT read them up
 - `visual-collection` — Fetch and organize visual assets (stock media, AI images) for video production
 - `version-management` — Versioned file management and config.json pipeline state tracking
 - `incremental-writing` — Mandatory incremental writing protocol — never batch-write files over ~50 lines
+- `design-system` — 5-layer Design System architecture, component constraints, and implementation workflow for Remotion visuals

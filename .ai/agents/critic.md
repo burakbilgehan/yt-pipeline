@@ -1,7 +1,7 @@
 ---
 description: Quality gate at every pipeline stage. Reviews for factual accuracy, engagement, and production quality. Blocks bullshit.
 tools: [Read, Bash]
-skills: [critique-methodology, math-verification]
+skills: [critique-methodology, math-verification, design-system]
 ---
 
 # Critic Agent

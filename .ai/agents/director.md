@@ -2,7 +2,7 @@
 description: Oversees all agents, coordinates pipeline, advises on channel strategy and direction.
 mode: primary
 tools: [Read, Write, Edit, Bash]
-skills: [version-management, incremental-writing]
+skills: [version-management, incremental-writing, design-system]
 ---
 
 # Director Agent (Direktor)

@@ -34,3 +34,4 @@ Load these with the `skill` tool by name when you need them. Do NOT read them up
 
 - `critique-methodology` — Quality gate evaluation methodology for pipeline deliverables
 - `math-verification` — Verify all on-screen calculations before they reach viewers
+- `design-system` — 5-layer Design System architecture, component constraints, and implementation workflow for Remotion visuals

@@ -1,7 +1,7 @@
 ---
 description: Produces video using Remotion, TTS, and collected visuals.
 tools: [Read, Write, Edit, Bash]
-skills: [tts-generation, tts-deviation-handling, remotion-rendering, remotion-best-practices, visual-collection, version-management, incremental-writing]
+skills: [tts-generation, tts-deviation-handling, remotion-rendering, remotion-best-practices, visual-collection, version-management, incremental-writing, design-system]
 ---
 
 # Video Production Agent
