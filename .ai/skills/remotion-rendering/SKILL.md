@@ -25,8 +25,10 @@ npm run studio -- --public-dir <project-public-dir>
 
 ## Critical Rules
 
-### Never Block with Full Renders
-Full renders take 10+ minutes. Always launch in background (`&` on macOS/Linux, `start ""` on Windows — NOT `start /B`). For quick checks, use `remotion still` or the studio.
+### Never Run Full Renders — User Only
+Full video renders (`npm run render`, `npx remotion render` for the entire composition) are **exclusively triggered by the user**. They take 10+ minutes and are expensive. When all fixes/changes are complete, **provide the exact render command** to the user and let them run it. Never run a full render yourself, even in background.
+
+For quick visual checks, use `remotion still` (single frame) or the studio — these are fine to run freely.
 
 ### Concurrency
 Add `--concurrency=<N>` to render commands based on your machine's CPU cores (e.g., `--concurrency=$(sysctl -n hw.ncpu)` on macOS).

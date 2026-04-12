@@ -792,8 +792,20 @@ const PhaseAwareChart: React.FC<{
 }> = ({ hasPhase2, keepChartVisible, sceneDurationInFrames, children }) => {
   const frame = useCurrentFrame();
 
-  if (!hasPhase2 || keepChartVisible) {
+  if (!hasPhase2) {
     return <AbsoluteFill style={{ zIndex: 1 }}>{children}</AbsoluteFill>;
+  }
+
+  if (keepChartVisible) {
+    // keepChartVisible: chart dims to 55% opacity when phase-2 overlay appears
+    // so the overlay pill is clearly readable while chart remains visible underneath
+    const fadeStart = Math.round(sceneDurationInFrames * 0.48);
+    const fadeEnd = Math.round(sceneDurationInFrames * 0.56);
+    const opacity = interpolate(frame, [fadeStart, fadeEnd], [1, 0.55], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    });
+    return <AbsoluteFill style={{ zIndex: 1, opacity }}>{children}</AbsoluteFill>;
   }
 
   // Phase 2 text overlay starts at 50% of scene (see FlipTextOverlay delayFrames).

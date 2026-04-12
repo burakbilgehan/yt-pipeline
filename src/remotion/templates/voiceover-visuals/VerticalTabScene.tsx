@@ -523,70 +523,72 @@ const ImagePanel: React.FC<ImagePanelProps> = ({
       });
 
   return (
-    <div
-      style={{
-        width: "100%",
-        aspectRatio: "16 / 11",
-        position: "relative",
-        borderRadius: 32,
-        overflow: "hidden",
-        backgroundColor: SURFACE,
-        border: `1px solid ${SURFACE_BORDER}`,
-      }}
-    >
-      {/* Exiting image */}
-      {prevIndex !== activeIndex && (
-        <ImageLayer
-          item={items[prevIndex]}
-          itemIndex={prevIndex}
-          brandColor={brandColor}
-          style={{ transform: `translateY(${exitY}%)`, zIndex: 0 }}
-        />
-      )}
-
-      {/* Entering image */}
-      <ImageLayer
-        item={items[activeIndex]}
-        itemIndex={activeIndex}
-        brandColor={brandColor}
-        style={{
-          transform: isFirstTab ? "translateY(0%)" : `translateY(${enterY}%)`,
-          opacity: enterOpacity,
-          zIndex: 1,
-        }}
-      />
-
-      {/* Bottom gradient */}
+    <TiltCard maxTilt={12} speed={0.3} perspective={800}>
       <div
         style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: "33%",
-          background: "linear-gradient(transparent, rgba(0,0,0,0.2))",
-          pointerEvents: "none",
-          zIndex: 2,
-        }}
-      />
-
-      {/* Tab ID overlay */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 24,
-          left: 32,
-          fontSize: 22,
-          fontWeight: 600,
-          color: brandColor,
-          letterSpacing: 2,
-          opacity: 0.8,
-          zIndex: 3,
+          width: "100%",
+          aspectRatio: "16 / 11",
+          position: "relative",
+          borderRadius: 32,
+          overflow: "hidden",
+          backgroundColor: SURFACE,
+          border: `1px solid ${SURFACE_BORDER}`,
         }}
       >
-        {String(activeIndex + 1).padStart(2, "0")}
+        {/* Exiting image */}
+        {prevIndex !== activeIndex && (
+          <ImageLayer
+            item={items[prevIndex]}
+            itemIndex={prevIndex}
+            brandColor={brandColor}
+            style={{ transform: `translateY(${exitY}%)`, zIndex: 0 }}
+          />
+        )}
+
+        {/* Entering image */}
+        <ImageLayer
+          item={items[activeIndex]}
+          itemIndex={activeIndex}
+          brandColor={brandColor}
+          style={{
+            transform: isFirstTab ? "translateY(0%)" : `translateY(${enterY}%)`,
+            opacity: enterOpacity,
+            zIndex: 1,
+          }}
+        />
+
+        {/* Bottom gradient */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "33%",
+            background: "linear-gradient(transparent, rgba(0,0,0,0.2))",
+            pointerEvents: "none",
+            zIndex: 2,
+          }}
+        />
+
+        {/* Tab ID overlay */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 24,
+            left: 32,
+            fontSize: 22,
+            fontWeight: 600,
+            color: brandColor,
+            letterSpacing: 2,
+            opacity: 0.8,
+            zIndex: 3,
+          }}
+        >
+          {String(activeIndex + 1).padStart(2, "0")}
+        </div>
       </div>
-    </div>
+    </TiltCard>
   );
 };
 

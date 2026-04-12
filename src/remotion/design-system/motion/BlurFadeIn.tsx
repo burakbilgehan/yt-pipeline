@@ -60,6 +60,8 @@ export const BlurFadeIn: React.FC<BlurFadeInProps> = ({
   return (
     <div
       style={{
+        width: '100%',
+        height: '100%',
         opacity,
         filter: `blur(${blur}px)`,
       }}

@@ -677,13 +677,14 @@ export const BarChart: React.FC<BarChartProps> = (props) => {
 
     const secondaryAsChart: DataChartInput = {
       type: props.chart.type,
-      title: secondaryChart.title,
+      title: undefined,
       items: secondaryChart.items,
       colors: secondaryChart.colors,
       unit: secondaryChart.unit,
       orientation: props.chart.orientation,
       annotation: secondaryChart.annotation,
-    };
+      groupTitle: secondaryChart.title,
+    } as DataChartInput;
 
     const SecondaryComponent =
       props.chart.orientation === "vertical" ? VerticalBars : HorizontalBars;

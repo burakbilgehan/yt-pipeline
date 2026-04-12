@@ -105,7 +105,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
       )}
 
       {/* Timeline container */}
-      <div style={{ position: "relative", width: "100%", height: TIMELINE_HEIGHT, flex: 1, overflow: "visible" }}>
+      <div style={{ position: "relative", width: "100%", height: TIMELINE_HEIGHT, flexShrink: 0, overflow: "visible" }}>
         {/* Horizontal timeline line — animated left to right */}
         <div
           style={{

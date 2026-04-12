@@ -97,11 +97,11 @@ function estimateTextWidth(text: string, fontSize: number, fontWeight: number): 
 // ─── Component ────────────────────────────────────────────────
 
 /**
- * ContainerTextFlip — cycles through texts with per-character blur-fade transitions.
+ * ContainerTextFlip — cycles through texts with whole-text blur-fade transitions.
  *
  * Unlike TextRotate (slide up/down), this component uses blur + opacity transitions
- * for a softer, more elegant feel. Each character starts blurred and transparent,
- * then springs to clear and opaque with staggered timing.
+ * for a softer, more elegant feel. The entire text line transitions as a single unit
+ * (blur+opacity spring) — this is render-safe across Remotion's multi-threaded renderer.
  *
  * Container width auto-sizes with a spring animation.
  * Optional gradient pill background for badge-style presentation.
@@ -133,10 +133,9 @@ export const ContainerTextFlip: React.FC<ContainerTextFlipProps> = ({
   if (totalTexts === 0) return null;
 
   // ── Timing: split frameDuration into exit + enter phases ──
-  const maxUnits = Math.max(...texts.map(t => splitText(t, splitBy).length));
-  const staggerSpread = maxUnits * staggerFrames;
+  // No per-character stagger — whole-text transitions are render-safe.
   const springSettle = 15;
-  const exitDuration = staggerSpread + springSettle;
+  const exitDuration = springSettle;
   const resizeDuration = 8;
   const enterStart = exitDuration + resizeDuration;
 
@@ -181,14 +180,31 @@ export const ContainerTextFlip: React.FC<ContainerTextFlipProps> = ({
   const pillPaddingH = showPill ? 36 : 0;
   const pillPaddingV = showPill ? 16 : 0;
 
-  // ── Render characters for a given text with blur-fade ──
+  // ── Render whole text with blur-fade (render-safe, no per-character stagger) ──
   const renderUnits = (
     text: string,
     mode: 'enter' | 'exit',
     localFrame: number,
   ) => {
-    const units = splitText(text, splitBy);
-    const totalUnits = units.length;
+    const springVal = spring({
+      frame: Math.max(0, localFrame),
+      fps,
+      config: { damping, stiffness, mass },
+      durationInFrames: springSettle + 10,
+    });
+
+    let textOpacity: number;
+    let blur: number;
+
+    if (mode === 'enter') {
+      // Blur-fade in: blurred+transparent → clear+opaque
+      textOpacity = interpolate(springVal, [0, 1], [0, 1]);
+      blur = interpolate(springVal, [0, 1], [blurAmount, 0]);
+    } else {
+      // Blur-fade out: clear+opaque → blurred+transparent
+      textOpacity = interpolate(springVal, [0, 1], [1, 0]);
+      blur = interpolate(springVal, [0, 1], [0, blurAmount]);
+    }
 
     return (
       <div
@@ -199,61 +215,25 @@ export const ContainerTextFlip: React.FC<ContainerTextFlipProps> = ({
           width: '100%',
           height: '100%',
           display: 'flex',
-          flexWrap: 'nowrap',
           alignItems: 'center',
           justifyContent: 'center',
+          opacity: textOpacity,
+          filter: `blur(${blur}px)`,
         }}
       >
-        {units.map((unit, index) => {
-          const delay = getStaggerDelay(index, totalUnits, staggerFrames, staggerFrom);
-
-          const springVal = spring({
-            frame: Math.max(0, localFrame - delay),
-            fps,
-            config: { damping, stiffness, mass },
-            durationInFrames: springSettle + 10,
-          });
-
-          let opacity: number;
-          let blur: number;
-
-          if (mode === 'enter') {
-            // Blur-fade in: blurred+transparent → clear+opaque
-            opacity = interpolate(springVal, [0, 1], [0, 1]);
-            blur = interpolate(springVal, [0, 1], [blurAmount, 0]);
-          } else {
-            // Blur-fade out: clear+opaque → blurred+transparent
-            opacity = interpolate(springVal, [0, 1], [1, 0]);
-            blur = interpolate(springVal, [0, 1], [0, blurAmount]);
-          }
-
-          return (
-            <span
-              key={index}
-              style={{
-                display: 'inline-block',
-                height: lineHeight,
-                lineHeight: `${lineHeight}px`,
-                marginRight: unit.trailingSpace ? fontSize * 0.28 : 0,
-              }}
-            >
-              <span
-                style={{
-                  display: 'inline-block',
-                  opacity,
-                  filter: `blur(${blur}px)`,
-                  fontSize,
-                  fontWeight,
-                  color,
-                  fontFamily,
-                  whiteSpace: 'pre',
-                }}
-              >
-                {unit.text}
-              </span>
-            </span>
-          );
-        })}
+        <span
+          style={{
+            display: 'inline-block',
+            fontSize,
+            fontWeight,
+            color,
+            fontFamily,
+            whiteSpace: 'pre',
+            lineHeight: `${lineHeight}px`,
+          }}
+        >
+          {text}
+        </span>
       </div>
     );
   };
