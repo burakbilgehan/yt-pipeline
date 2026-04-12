@@ -20,6 +20,7 @@ Use `pipeline.publishing.activePath` from `config.json` for the SEO/metadata out
 - Metadata quality directly impacts discoverability — treat it as a first-class deliverable.
 - Consult `youtube-expert` agent for SEO before finalizing metadata.
 - **NEVER batch-write.** If metadata/SEO notes exceed ~50 lines, write incrementally. See `incremental-writing` skill.
+- **Always generate copy-paste ready files.** After writing `metadata-v<N>.json`, also write `tags.txt` (plain comma-separated, NO quotes) and `description.txt` (real newlines, not `\n` escapes) in the same `publishing/` directory. The user pastes from these `.txt` files into YouTube Studio — never from JSON.
 
 ## Workflow
 

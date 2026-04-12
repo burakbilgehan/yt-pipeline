@@ -41,7 +41,7 @@
     "maxTagsTotalChars": 500,
     "maxSingleTagChars": 100,
     "multiWordTagQuoteOverhead": 2,
-    "forbiddenTagChars": ["&", "<", ">", "\"", "+"],
+    "forbiddenTagChars": ["&", "<", ">", "\"", "+", "'"],
     "apiQuotaUploadsPerDay": 6
   },
   "stockMedia": {
