@@ -1783,6 +1783,68 @@
         "glass",
         "elevated"
       ]
+    },
+    {
+      "id": "frosted-panel",
+      "layer": "L4",
+      "type": "surface",
+      "name": "Frosted Panel Surface",
+      "file": "surfaces/FrostedPanelSurface.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Matte frosted glass panels for content containers",
+        "Dark-tinted frosted cards over colorful backgrounds",
+        "Heavy blur panels that feel almost opaque but let background color bleed through softly"
+      ],
+      "keywords": [
+        "frosted",
+        "matte",
+        "panel",
+        "dark-glass",
+        "heavy-blur",
+        "opaque-feel",
+        "container"
+      ],
+      "whenToUse": "Container should feel like frosted bathroom glass — matte, not shiny. Dark tint (black/20) with strong blur creates a soft opaque-feeling panel that still lets background color through subtly. Includes top-edge highlight for dimensionality.",
+      "whenNotToUse": "Shiny transparent glass look (use glass). Fully opaque cards (use flat). Light-tinted glass (use card). Glowing emphasis cards (use glow).",
+      "storyboardHint": "In scene detail, set: visual.surface = 'frosted-panel'.",
+      "exampleScenario": "Calendar-style content panel with matte frosted background floating over a blurry-blob atmosphere — text is highly readable against the dark frosted tint.",
+      "alternatives": [
+        "glass",
+        "card",
+        "flat"
+      ]
+    },
+    {
+      "id": "card",
+      "layer": "L4",
+      "type": "surface",
+      "name": "Card Surface",
+      "file": "surfaces/CardSurface.tsx",
+      "status": "implemented",
+      "useCases": [
+        "Stat cards with subtle directional lighting",
+        "Light glass cards with corner glow accent",
+        "Dashboard-style metric cards over dark backgrounds"
+      ],
+      "keywords": [
+        "card",
+        "stat",
+        "light-glass",
+        "corner-glow",
+        "metric",
+        "dashboard",
+        "directional-light"
+      ],
+      "whenToUse": "Card needs a very subtle glass treatment (white at 5% opacity) with a distinctive top-right corner glow for directional lighting. Lighter and more delicate than glass or frosted-panel. Use glowColor and glowIntensity to control the corner accent.",
+      "whenNotToUse": "Heavy frosted look needed (use frosted-panel). Standard glassmorphism (use glass). Maximum emphasis needed (use glow or neon-gradient). Fully opaque (use flat).",
+      "storyboardHint": "In scene detail, set: visual.surface = 'card'. Optional: glowColor for corner accent color, glowIntensity for corner glow strength.",
+      "exampleScenario": "Three stat cards showing key metrics — each has a subtle top-right glow giving the impression of light falling from above-right, creating visual hierarchy.",
+      "alternatives": [
+        "glass",
+        "frosted-panel",
+        "flat"
+      ]
     }
   ]
 }

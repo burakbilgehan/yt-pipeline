@@ -142,11 +142,17 @@ export const ContainerTextFlip: React.FC<ContainerTextFlipProps> = ({
 
   // ── Which text is active? ──
   const totalCycleFrames = totalTexts * frameDuration;
+  // For loop=false with a single text, clamp to frameDuration-1 so the text stays
+  // on its enter animation and doesn't get stuck at f=0.
+  const maxNonLoopFrame = Math.max((totalTexts - 1) * frameDuration, frameDuration - 1);
   const cycleFrame = loop
     ? frame % totalCycleFrames
-    : Math.min(frame, (totalTexts - 1) * frameDuration);
-  const activeIndex = Math.floor(cycleFrame / frameDuration);
-  const f = cycleFrame % frameDuration;
+    : Math.min(frame, maxNonLoopFrame);
+  const activeIndex = Math.min(
+    Math.floor(cycleFrame / frameDuration),
+    totalTexts - 1
+  );
+  const f = cycleFrame - activeIndex * frameDuration;
 
   const prevIndex = activeIndex === 0
     ? (loop ? totalTexts - 1 : -1)
@@ -172,8 +178,8 @@ export const ContainerTextFlip: React.FC<ContainerTextFlipProps> = ({
     : interpolate(resizeProgress, [0, 1], [prevWidth, activeWidth]);
 
   // Pill padding
-  const pillPaddingH = showPill ? 24 : 0;
-  const pillPaddingV = showPill ? 10 : 0;
+  const pillPaddingH = showPill ? 36 : 0;
+  const pillPaddingV = showPill ? 16 : 0;
 
   // ── Render characters for a given text with blur-fade ──
   const renderUnits = (

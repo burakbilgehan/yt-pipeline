@@ -16,6 +16,8 @@ import { FlatSurface } from './FlatSurface';
 import { GlowSurface } from './GlowSurface';
 import { NeonGradientSurface } from './NeonGradientSurface';
 import { BacklightSurface } from './BacklightSurface';
+import { FrostedPanelSurface } from './FrostedPanelSurface';
+import { CardSurface } from './CardSurface';
 
 // ─── React component exports ────────────────────────────────
 export { GlassSurface } from './GlassSurface';
@@ -23,6 +25,8 @@ export { FlatSurface } from './FlatSurface';
 export { GlowSurface } from './GlowSurface';
 export { NeonGradientSurface } from './NeonGradientSurface';
 export { BacklightSurface } from './BacklightSurface';
+export { FrostedPanelSurface } from './FrostedPanelSurface';
+export { CardSurface } from './CardSurface';
 
 // ─── Surface registrations ──────────────────────────────────
 registerSurface('glass', GlassSurface);
@@ -30,3 +34,5 @@ registerSurface('flat', FlatSurface);
 registerSurface('glow', GlowSurface);
 registerSurface('neon-gradient', NeonGradientSurface);
 registerSurface('backlight', BacklightSurface);
+registerSurface('frosted-panel', FrostedPanelSurface);
+registerSurface('card', CardSurface);

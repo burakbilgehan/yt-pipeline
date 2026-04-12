@@ -6,7 +6,7 @@ import { customVideoCompositionSchema } from "./compositions/CustomVideoComposit
 import { ensureFontsLoaded } from "../fonts/load-fonts";
 import { bridgeAllScenes } from "../utils/storyboard-bridge";
 import { resolveHorseRaceScenes } from "../utils/horse-race-resolver";
-import { BG } from "./palette";
+import { BG, ACCENT_PINK } from "./palette";
 import { START_PADDING_SEC, END_PADDING_SEC } from "./compositions/MainComposition";
 import type { z } from "zod";
 
@@ -68,7 +68,7 @@ async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSch
     const storyboardPrefix = manifest?.storyboardPrefix || "storyboard";
     const audioPrefix = manifest?.audioPrefix || "production/audio";
     const bgmPrefix = manifest?.bgmPrefix || "bgm/";
-    const brandColor = manifest?.brandColor || "#6C63FF";
+    const brandColor = manifest?.brandColor || ACCENT_PINK;
     const fontFamily = manifest?.fontFamily || "Inter, sans-serif";
 
     // Try to fetch storyboard skeleton — try latest versions first
@@ -198,7 +198,7 @@ export const RemotionRoot: React.FC = () => {
           audioSegments: [],
           showSubtitles: true,
           showProgressBar: true,
-          brandColor: "#6C63FF",
+          brandColor: ACCENT_PINK,
           fontFamily: "Inter, sans-serif",
         }}
         calculateMetadata={async ({ props }) => {
@@ -240,7 +240,7 @@ export const RemotionRoot: React.FC = () => {
             unit: "units",
           },
           durationInFrames: 90,
-          brandColor: "#6C63FF",
+          brandColor: ACCENT_PINK,
           fontFamily: "Inter, sans-serif",
         }}
         calculateMetadata={async ({ props }) => {
@@ -278,7 +278,7 @@ export const RemotionRoot: React.FC = () => {
           audioFiles: [],
           audioSegments: [],
           showSubtitles: true,
-          brandColor: "#6C63FF",
+          brandColor: ACCENT_PINK,
           fontFamily: "Inter, sans-serif",
         }}
         calculateMetadata={async ({ props }) => {
@@ -322,7 +322,7 @@ export const RemotionRoot: React.FC = () => {
             title: "Untitled",
             durationSeconds: 60,
   backgroundColor: BG,
-            brandColor: "#6C63FF",
+            brandColor: ACCENT_PINK,
             fontFamily: "Inter, sans-serif",
             showSubtitles: true,
             scenes: [],
@@ -471,6 +471,14 @@ export const RemotionRoot: React.FC = () => {
           <Composition
             id="NeonGradient-Backlight"
             lazyComponent={() => import("./design-system/showcase/SurfaceShowcase2")}
+            durationInFrames={300}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="FrostedPanel-Card"
+            lazyComponent={() => import("./design-system/showcase/SurfaceShowcase3")}
             durationInFrames={300}
             fps={FPS}
             width={WIDTH}

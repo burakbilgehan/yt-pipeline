@@ -780,6 +780,56 @@ function isGeminiTTSModel(modelId: string): boolean {
 }
 
 /**
+ * Escape XML-unsafe characters in text that will be embedded in SSML.
+ * Only escapes &, <, >, " — but preserves existing SSML tags (like <break>).
+ *
+ * Strategy: split text around known SSML tags, escape the text parts,
+ * then rejoin with the tags intact.
+ */
+function escapeForSSML(text: string): string {
+  // Split on SSML tags we generate (preserve them as-is)
+  const ssmlTagPattern = /(<break\s[^>]*\/>|<speak>|<\/speak>|<prosody[^>]*>|<\/prosody>|<emphasis[^>]*>|<\/emphasis>|<sub[^>]*>|<\/sub>|<say-as[^>]*>|<\/say-as>)/g;
+  const parts = text.split(ssmlTagPattern);
+
+  return parts
+    .map((part) => {
+      // If this part is an SSML tag, keep it as-is
+      if (ssmlTagPattern.test(part)) {
+        // Reset lastIndex since we're reusing the regex
+        ssmlTagPattern.lastIndex = 0;
+        return part;
+      }
+      // Reset lastIndex for next iteration
+      ssmlTagPattern.lastIndex = 0;
+      // Escape XML-unsafe characters in text parts
+      return part
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    })
+    .join("");
+}
+
+/**
+ * Convert [pause] markup tags to SSML <break> tags.
+ *
+ * Replaces:
+ *   [pause long]  → <break time="1000ms"/>
+ *   [pause short] → <break time="300ms"/>
+ *   [pause]       → <break time="500ms"/>
+ *
+ * Values from templates/pipeline-defaults.json → tts.pauseDurations.
+ * Order: longer variants first to avoid partial matches.
+ */
+function convertPauseMarkup(text: string): string {
+  return text
+    .replace(/\[pause long\]/gi, '<break time="1000ms"/>')
+    .replace(/\[pause short\]/gi, '<break time="300ms"/>')
+    .replace(/\[pause\]/gi, '<break time="500ms"/>');
+}
+
+/**
  * Generate a single TTS block via Google Cloud TTS REST API.
  * Works with both Gemini TTS models and Chirp 3: HD.
  *
@@ -813,27 +863,31 @@ async function generateGoogleTTSBlock(
     voice.model_name = ttsConfig.modelId;
   }
 
+  // Preprocess: convert [pause] markup to SSML <break> tags before sending to TTS
+  const processedText = convertPauseMarkup(text);
+
   // Build input — Gemini TTS supports style prompts, Chirp 3: HD uses markup or ssml
   const input: Record<string, unknown> = {};
   if (isGemini) {
-    input.text = text;
+    input.text = processedText;
     if (ttsConfig.stylePrompt) {
       input.prompt = ttsConfig.stylePrompt;
     }
   } else {
     // Chirp 3: HD — detect SSML content and use appropriate input field
     // Auto-wrap in <speak> if text contains SSML tags (like <break>) but isn't already wrapped
-    const hasSSMLTags = /<break\s|<prosody\s|<emphasis\s|<sub\s|<say-as\s/.test(text);
-    const isSSML = text.trimStart().startsWith("<speak>");
+    const hasSSMLTags = /<break\s|<prosody\s|<emphasis\s|<sub\s|<say-as\s/.test(processedText);
+    const isSSML = processedText.trimStart().startsWith("<speak>");
     if (isSSML) {
       // Already wrapped in <speak> — send as SSML directly
-      input.ssml = text;
+      input.ssml = processedText;
     } else if (hasSSMLTags) {
       // Contains SSML tags but no <speak> wrapper — auto-wrap
-      input.ssml = `<speak>${text}</speak>`;
+      // Escape XML-unsafe chars in text portions (preserves SSML tags)
+      input.ssml = `<speak>${escapeForSSML(processedText)}</speak>`;
     } else {
       // Plain text / basic markup mode
-      input.markup = text;
+      input.markup = processedText;
     }
   }
 

@@ -16,6 +16,8 @@ import {
   SURFACE,
   SURFACE_BORDER,
 } from "../../palette";
+import { FrostedPanelSurface } from "../../design-system/surfaces/FrostedPanelSurface";
+import { TiltCard } from "../../design-system/motion/TiltCard";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -78,8 +80,10 @@ function getTabDuration(
 
 // Accordion animation: 0.3s = 9 frames at 30fps
 const ACCORDION_FRAMES = 9;
-// Max height description can expand to (px)
-const MAX_DESC_HEIGHT = 100;
+// Max height description can expand to (px) — must fit ~2 lines at 20px font, 1.5 line-height
+const MAX_DESC_HEIGHT = 180;
+// JetBrains Mono for stat numbers in InfoPanel
+const MONO_FONT = "'JetBrains Mono', 'Fira Code', 'SF Mono', monospace";
 
 // ─── Main component ─────────────────────────────────────────
 
@@ -103,29 +107,31 @@ export const VerticalTabScene: React.FC<VerticalTabSceneProps> = ({
   const localFrame = frame - tabStart;
   const prevIndex = activeIndex > 0 ? activeIndex - 1 : 0;
 
+  const hasAnyImage = items.some((item) => !!item.image);
+
   return (
     <AbsoluteFill
       style={{
         backgroundColor: BG,
         fontFamily,
-        // Outer padding matching original lg breakpoint scaled for 1920×1080
         padding: "72px 80px",
         display: "flex",
-        flexDirection: imageOnRight ? "row" : "row-reverse",
+        flexDirection: hasAnyImage ? (imageOnRight ? "row" : "row-reverse") : "row",
         alignItems: "center",
+        justifyContent: "flex-start",
         gap: 64,
       }}
     >
       {/* ── Left column: heading + tabs ── */}
       <div
         style={{
-          width: "42%",
+          width: hasAnyImage ? "42%" : "48%",
           flexShrink: 0,
         }}
       >
         {/* Heading */}
         {chart.title && (
-          <div style={{ marginBottom: 40 }}>
+          <div style={{ marginBottom: 48 }}>
             <div
               style={{
                 fontSize: 56,
@@ -173,16 +179,27 @@ export const VerticalTabScene: React.FC<VerticalTabSceneProps> = ({
         </div>
       </div>
 
-      {/* ── Right column: image panel ── */}
+      {/* ── Right column: ImagePanel (with images) or InfoPanel (no images) ── */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <ImagePanel
-          items={items}
-          activeIndex={activeIndex}
-          prevIndex={prevIndex}
-          localFrame={localFrame}
-          fps={fps}
-          brandColor={brandColor}
-        />
+        {hasAnyImage ? (
+          <ImagePanel
+            items={items}
+            activeIndex={activeIndex}
+            prevIndex={prevIndex}
+            localFrame={localFrame}
+            fps={fps}
+            brandColor={brandColor}
+          />
+        ) : (
+          <InfoPanel
+            items={items}
+            activeIndex={activeIndex}
+            localFrame={localFrame}
+            fps={fps}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+          />
+        )}
       </div>
     </AbsoluteFill>
   );
@@ -291,7 +308,7 @@ const TabItemRow: React.FC<TabItemRowProps> = ({
             flexShrink: 0,
           }}
         >
-          /{item.id}
+          /{String(index + 1).padStart(2, "0")}
         </span>
         <span
           style={{
@@ -330,6 +347,143 @@ const TabItemRow: React.FC<TabItemRowProps> = ({
         </div>
       </div>
     </div>
+  );
+};
+
+// ─── InfoPanel (no-image fallback) ──────────────────────────
+
+interface InfoPanelProps {
+  items: TabItem[];
+  activeIndex: number;
+  localFrame: number;
+  fps: number;
+  brandColor: string;
+  fontFamily: string;
+}
+
+const InfoPanel: React.FC<InfoPanelProps> = ({
+  items,
+  activeIndex,
+  localFrame,
+  fps,
+  brandColor,
+  fontFamily,
+}) => {
+  const item = items[activeIndex];
+  if (!item) return null;
+
+  // Slide-up from below + fade
+  const enterSpring = spring({
+    fps,
+    frame: localFrame,
+    config: { stiffness: 200, damping: 28 },
+  });
+
+  const translateY = interpolate(enterSpring, [0, 1], [40, 0]);
+  const opacity = interpolate(enterSpring, [0, 1], [0, 1]);
+
+  // Stagger: accent line slightly after title
+  const lineSpring = spring({
+    fps,
+    frame: Math.max(0, localFrame - 3),
+    config: { stiffness: 220, damping: 30 },
+  });
+  const lineScaleX = interpolate(lineSpring, [0, 1], [0, 1]);
+
+  // Stagger: description after accent line
+  const descSpring = spring({
+    fps,
+    frame: Math.max(0, localFrame - 6),
+    config: { stiffness: 180, damping: 26 },
+  });
+  const descOpacity = interpolate(descSpring, [0, 1], [0, 1]);
+  const descTranslateY = interpolate(descSpring, [0, 1], [20, 0]);
+
+  const indexLabel = String(activeIndex + 1).padStart(2, "0");
+
+  return (
+    <TiltCard maxTilt={6} speed={0.8} perspective={800}>
+      <FrostedPanelSurface
+        id="frosted-panel"
+        blur={12}
+        opacity={0.08}
+        borderRadius={24}
+      >
+        <div
+          style={{
+            width: "100%",
+            padding: 48,
+            transform: `translateY(${translateY}px)`,
+            opacity,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            minHeight: 400,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Large background index number */}
+          <div
+            style={{
+              fontFamily: MONO_FONT,
+              fontSize: 120,
+              fontWeight: 700,
+              color: brandColor,
+              opacity: 0.25,
+              lineHeight: 1,
+              marginBottom: 16,
+              userSelect: "none",
+            }}
+          >
+            {indexLabel}
+          </div>
+
+          {/* Title in brandColor */}
+          <div
+            style={{
+              fontSize: 48,
+              fontWeight: 600,
+              color: brandColor,
+              lineHeight: 1.15,
+              letterSpacing: "-0.02em",
+              fontFamily,
+              marginBottom: 20,
+            }}
+          >
+            {item.title}
+          </div>
+
+          {/* Decorative accent line */}
+          <div
+            style={{
+              width: 80,
+              height: 3,
+              backgroundColor: brandColor,
+              borderRadius: 2,
+              marginBottom: 24,
+              transform: `scaleX(${lineScaleX})`,
+              transformOrigin: "left",
+            }}
+          />
+
+          {/* Description text */}
+          <div
+            style={{
+              fontSize: 24,
+              fontWeight: 400,
+              color: TEXT_MUTED,
+              lineHeight: 1.6,
+              maxWidth: 480,
+              opacity: descOpacity,
+              transform: `translateY(${descTranslateY}px)`,
+            }}
+          >
+            {item.description}
+          </div>
+        </div>
+      </FrostedPanelSurface>
+    </TiltCard>
   );
 };
 
@@ -384,6 +538,7 @@ const ImagePanel: React.FC<ImagePanelProps> = ({
       {prevIndex !== activeIndex && (
         <ImageLayer
           item={items[prevIndex]}
+          itemIndex={prevIndex}
           brandColor={brandColor}
           style={{ transform: `translateY(${exitY}%)`, zIndex: 0 }}
         />
@@ -392,6 +547,7 @@ const ImagePanel: React.FC<ImagePanelProps> = ({
       {/* Entering image */}
       <ImageLayer
         item={items[activeIndex]}
+        itemIndex={activeIndex}
         brandColor={brandColor}
         style={{
           transform: isFirstTab ? "translateY(0%)" : `translateY(${enterY}%)`,
@@ -428,7 +584,7 @@ const ImagePanel: React.FC<ImagePanelProps> = ({
           zIndex: 3,
         }}
       >
-        {items[activeIndex]?.id}
+        {String(activeIndex + 1).padStart(2, "0")}
       </div>
     </div>
   );
@@ -438,11 +594,12 @@ const ImagePanel: React.FC<ImagePanelProps> = ({
 
 interface ImageLayerProps {
   item: TabItem;
+  itemIndex: number;
   brandColor: string;
   style?: React.CSSProperties;
 }
 
-const ImageLayer: React.FC<ImageLayerProps> = ({ item, brandColor, style }) => {
+const ImageLayer: React.FC<ImageLayerProps> = ({ item, itemIndex, brandColor, style }) => {
   if (!item) return null;
 
   if (!item.image) {
@@ -468,7 +625,7 @@ const ImageLayer: React.FC<ImageLayerProps> = ({ item, brandColor, style }) => {
             marginBottom: 16,
           }}
         >
-          {item.id}
+          {String(itemIndex + 1).padStart(2, "0")}
         </div>
         <div
           style={{

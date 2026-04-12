@@ -172,6 +172,8 @@ export type SurfaceId =
   | 'neon-gradient'
   | 'backlight'
   | 'frosted'
+  | 'frosted-panel'
+  | 'card'
   | 'elevated'
   | 'none'
   // eslint-disable-next-line @typescript-eslint/ban-types

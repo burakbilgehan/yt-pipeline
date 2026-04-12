@@ -118,7 +118,7 @@ export const LineChart: React.FC<LineChartProps> = ({
         <h2
           style={{
             color: TEXT,
-            fontSize: 40,
+            fontSize: 48,
             fontFamily,
             fontWeight: 600,
             marginTop: 0,

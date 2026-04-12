@@ -17,6 +17,29 @@ export const sceneVisualInputSchema = z.object({
   textOverlay: z.any().optional(),
   dataChart: z.any().optional(),
   assetPath: z.string().optional(),
+  // ── Design System layers (L2–L4) ──
+  atmosphere: z.string().optional(),
+  atmosphereConfig: z.object({
+    opacity: z.number().optional(),
+    speed: z.number().optional(),
+    color: z.string().optional(),
+    scale: z.number().optional(),
+  }).optional(),
+  surface: z.string().optional(),
+  surfaceConfig: z.object({
+    blur: z.number().optional(),
+    opacity: z.number().optional(),
+    borderRadius: z.number().optional(),
+    borderColor: z.string().optional(),
+    borderWidth: z.number().optional(),
+    glowColor: z.string().optional(),
+    glowIntensity: z.number().optional(),
+  }).optional(),
+  motion: z.string().optional(),
+  motionConfig: z.object({
+    durationFrames: z.number().optional(),
+    delayFrames: z.number().optional(),
+  }).optional(),
 });
 
 export const sceneInputSchema = z.object({
@@ -86,10 +109,11 @@ export const dataChartItemSchema = z.object({
   value: z.number(),
   color: z.string().optional(),
   icon: z.string().optional(),
+  displayValue: z.string().optional(),
 });
 
 export const dataChartInputSchema = z.object({
-  type: z.enum(["bar-chart", "line-chart", "pie-chart", "counter", "comparison", "timeline", "scale-comparison", "horse-race", "progress", "quadrant-scatter", "salary-shuffle", "ranking-resort", "calendar-grid", "division-comparison", "end-card", "hook-scene", "horizontal-bar-chart", "split-comparison", "title-card", "composite-phases", "closing-scene", "deflator-summary-grid", "metric-scene", "shrinkflation-hook", "hook-punchline", "lens-switch-pivot", "closing-sequence", "shrinkflation-cards", "skimpflation-card", "baseline-reference", "bls-shrink-explainer"]),
+  type: z.enum(["bar-chart", "line-chart", "pie-chart", "counter", "comparison", "timeline", "scale-comparison", "horse-race", "progress", "quadrant-scatter", "salary-shuffle", "ranking-resort", "calendar-grid", "division-comparison", "end-card", "hook-scene", "horizontal-bar-chart", "split-comparison", "title-card", "composite-phases", "closing-scene", "deflator-summary-grid", "metric-scene", "shrinkflation-hook", "hook-punchline", "lens-switch-pivot", "closing-sequence", "shrinkflation-cards", "skimpflation-card", "baseline-reference", "bls-shrink-explainer", "vertical-tabs"]),
   title: z.string().optional(),
   subtitle: z.string().optional(),
   items: z.array(dataChartItemSchema).optional(),
@@ -100,9 +124,12 @@ export const dataChartInputSchema = z.object({
   colors: z.array(z.string()).optional(),
   orientation: z.enum(["horizontal", "vertical"]).optional(),
   duel: z.object({
-    left: z.string(),
-    right: z.string(),
+    left: z.union([z.string(), z.object({ label: z.string(), subtitle: z.string().optional() })]),
+    right: z.union([z.string(), z.object({ label: z.string(), subtitle: z.string().optional() })]),
   }).optional(),
+  annotation: z.string().optional(),
+  /** Sub-heading for the primary bar group when a secondaryChart is present */
+  groupTitle: z.string().optional(),
 });
 
 export const dataChartCompositionSchema = z.object({

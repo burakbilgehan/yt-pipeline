@@ -59,6 +59,7 @@ export const SceneVisual: React.FC<SceneVisualProps> = ({
   }
 
   const isVideo = visual.type === "stock-video" || (visual.assetPath?.match(/\.(mp4|webm|mov)$/i) ?? false);
+  const isAiImage = visual.type === "ai-image";
 
   // ── Visual scene (stock video / stock image / composite / ai-image) ──
   return (
@@ -66,7 +67,7 @@ export const SceneVisual: React.FC<SceneVisualProps> = ({
       {hasImage && isVideo ? (
         <KenBurnsVideo src={staticFile(visual.assetPath!)} frame={frame} sceneDurationInFrames={durationInFrames} />
       ) : hasImage ? (
-        <KenBurnsImage src={staticFile(visual.assetPath!)} frame={frame} sceneDurationInFrames={durationInFrames} />
+        <KenBurnsImage src={staticFile(visual.assetPath!)} frame={frame} sceneDurationInFrames={durationInFrames} aggressive={isAiImage} />
       ) : hasFallback && isVideoFile(fallbackImage!) ? (
         <KenBurnsVideo src={staticFile(fallbackImage!)} frame={frame} sceneDurationInFrames={durationInFrames} />
       ) : hasFallback ? (
@@ -76,15 +77,17 @@ export const SceneVisual: React.FC<SceneVisualProps> = ({
       )}
 
       {/* Dark vignette + bottom gradient — only over real images/videos,
-          never over CinematicGradient (flat solid bg) */}
+          never over CinematicGradient (flat solid bg).
+          AI images get lighter overlays to preserve detail. */}
       {(hasImage || hasFallback) && (
         <>
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background:
-                "radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%)",
+              background: isAiImage
+                ? "radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)"
+                : "radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%)",
             }}
           />
           <div
@@ -94,8 +97,9 @@ export const SceneVisual: React.FC<SceneVisualProps> = ({
               left: 0,
               right: 0,
               height: "40%",
-              background:
-                "linear-gradient(transparent, rgba(0,0,0,0.7))",
+              background: isAiImage
+                ? "linear-gradient(transparent, rgba(0,0,0,0.45))"
+                : "linear-gradient(transparent, rgba(0,0,0,0.7))",
             }}
           />
         </>
@@ -127,17 +131,24 @@ interface KenBurnsImageProps {
   src: string;
   frame: number;
   sceneDurationInFrames: number;
+  /** More aggressive zoom for AI images — 1.0→1.25 scale instead of 1.0→1.12 */
+  aggressive?: boolean;
 }
 
-const KenBurnsImage: React.FC<KenBurnsImageProps> = ({ src, frame, sceneDurationInFrames }) => {
+const KenBurnsImage: React.FC<KenBurnsImageProps> = ({ src, frame, sceneDurationInFrames, aggressive }) => {
   const duration = Math.max(sceneDurationInFrames, 1);
-  const scale = interpolate(frame, [0, duration], [1.0, 1.12], {
+  // AI images start zoomed in to crop out logos/watermarks at edges
+  const startScale = aggressive ? 1.15 : 1.0;
+  const endScale = aggressive ? 1.35 : 1.12;
+  const endTranslateX = aggressive ? -30 : -15;
+  const endTranslateY = aggressive ? -15 : -8;
+  const scale = interpolate(frame, [0, duration], [startScale, endScale], {
     extrapolateRight: "clamp",
   });
-  const translateX = interpolate(frame, [0, duration], [0, -15], {
+  const translateX = interpolate(frame, [0, duration], [0, endTranslateX], {
     extrapolateRight: "clamp",
   });
-  const translateY = interpolate(frame, [0, duration], [0, -8], {
+  const translateY = interpolate(frame, [0, duration], [0, endTranslateY], {
     extrapolateRight: "clamp",
   });
 

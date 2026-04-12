@@ -26,6 +26,7 @@ import { DeflatorSummaryGrid } from "./DeflatorSummaryGrid";
 import { MetricScene } from "./MetricScene";
 import { HookPunchline } from "./HookPunchline";
 import { HorseRaceChart } from "./HorseRaceChart";
+import { VerticalTabScene } from "../voiceover-visuals/VerticalTabScene";
 
 interface DataChartSceneProps {
   chart: DataChartInput;
@@ -159,6 +160,11 @@ export const DataChartScene: React.FC<DataChartSceneProps> = ({
     case "closing-sequence":
       return (
         <ClosingSequence chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "vertical-tabs":
+      return (
+        <VerticalTabScene chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
       );
 
     case "horse-race": {

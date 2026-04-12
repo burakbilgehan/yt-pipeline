@@ -1,7 +1,7 @@
 import React from "react";
 import { spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import type { DataChartInput } from "../../schemas";
-import { TEXT, ACCENT_BLUE, POSITIVE, NEGATIVE, TRACK } from "../../palette";
+import { TEXT, ACCENT_PINK, ACCENT_BLUE, POSITIVE, NEGATIVE, TRACK } from "../../palette";
 
 interface CounterProps {
   chart: DataChartInput;
@@ -10,7 +10,7 @@ interface CounterProps {
 }
 
 const DEFAULT_FALLBACK_COLORS = [
-  ACCENT_BLUE,
+  ACCENT_PINK,
   ACCENT_BLUE,
   POSITIVE,
   NEGATIVE,
@@ -18,12 +18,18 @@ const DEFAULT_FALLBACK_COLORS = [
 ];
 
 const TEXT_COLOR = TEXT;
-const MUTED_TEXT = "rgba(240, 237, 232, 0.6)"; // derived from TEXT, opacity 0.6
+const MUTED_TEXT = "rgba(240, 237, 232, 0.6)";
 const TRACK_COLOR = TRACK;
 
 /**
  * Animated counter with contextual title, accent line, and breakdown bars.
- * When items are provided, renders mini horizontal bars showing composition.
+ *
+ * Fixes applied:
+ * - Suffix rendered in Accent Pink (was muted gray)
+ * - Main counter font size increased to 220px (was 180px) for better screen utilization
+ * - Suffix font size increased to 88px (was 72px)
+ * - Breakdown bars use log-scale when range is extreme (e.g. 1× vs 570×)
+ * - Bar widths use `maxWidth: 1200` for wider usage
  */
 export const Counter: React.FC<CounterProps> = ({
   chart,
@@ -58,7 +64,6 @@ export const Counter: React.FC<CounterProps> = ({
     config: { damping: 200 },
   });
 
-  // Subtle scale pulse when counter reaches target
   const pulseStart = 45;
   const pulseMid = 55;
   const pulseEnd = 65;
@@ -95,9 +100,31 @@ export const Counter: React.FC<CounterProps> = ({
   });
 
   const maxItemValue =
-    items.length > 0 ? Math.max(...items.map((it) => it.value)) : 0;
+    items.length > 0 ? Math.max(...items.filter((it) => it.value != null).map((it) => it.value)) : 0;
+  const minItemValue =
+    items.length > 0 ? Math.min(...items.filter((it) => it.value != null && it.value > 0).map((it) => it.value)) : 0;
 
-  const formatItemValue = (v: number): string => {
+  // Use log-scale for bars when the ratio between max and min is > 20×
+  // This prevents a 1× bar from being invisible next to a 570× bar.
+  const useLogScale = minItemValue > 0 && maxItemValue / minItemValue > 20;
+
+  const getBarPercent = (value: number): number => {
+    if (maxItemValue <= 0 || value == null) return 0;
+    if (useLogScale) {
+      // Log-scale: map log(value) to 10%–100% range
+      const logMin = Math.log10(Math.max(minItemValue, 1));
+      const logMax = Math.log10(maxItemValue);
+      const logVal = Math.log10(Math.max(value, 1));
+      const range = logMax - logMin;
+      if (range <= 0) return 50;
+      return 10 + ((logVal - logMin) / range) * 90;
+    }
+    return (value / maxItemValue) * 100;
+  };
+
+  const formatItemValue = (v: number | null | undefined, displayValue?: string): string => {
+    if (displayValue) return displayValue;
+    if (v == null) return "—";
     return `${prefix}${v.toLocaleString()}${suffix}`;
   };
 
@@ -110,7 +137,7 @@ export const Counter: React.FC<CounterProps> = ({
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: 80,
+        padding: "40px 60px",
       }}
     >
       {/* Title */}
@@ -120,12 +147,12 @@ export const Counter: React.FC<CounterProps> = ({
             opacity: titleOpacity,
             transform: `translateY(${titleTranslateY}px)`,
             color: "rgba(240, 237, 232, 0.6)",
-            fontSize: 24,
+            fontSize: 36,
             fontFamily,
             fontWeight: 500,
-            letterSpacing: 4,
+            letterSpacing: 5,
             textTransform: "uppercase",
-            marginBottom: chart.subtitle ? 8 : 24,
+            marginBottom: chart.subtitle ? 8 : 28,
             textAlign: "center",
           }}
         >
@@ -139,13 +166,13 @@ export const Counter: React.FC<CounterProps> = ({
           style={{
             opacity: titleOpacity,
             color: "rgba(240, 237, 232, 0.45)",
-            fontSize: 20,
+            fontSize: 28,
             fontFamily,
             fontWeight: 400,
-            marginBottom: 20,
+            marginBottom: 24,
             textAlign: "center",
             lineHeight: 1.5,
-            maxWidth: 700,
+            maxWidth: 1000,
           }}
         >
           {chart.subtitle}
@@ -166,8 +193,8 @@ export const Counter: React.FC<CounterProps> = ({
           <span
             style={{
               color: brandColor,
-              fontSize: 140,
-              fontFamily,
+              fontSize: 220,
+              fontFamily: "JetBrains Mono, monospace",
               fontWeight: 700,
             }}
           >
@@ -177,8 +204,8 @@ export const Counter: React.FC<CounterProps> = ({
         <span
           style={{
             color: TEXT,
-            fontSize: 140,
-            fontFamily,
+            fontSize: 220,
+            fontFamily: "JetBrains Mono, monospace",
             fontWeight: 700,
           }}
         >
@@ -187,11 +214,11 @@ export const Counter: React.FC<CounterProps> = ({
         {suffix && (
           <span
             style={{
-              color: "rgba(240, 237, 232, 0.5)",
-              fontSize: 48,
-              fontFamily,
-              fontWeight: 500,
-              marginLeft: 8,
+              color: ACCENT_PINK,
+              fontSize: 88,
+              fontFamily: "JetBrains Mono, monospace",
+              fontWeight: 600,
+              marginLeft: 10,
             }}
           >
             {suffix}
@@ -204,11 +231,11 @@ export const Counter: React.FC<CounterProps> = ({
         style={{
           opacity: detailsOpacity,
           transform: `translateY(${detailsTranslateY}px)`,
-          width: 80,
+          width: 100,
           height: 3,
           backgroundColor: brandColor,
-          marginTop: 24,
-          marginBottom: 24,
+          marginTop: 28,
+          marginBottom: 28,
           borderRadius: 2,
         }}
       />
@@ -221,10 +248,10 @@ export const Counter: React.FC<CounterProps> = ({
             transform: `translateY(${detailsTranslateY}px)`,
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: 10,
             marginTop: 8,
             width: "100%",
-            maxWidth: 700,
+            maxWidth: 1200,
           }}
         >
           {items.map((item, i) => {
@@ -234,8 +261,7 @@ export const Counter: React.FC<CounterProps> = ({
               config: { damping: 14, stiffness: 80 },
             });
 
-            const barPercent =
-              maxItemValue > 0 ? (item.value / maxItemValue) * 100 : 0;
+            const barPercent = getBarPercent(item.value);
             const barColor =
               item.color || DEFAULT_FALLBACK_COLORS[i % DEFAULT_FALLBACK_COLORS.length];
 
@@ -250,21 +276,21 @@ export const Counter: React.FC<CounterProps> = ({
                   display: "flex",
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: 12,
+                  gap: 14,
                   opacity: itemOpacity,
                 }}
               >
                 {/* Label */}
                 <div
                   style={{
-                    width: 100,
-                    minWidth: 100,
+                    width: 200,
+                    minWidth: 200,
                     textAlign: "right",
                     color: MUTED_TEXT,
-                    fontSize: 20,
+                    fontSize: 28,
                     fontFamily,
                     fontWeight: 500,
-                    whiteSpace: "nowrap",
+                    lineHeight: 1.2,
                   }}
                 >
                   {item.label}
@@ -274,9 +300,9 @@ export const Counter: React.FC<CounterProps> = ({
                 <div
                   style={{
                     flex: 1,
-                    height: 18,
+                    height: 44,
                     backgroundColor: TRACK_COLOR,
-                    borderRadius: 4,
+                    borderRadius: 6,
                     overflow: "hidden",
                   }}
                 >
@@ -285,7 +311,7 @@ export const Counter: React.FC<CounterProps> = ({
                       width: `${barPercent * itemSpring}%`,
                       height: "100%",
                       backgroundColor: barColor,
-                      borderRadius: 4,
+                      borderRadius: 6,
                     }}
                   />
                 </div>
@@ -293,16 +319,16 @@ export const Counter: React.FC<CounterProps> = ({
                 {/* Value */}
                 <div
                   style={{
-                    width: 80,
-                    minWidth: 80,
+                    width: 170,
+                    minWidth: 170,
                     color: TEXT_COLOR,
-                    fontSize: 20,
+                    fontSize: 28,
                     fontFamily,
                     fontWeight: 600,
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {formatItemValue(item.value)}
+                  {formatItemValue(item.value, (item as any).displayValue)}
                 </div>
               </div>
             );

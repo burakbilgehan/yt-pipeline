@@ -1,7 +1,7 @@
 import React from "react";
 import { spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import type { DataChartInput } from "../../schemas";
-import { TEXT, ACCENT_BLUE, ACCENT_PINK, POSITIVE, NEGATIVE, GRID } from "../../palette";
+import { TEXT, ACCENT_BLUE, ACCENT_PINK, POSITIVE, NEGATIVE, GRID, TEXT_MUTED } from "../../palette";
 
 interface TimelineChartProps {
   chart: DataChartInput;
@@ -9,19 +9,24 @@ interface TimelineChartProps {
   fontFamily: string;
 }
 
-const DEFAULT_PALETTE = [ACCENT_BLUE, POSITIVE, NEGATIVE, TEXT];
 const CREAM = TEXT;
-const MUTED = "rgba(240, 237, 232, 0.6)"; // derived from TEXT (0.6 opacity, not in palette)
 const LINE_COLOR = GRID;
+/** Brand-only cycle: Pink → Blue → Pink → Blue … */
+const BRAND_CYCLE = [ACCENT_PINK, ACCENT_BLUE];
 
 /**
  * Cinematic horizontal timeline with animated markers.
  * Flat/transparent — designed to sit on CinematicGradient or stock video.
  * Items appear left-to-right with staggered spring animations.
+ *
+ * Fixes applied:
+ * - Uses `displayValue` when present (e.g. "75% share (proj.)")
+ * - Always shows `item.label` (year text)
+ * - Colors cycle through brand palette only (Pink/Blue)
+ * - Renders `chart.annotation` text below the timeline
  */
 export const TimelineChart: React.FC<TimelineChartProps> = ({
   chart,
-  brandColor,
   fontFamily,
 }) => {
   const frame = useCurrentFrame();
@@ -37,24 +42,35 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
     config: { damping: 30, stiffness: 30 },
   });
 
-  const palette = [brandColor || ACCENT_PINK, ...DEFAULT_PALETTE];
-
   const getColor = (index: number) =>
     items[index].color ||
-    chart.colors?.[index] ||
-    palette[index % palette.length];
+    chart.colors?.[index % (chart.colors?.length || 1)] ||
+    BRAND_CYCLE[index % BRAND_CYCLE.length];
 
-  const formatValue = (value: number) => {
+  /** Prefer displayValue (from storyboard) over raw numeric formatting. */
+  const formatValue = (item: (typeof items)[0]) => {
+    if ((item as any).displayValue) return (item as any).displayValue as string;
+    const value = item.value;
     if (chart.unit === "$") return `$${value.toLocaleString()}`;
-    if (chart.unit === "%" ) return `${value.toLocaleString()}%`;
+    if (chart.unit === "%") return `${value.toLocaleString()}%`;
     return `${value.toLocaleString()}${chart.unit ? ` ${chart.unit}` : ""}`;
   };
 
-  // Vertical midpoint of the 300px timeline area
-  const MID_Y = 150;
-  const DOT_SIZE = 14;
-  const CONNECTOR_LENGTH = 20;
-  const LABEL_GAP = 6; // gap between connector end and label block
+  // Timeline line sits in the upper third so all labels fit below
+  const TIMELINE_HEIGHT = 600;
+  const MID_Y = 240;
+  const DOT_SIZE = 22;
+  const PADDING_PCT = 8; // keep first/last labels inside the container
+  const CONNECTOR_LENGTH = 50;
+  const LABEL_GAP = 12;
+
+  // Annotation appears after all markers
+  const annotationDelay = items.length * 10 + 25;
+  const annotationSpring = spring({
+    fps,
+    frame: frame - annotationDelay,
+    config: { damping: 20, stiffness: 80 },
+  });
 
   return (
     <div
@@ -64,7 +80,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        padding: "60px 80px",
+        padding: "48px 80px",
       }}
     >
       {/* Title */}
@@ -72,13 +88,13 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
         <h2
           style={{
             color: CREAM,
-            fontSize: 40,
+            fontSize: 48,
             fontFamily,
             fontWeight: 600,
             textAlign: "center",
             marginTop: 0,
             marginRight: 0,
-            marginBottom: 50,
+            marginBottom: 32,
             marginLeft: 0,
             padding: 0,
             lineHeight: 1.2,
@@ -89,14 +105,14 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
       )}
 
       {/* Timeline container */}
-      <div style={{ position: "relative", width: "100%", height: 300 }}>
+      <div style={{ position: "relative", width: "100%", height: TIMELINE_HEIGHT, flex: 1, overflow: "visible" }}>
         {/* Horizontal timeline line — animated left to right */}
         <div
           style={{
             position: "absolute",
             top: MID_Y,
-            left: 0,
-            width: `${lineProgress * 100}%`,
+            left: `${PADDING_PCT}%`,
+            width: `${lineProgress * (100 - 2 * PADDING_PCT)}%`,
             height: 2,
             backgroundColor: LINE_COLOR,
             transform: "translateY(-1px)",
@@ -107,14 +123,12 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
         {items.map((item, index) => {
           const staggerDelay = index * 10 + 10;
 
-          // Marker scales in
           const markerSpring = spring({
             fps,
             frame: frame - staggerDelay,
             config: { damping: 14, stiffness: 80 },
           });
 
-          // Label fades in with subtle Y offset
           const labelSpring = spring({
             fps,
             frame: frame - staggerDelay - 4,
@@ -124,17 +138,17 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
           const leftPercent =
             items.length === 1
               ? 50
-              : (index / (items.length - 1)) * 100;
+              : PADDING_PCT + (index / (items.length - 1)) * (100 - 2 * PADDING_PCT);
 
           const color = getColor(index);
-          const isTop = index % 2 === 0; // even = label on top, odd = bottom
 
-          // Label translateY direction: top labels slide down into place, bottom slide up
           const labelTranslateY = interpolate(
             labelSpring,
             [0, 1],
-            [isTop ? -12 : 12, 0],
+            [12, 0],
           );
+
+          const valueText = formatValue(item);
 
           return (
             <div
@@ -150,7 +164,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
                 justifyContent: "center",
               }}
             >
-              {/* Marker dot — centered on the timeline */}
+              {/* Marker dot — dashed outline for projections, solid fill for historical */}
               <div
                 style={{
                   position: "absolute",
@@ -159,13 +173,15 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
                   width: DOT_SIZE,
                   height: DOT_SIZE,
                   borderRadius: "50%",
-                  backgroundColor: color,
-                  border: `2px solid ${CREAM}`,
+                  backgroundColor: (item as any).projection ? "transparent" : color,
+                  border: (item as any).projection
+                    ? `3px dashed ${color}`
+                    : `2px solid ${CREAM}`,
                   transform: `scale(${markerSpring})`,
                 }}
               />
 
-              {/* Connector line from dot to label */}
+              {/* Connector line — always below dot */}
               <div
                 style={{
                   position: "absolute",
@@ -175,13 +191,11 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
                   backgroundColor: LINE_COLOR,
                   opacity: labelSpring,
                   transform: "translateX(-0.5px)",
-                  ...(isTop
-                    ? { top: MID_Y - DOT_SIZE / 2 - CONNECTOR_LENGTH }
-                    : { top: MID_Y + DOT_SIZE / 2 }),
+                  top: MID_Y + DOT_SIZE / 2,
                 }}
               />
 
-              {/* Label block */}
+              {/* Label block — all labels below the timeline */}
               <div
                 style={{
                   position: "absolute",
@@ -193,73 +207,63 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  ...(isTop
-                    ? { bottom: 300 - MID_Y + DOT_SIZE / 2 + CONNECTOR_LENGTH + LABEL_GAP }
-                    : { top: MID_Y + DOT_SIZE / 2 + CONNECTOR_LENGTH + LABEL_GAP }),
+                  top: MID_Y + DOT_SIZE / 2 + CONNECTOR_LENGTH + LABEL_GAP,
                 }}
               >
-                {isTop ? (
-                  <>
-                    {item.value !== undefined && (
-                       <div
-                        style={{
-                          color,
-                          fontSize: 20,
-                          fontFamily,
-                          fontWeight: 700,
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        {formatValue(item.value)}
-                      </div>
-                    )}
-                    <div
-                      style={{
-                        color: CREAM,
-                        fontSize: 20,
-                        fontFamily,
-                        fontWeight: 600,
-                        marginTop: 2,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {item.label}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div
-                      style={{
-                        color: CREAM,
-                        fontSize: 20,
-                        fontFamily,
-                        fontWeight: 600,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {item.label}
-                    </div>
-                    {item.value !== undefined && (
-                      <div
-                        style={{
-                          color,
-                          fontSize: 20,
-                          fontFamily,
-                          fontWeight: 700,
-                          marginTop: 2,
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        {formatValue(item.value)}
-                      </div>
-                    )}
-                  </>
-                )}
+                {/* Year */}
+                <div
+                  style={{
+                    color: CREAM,
+                    fontSize: 28,
+                    fontFamily,
+                    fontWeight: 600,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {item.label}
+                </div>
+                {/* Value */}
+                <div
+                  style={{
+                    color,
+                    fontSize: 28,
+                    fontFamily: "JetBrains Mono, monospace",
+                    fontWeight: 700,
+                    marginTop: 4,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {valueText}
+                </div>
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Annotation — appears below timeline */}
+      {chart.annotation && (
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: 20,
+            opacity: annotationSpring,
+            transform: `translateY(${interpolate(annotationSpring, [0, 1], [10, 0])}px)`,
+          }}
+        >
+          <span
+            style={{
+              color: ACCENT_PINK,
+              fontSize: 32,
+              fontFamily: "JetBrains Mono, monospace",
+              fontWeight: 700,
+              letterSpacing: 1,
+            }}
+          >
+            {chart.annotation}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

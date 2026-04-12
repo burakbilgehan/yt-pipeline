@@ -86,15 +86,15 @@ export const TitleCard: React.FC<TitleCardProps> = ({
       <div
         style={{
           fontFamily: fontFamily || "Inter, sans-serif",
-          fontSize: 52,
-          fontWeight: 600,
+          fontSize: 72,
+          fontWeight: 700,
           color: titleColor,
           textAlign: "center",
-          letterSpacing: "0.01em",
+          letterSpacing: "-0.02em",
           opacity: titleOpacity,
           transform: `scale(${titleScale})`,
-          lineHeight: 1.2,
-          maxWidth: 1200,
+          lineHeight: 1.15,
+          maxWidth: 1400,
         }}
       >
         {title}
@@ -103,10 +103,10 @@ export const TitleCard: React.FC<TitleCardProps> = ({
       {/* Decorative line */}
       <div
         style={{
-          width: interpolate(lineSpring, [0, 1], [0, 120]),
-          height: 2,
+          width: interpolate(lineSpring, [0, 1], [0, 160]),
+          height: 3,
           backgroundColor: brandColor || ACCENT_PINK,
-          margin: "24px 0",
+          margin: "32px 0",
           opacity: lineSpring * 0.6,
         }}
       />
@@ -116,13 +116,13 @@ export const TitleCard: React.FC<TitleCardProps> = ({
         <div
           style={{
             fontFamily: fontFamily || "Inter, sans-serif",
-            fontSize: 24,
+            fontSize: 30,
             fontWeight: 400,
             color: subtitleColor,
             textAlign: "center",
             opacity: subtitleSpring,
             transform: `translateY(${(1 - subtitleSpring) * 15}px)`,
-            maxWidth: 800,
+            maxWidth: 900,
             lineHeight: 1.5,
           }}
         >

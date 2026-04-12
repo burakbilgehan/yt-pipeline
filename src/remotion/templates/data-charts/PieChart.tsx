@@ -1,6 +1,7 @@
 import React from "react";
 import { spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import type { DataChartInput } from "../../schemas";
+import { ACCENT_PINK, ACCENT_BLUE, POSITIVE, NEGATIVE, SAGE, TEXT, TEXT_MUTED } from "../../palette";
 
 interface PieChartProps {
   chart: DataChartInput;
@@ -25,8 +26,8 @@ export const PieChart: React.FC<PieChartProps> = ({
 
   const total = items.reduce((sum, item) => sum + item.value, 0);
   const defaultColors = [
-    "#6C63FF", "#FF6584", "#43E97B", "#F9D423",
-    "#FF9A9E", "#A18CD1", "#FBC2EB", "#84FAB0",
+    ACCENT_PINK, ACCENT_BLUE, POSITIVE, NEGATIVE,
+    SAGE, "#7EC8E3", "#F4A261", "#9B59B6",
   ];
 
   // Overall animation progress
@@ -36,7 +37,7 @@ export const PieChart: React.FC<PieChartProps> = ({
     config: { damping: 25, stiffness: 40 },
   });
 
-  const size = 320;
+  const size = 620;
   const cx = size / 2;
   const cy = size / 2;
   const outerRadius = size / 2 - 10;
@@ -52,13 +53,8 @@ export const PieChart: React.FC<PieChartProps> = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        gap: 60,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        borderRadius: 20,
-        border: "1px solid rgba(255,255,255,0.08)",
-        padding: 60,
+        gap: 80,
+        padding: "60px 60px 40px 60px",
       }}
     >
       {/* Pie chart SVG */}
@@ -84,18 +80,62 @@ export const PieChart: React.FC<PieChartProps> = ({
             />
           );
         })}
+        {/* Center label — shows the largest segment's percentage */}
+        {(() => {
+          const largest = items.reduce((a, b) => (a.value >= b.value ? a : b), items[0]);
+          const pct = total > 0 ? ((largest.value / total) * 100) : 0;
+          const pctStr = pct % 1 === 0 ? `${pct}%` : `${pct.toFixed(1)}%`;
+          const centerOpacity = interpolate(sweepProgress, [0.4, 0.8], [0, 1], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          });
+          return (
+            <>
+              <text
+                x={cx}
+                y={cy - 10}
+                textAnchor="middle"
+                dominantBaseline="central"
+                style={{
+                  fill: TEXT,
+                  fontSize: 72,
+                  fontFamily: "JetBrains Mono, monospace",
+                  fontWeight: 700,
+                  opacity: centerOpacity,
+                }}
+              >
+                {pctStr}
+              </text>
+              <text
+                x={cx}
+                y={cy + 40}
+                textAnchor="middle"
+                dominantBaseline="central"
+                style={{
+                  fill: TEXT_MUTED,
+                  fontSize: 24,
+                  fontFamily: fontFamily,
+                  fontWeight: 500,
+                  opacity: centerOpacity,
+                }}
+              >
+                {largest.label}
+              </text>
+            </>
+          );
+        })()}
       </svg>
 
       {/* Legend */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {chart.title && (
           <h2
             style={{
-              color: "#FFFFFF",
-              fontSize: 32,
+              color: TEXT,
+              fontSize: 48,
               fontFamily,
               fontWeight: 700,
-              marginBottom: 16,
+              marginBottom: 24,
             }}
           >
             {chart.title}
@@ -108,7 +148,8 @@ export const PieChart: React.FC<PieChartProps> = ({
             frame: frame - index * 6,
             config: { damping: 18, stiffness: 80 },
           });
-          const pct = total > 0 ? ((item.value / total) * 100).toFixed(1) : "0";
+          const pctRaw = total > 0 ? (item.value / total) * 100 : 0;
+          const pct = pctRaw % 1 === 0 ? `${pctRaw}` : `${pctRaw.toFixed(1)}`;
 
           return (
             <div
@@ -116,15 +157,15 @@ export const PieChart: React.FC<PieChartProps> = ({
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
+                gap: 16,
                 opacity: legendSpring,
                 transform: `translateX(${interpolate(legendSpring, [0, 1], [20, 0])}px)`,
               }}
             >
               <div
                 style={{
-                  width: 16,
-                  height: 16,
+                  width: 24,
+                  height: 24,
                   borderRadius: 4,
                   backgroundColor: color,
                   flexShrink: 0,
@@ -132,8 +173,8 @@ export const PieChart: React.FC<PieChartProps> = ({
               />
               <span
                 style={{
-                  color: "#FFFFFF",
-                  fontSize: 20,
+                  color: TEXT,
+                  fontSize: 28,
                   fontFamily,
                   fontWeight: 500,
                 }}
@@ -142,8 +183,8 @@ export const PieChart: React.FC<PieChartProps> = ({
               </span>
               <span
                 style={{
-                  color: "rgba(255,255,255,0.6)",
-                  fontSize: 20,
+                  color: TEXT_MUTED,
+                  fontSize: 28,
                   fontFamily,
                 }}
               >

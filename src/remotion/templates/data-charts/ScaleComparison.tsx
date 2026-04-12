@@ -1,6 +1,7 @@
 import React from "react";
 import { spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import type { DataChartInput } from "../../schemas";
+import { ACCENT_PINK, ACCENT_BLUE, POSITIVE, NEGATIVE, SAGE, TEXT, TEXT_MUTED, SURFACE_BORDER, DATA_PALETTE } from "../../palette";
 
 interface ScaleComparisonProps {
   chart: DataChartInput;
@@ -26,13 +27,13 @@ export const ScaleComparison: React.FC<ScaleComparisonProps> = ({
 
   const maxValue = Math.max(...items.map((item) => item.value));
   const defaultColors = [
-    "#6C63FF", "#FF6584", "#43E97B", "#F9D423",
-    "#FF9A9E", "#A18CD1",
+    ACCENT_PINK, ACCENT_BLUE, POSITIVE, NEGATIVE,
+    SAGE, "#7EC8E3",
   ];
 
   // Max circle diameter (in pixels)
-  const maxDiameter = 240;
-  const minDiameter = 24;
+  const maxDiameter = 420;
+  const minDiameter = 40;
 
   return (
     <div
@@ -43,22 +44,17 @@ export const ScaleComparison: React.FC<ScaleComparisonProps> = ({
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        borderRadius: 20,
-        border: "1px solid rgba(255,255,255,0.08)",
-        padding: 40,
+        padding: "48px 60px",
       }}
     >
       {chart.title && (
         <h2
           style={{
-            color: "#FFFFFF",
-            fontSize: 32,
+            color: TEXT,
+            fontSize: 48,
             fontFamily,
             fontWeight: 700,
-            marginBottom: 40,
+            marginBottom: 24,
             textAlign: "center",
           }}
         >
@@ -72,8 +68,7 @@ export const ScaleComparison: React.FC<ScaleComparisonProps> = ({
           display: "flex",
           alignItems: "flex-end",
           justifyContent: "center",
-          gap: 40,
-          flex: 1,
+          gap: 60,
         }}
       >
         {items.map((item, index) => {
@@ -102,8 +97,8 @@ export const ScaleComparison: React.FC<ScaleComparisonProps> = ({
               {/* Value label */}
               <div
                 style={{
-                  color: "#FFFFFF",
-                  fontSize: 22,
+                  color: TEXT,
+                  fontSize: 30,
                   fontFamily,
                   fontWeight: 700,
                   transform: `translateY(${interpolate(itemSpring, [0, 1], [-10, 0])}px)`,
@@ -132,12 +127,13 @@ export const ScaleComparison: React.FC<ScaleComparisonProps> = ({
               {/* Label */}
               <div
                 style={{
-                  color: "rgba(255,255,255,0.8)",
-                  fontSize: 20,
+                  color: TEXT_MUTED,
+                  fontSize: 26,
                   fontFamily,
                   fontWeight: 500,
                   textAlign: "center",
-                  maxWidth: 120,
+                  maxWidth: 240,
+                  whiteSpace: "pre-line",
                 }}
               >
                 {item.label}
@@ -146,6 +142,29 @@ export const ScaleComparison: React.FC<ScaleComparisonProps> = ({
           );
         })}
       </div>
+
+      {/* Annotation — appears below circles */}
+      {chart.annotation && (
+        <div
+          style={{
+            marginTop: 32,
+            fontSize: 26,
+            fontFamily,
+            fontWeight: 500,
+            color: TEXT_MUTED,
+            textAlign: "center",
+            maxWidth: 900,
+            lineHeight: 1.4,
+            opacity: spring({
+              fps,
+              frame: frame - items.length * 8 - 10,
+              config: { damping: 20, stiffness: 100 },
+            }),
+          }}
+        >
+          {chart.annotation}
+        </div>
+      )}
     </div>
   );
 };

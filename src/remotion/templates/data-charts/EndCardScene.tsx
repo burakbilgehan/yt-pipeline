@@ -57,9 +57,16 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
   const finalQuestionColor = cfg.finalQuestionColor || DEFAULT_TEXT;
   const gapLabel = cfg.gapLabel || "";
   const bgColor = cfg.backgroundColor || DEFAULT_BG;
-  const channelName = cfg.channelName || "";
+  const channelName = (cfg as any).channelName || (chart as any).channelName || "";
+  const showSourcesNote = (chart as any).showSourcesNote === true;
 
   // ── Animation phases ──
+  const channelNameIn = spring({
+    fps,
+    frame,
+    config: { damping: 18, stiffness: 60 },
+  });
+
   // Phase 1: Gap label pulses (0 → 3s)
   const gapIn = spring({
     fps,
@@ -106,7 +113,10 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
 
   // YouTube end screen area (last 20s)
   const endScreenStart = durationInFrames - Math.round(fps * 20);
-  const showEndScreen = frame >= endScreenStart && cfg.youtubeEndScreen?.enabled;
+  const showEndScreen = frame >= endScreenStart && (cfg.youtubeEndScreen?.enabled || (chart as any).youtubeEndScreen?.enabled);
+
+  // Determine if this is a simple end card (channelName present, no question/gap)
+  const isSimpleEndCard = channelName && !finalQuestion && !gapLabel;
 
   return (
     <div
@@ -119,8 +129,72 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
         fontFamily,
       }}
     >
-      {/* ── Gap Label (pulsing numbers) ── */}
-      {gapLabel && (
+      {/* ── Simple End Card: Channel Name + Sources Note centered ── */}
+      {isSimpleEndCard && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 24,
+            opacity: channelNameIn,
+            transform: `translateY(${interpolate(channelNameIn, [0, 1], [20, 0])}px)`,
+          }}
+        >
+          {/* Channel name */}
+          <h1
+            style={{
+              color: DEFAULT_TEXT,
+              fontSize: 64,
+              fontWeight: 700,
+              fontFamily: "Montserrat, Inter, sans-serif",
+              letterSpacing: 2,
+              textAlign: "center",
+              margin: 0,
+              padding: "0 100px",
+            }}
+          >
+            {channelName}
+          </h1>
+
+          {/* Accent underline */}
+          <div
+            style={{
+              width: 120,
+              height: 3,
+              backgroundColor: accent,
+              borderRadius: 2,
+              opacity: 0.8,
+            }}
+          />
+
+          {/* Sources in description */}
+          {showSourcesNote && (
+            <p
+              style={{
+                color: DEFAULT_MUTED,
+                fontSize: 28,
+                fontWeight: 400,
+                fontFamily: "Inter, sans-serif",
+                letterSpacing: 1,
+                margin: 0,
+                marginTop: 8,
+              }}
+            >
+              Sources in description
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* ── Gap Label (pulsing numbers) — only for non-simple end cards ── */}
+      {!isSimpleEndCard && gapLabel && (
         <div
           style={{
             position: "absolute",
@@ -148,36 +222,38 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
         </div>
       )}
 
-      {/* ── Final Question ── */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "0 200px",
-          opacity: questionIn * (1 - fadeToBlack * 0.5),
-        }}
-      >
-        <h1
+      {/* ── Final Question — only for non-simple end cards ── */}
+      {!isSimpleEndCard && finalQuestion && (
+        <div
           style={{
-            color: finalQuestionColor,
-            fontSize: 52,
-            fontWeight: 600,
-            textAlign: "center" as const,
-            lineHeight: 1.4,
-            transform: `translateY(${interpolate(questionIn, [0, 1], [30, 0])}px)`,
-            textShadow: "0 2px 30px rgba(0,0,0,0.5)",
-            margin: 0,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0 200px",
+            opacity: questionIn * (1 - fadeToBlack * 0.5),
           }}
         >
-          {finalQuestion}
-        </h1>
-      </div>
+          <h1
+            style={{
+              color: finalQuestionColor,
+              fontSize: 52,
+              fontWeight: 600,
+              textAlign: "center" as const,
+              lineHeight: 1.4,
+              transform: `translateY(${interpolate(questionIn, [0, 1], [30, 0])}px)`,
+              textShadow: "0 2px 30px rgba(0,0,0,0.5)",
+              margin: 0,
+            }}
+          >
+            {finalQuestion}
+          </h1>
+        </div>
+      )}
 
       {/* ── Fade to black overlay ── */}
       {cfg.fadeToBlack && (
@@ -192,8 +268,8 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
         />
       )}
 
-      {/* ── Channel Watermark ── */}
-      {cfg.watermark && watermarkIn > 0.05 && channelName && (
+      {/* ── Channel Watermark (for non-simple end cards with watermark enabled) ── */}
+      {!isSimpleEndCard && cfg.watermark && watermarkIn > 0.05 && channelName && (
         <div
           style={{
             position: "absolute",
@@ -221,46 +297,12 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
       {/* ── YouTube End Screen Placeholders ── */}
       {showEndScreen && (
         <>
-          {/* Subscribe button placeholder (bottom-right) */}
+          {/* Next video placeholder (bottom-right per storyboard spec) */}
           <div
             style={{
               position: "absolute",
               bottom: 140,
               right: 160,
-              width: 200,
-              height: 200,
-              borderRadius: "50%",
-              border: `2px dashed rgba(240, 237, 232, 0.15)`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              opacity: interpolate(
-                frame,
-                [endScreenStart, endScreenStart + 30],
-                [0, 0.4],
-                { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-              ),
-            }}
-          >
-            <span
-              style={{
-                color: "rgba(240, 237, 232, 0.2)",
-                fontSize: 20,
-                fontWeight: 500,
-                letterSpacing: 1,
-                textTransform: "uppercase" as const,
-              }}
-            >
-              Subscribe
-            </span>
-          </div>
-
-          {/* Next video placeholder (bottom-left) */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: 140,
-              left: 160,
               width: 320,
               height: 180,
               borderRadius: 12,
@@ -286,6 +328,40 @@ export const EndCardScene: React.FC<EndCardSceneProps> = ({
               }}
             >
               Next Video
+            </span>
+          </div>
+
+          {/* Subscribe button placeholder (bottom-left per storyboard spec) */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 140,
+              left: 160,
+              width: 200,
+              height: 200,
+              borderRadius: "50%",
+              border: `2px dashed rgba(240, 237, 232, 0.15)`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: interpolate(
+                frame,
+                [endScreenStart, endScreenStart + 30],
+                [0, 0.4],
+                { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+              ),
+            }}
+          >
+            <span
+              style={{
+                color: "rgba(240, 237, 232, 0.2)",
+                fontSize: 20,
+                fontWeight: 500,
+                letterSpacing: 1,
+                textTransform: "uppercase" as const,
+              }}
+            >
+              Subscribe
             </span>
           </div>
         </>

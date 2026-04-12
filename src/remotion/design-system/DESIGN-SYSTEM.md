@@ -194,7 +194,7 @@ Card/container styling components that wrap content. Registered via `registerSur
 
 Known IDs (from types.ts): `glass`, `flat`, `glow`, `frosted`, `elevated`, `none`.
 
-**Implemented**: `glass` (GlassSurface.tsx), `flat` (FlatSurface.tsx), `glow` (GlowSurface.tsx).
+**Implemented**: `glass` (GlassSurface.tsx), `flat` (FlatSurface.tsx), `glow` (GlowSurface.tsx), `neon-gradient` (NeonGradientSurface.tsx), `backlight` (BacklightSurface.tsx), `frosted-panel` (FrostedPanelSurface.tsx — matte frosted glass from Glass Calendar intake), `card` (CardSurface.tsx — glassmorphic stat card from Glassmorphism Trust Hero intake).
 **Planned**: `frosted`, `elevated`.
 
 ### L5: Scene Templates
@@ -356,6 +356,8 @@ Existing showcases:
 - `ContainerTextFlipShowcase.tsx` → `DS-ContainerTextFlip` — ContainerTextFlip demo
 - `AtmosphereShowcase.tsx` → `DS-Atmospheres` — DotGrid + FilmGrain
 - `SurfaceShowcase.tsx` → `DS-Surfaces` — Glass, Flat, Glow
+- `SurfaceShowcase2.tsx` → `DS-Surfaces-2` — NeonGradient, Backlight
+- `SurfaceShowcase3.tsx` → `FrostedPanel-Card` — FrostedPanel, Card (External Component Intake)
 - `LayerComboShowcase.tsx` → `DS-LayerCombo` — L2+L3+L4 composed together
 
 **Template Showcases (26)** in `showcase/templates/` — organized by folder: Charts (13), Data (5), Scenes (7), Product (1).
@@ -442,6 +444,8 @@ The machine-readable catalog is at `src/remotion/design-system/component-catalog
 | L4 Surface | `glass` | `GlassSurface.tsx` | Semi-transparent cards over atmospheric backgrounds |
 | L4 Surface | `flat` | `FlatSurface.tsx` | Clean opaque cards for maximum readability |
 | L4 Surface | `glow` | `GlowSurface.tsx` | Hero stats or CTAs that need maximum emphasis |
+| L4 Surface | `frosted-panel` | `FrostedPanelSurface.tsx` | Matte frosted glass panels — dark tint + heavy blur |
+| L4 Surface | `card` | `CardSurface.tsx` | Light glass stat cards with corner glow accent |
 
 ### Planned (not yet implemented)
 | Layer | ID | Use When |

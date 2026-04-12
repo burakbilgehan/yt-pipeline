@@ -16,6 +16,7 @@
  */
 
 import * as fs from "node:fs";
+import * as os from "node:os";
 import * as path from "node:path";
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
@@ -50,7 +51,9 @@ function parseConcurrency(): number {
     const val = parseInt(envVal, 10);
     if (!isNaN(val) && val > 0) return val;
   }
-  return 16; // default
+  // Default to number of CPU cores, capped at a safe maximum
+  const cpus = os.cpus().length;
+  return Math.min(cpus, 16);
 }
 
 /**

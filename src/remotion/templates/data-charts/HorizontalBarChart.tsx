@@ -5,17 +5,15 @@ import {
   spring,
   interpolate,
 } from "remotion";
-import { TEXT, BG, TRACK, ACCENT_BLUE } from "../../palette";
+import { TEXT, BG, TRACK, ACCENT_BLUE, ACCENT_PINK, TEXT_MUTED } from "../../palette";
 
 /**
- * HorizontalBarChart — Scene 002 (Nominal USD) and Scene 003 Phase 3 (PPP-Adjusted)
+ * HorizontalBarChart — Standalone horizontal bar chart with gradient colors.
  *
- * Features:
- * - Stagger-top-down bar entrance animation
- * - Gradient colors (green→red) when gradientColors provided
- * - displayValue per bar (e.g. "$94,447")
- * - Re-sort animation when animation="re-sort-from-nominal"
- * - Dark-cozy theme matching channel design
+ * Fixes applied:
+ * - Value label width increased to 280px to prevent clipping of long text
+ * - Annotation support added
+ * - Label width increased to 360px for certification names
  */
 
 interface BarItem {
@@ -41,6 +39,7 @@ interface HorizontalBarChartProps {
     staggerDelay?: string;
     backgroundColor?: string;
     animation?: string;
+    annotation?: string;
     [key: string]: unknown;
   };
   brandColor: string;
@@ -48,7 +47,7 @@ interface HorizontalBarChartProps {
 }
 
 const TEXT_COLOR = TEXT;
-const MUTED_TEXT = "rgba(240, 237, 232, 0.6)"; // derived from TEXT (0.6 opacity, not in palette)
+const MUTED_TEXT = TEXT_MUTED;
 const BG_COLOR = BG;
 
 function interpolateColor(
@@ -56,7 +55,6 @@ function interpolateColor(
   color2: string,
   t: number
 ): string {
-  // Parse hex to RGB
   const c1 = hexToRgb(color1);
   const c2 = hexToRgb(color2);
   if (!c1 || !c2) return color1;
@@ -67,6 +65,7 @@ function interpolateColor(
 }
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  if (!hex || typeof hex !== "string") return null;
   const match = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
   if (!match) return null;
   return {
@@ -84,8 +83,12 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
   const { fps } = useVideoConfig();
 
   const bars = chart.bars || [];
-  const barHeight = chart.barHeight || 36;
-  const barGap = chart.barGap || 12;
+  const annotation = chart.annotation;
+  // Auto-scale bar height to fill available vertical space
+  const availableHeight = 820 - (chart.title ? 80 : 0) - (annotation ? 80 : 0);
+  const autoBarHeight = Math.max(48, Math.floor((availableHeight / Math.max(bars.length, 1)) * 0.7));
+  const barHeight = chart.barHeight || autoBarHeight;
+  const barGap = chart.barGap || Math.max(8, Math.floor((availableHeight / Math.max(bars.length, 1)) * 0.15));
   const barColor = chart.barColor || ACCENT_BLUE;
   const labelColor = chart.labelColor || TEXT_COLOR;
   const valueColor = chart.valueColor || MUTED_TEXT;
@@ -96,11 +99,23 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
   // Get bar color: gradient if provided, otherwise single color
   const getBarColor = (index: number, total: number): string => {
     if (chart.gradientColors) {
+      const gc = chart.gradientColors as any;
+      let highColor: string;
+      let lowColor: string;
+      if (Array.isArray(gc)) {
+        highColor = gc[0] || barColor;
+        lowColor = gc[gc.length - 1] || barColor;
+      } else {
+        highColor = gc.highest || barColor;
+        lowColor = gc.lowest || barColor;
+      }
       const t = total <= 1 ? 0 : index / (total - 1);
-      return interpolateColor(chart.gradientColors.highest, chart.gradientColors.lowest, t);
+      return interpolateColor(highColor, lowColor, t);
     }
     return barColor;
   };
+
+  const annotationStartFrame = bars.length * staggerDelayFrames + 30;
 
   return (
     <div
@@ -111,7 +126,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        padding: "60px 80px",
+        padding: "24px 40px",
       }}
     >
       {/* Title */}
@@ -119,10 +134,10 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
         <div
           style={{
             fontFamily: fontFamily || "Inter, sans-serif",
-            fontSize: 48,
+            fontSize: 52,
             fontWeight: 600,
             color: TEXT_COLOR,
-            marginBottom: 40,
+            marginBottom: 24,
             opacity: interpolate(frame, [0, 15], [0, 1], {
               extrapolateRight: "clamp",
             }),
@@ -170,21 +185,19 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                 height: barHeight + 8,
               }}
             >
-              {/* Country label */}
+              {/* Label */}
               <div
                 style={{
-                  width: 180,
-                  minWidth: 180,
+                  width: 360,
+                  minWidth: 360,
                   fontFamily: fontFamily || "Inter, sans-serif",
-                   fontSize: 20,
+                  fontSize: 28,
                   fontWeight: 500,
                   color: labelColor,
                   textAlign: "right",
                   paddingRight: 16,
                   opacity: labelOpacity,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
+                  lineHeight: 1.2,
                 }}
               >
                 {bar.label}
@@ -196,36 +209,36 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                   flex: 1,
                   height: barHeight,
                   backgroundColor: TRACK,
-                  borderRadius: 4,
+                  borderRadius: 6,
                   overflow: "hidden",
                   position: "relative",
                 }}
               >
-                {/* Filled bar */}
                 <div
                   style={{
                     width: `${widthPct * barSpring}%`,
                     height: "100%",
                     backgroundColor: color,
-                    borderRadius: 4,
+                    borderRadius: 6,
                     transition: "none",
                   }}
                 />
               </div>
 
-              {/* Value label */}
+              {/* Value label — wider to prevent clipping */}
               <div
                 style={{
-                  width: 120,
-                  minWidth: 120,
+                  width: 320,
+                  minWidth: 320,
                   fontFamily: fontFamily || "Inter, sans-serif",
-                  fontSize: 20,
+                  fontSize: 24,
                   fontWeight: 600,
                   color: valueColor,
                   textAlign: "left",
                   paddingLeft: 16,
                   opacity: labelOpacity,
-                  whiteSpace: "nowrap",
+                  whiteSpace: "normal",
+                  lineHeight: 1.3,
                 }}
               >
                 {bar.displayValue}
@@ -234,6 +247,46 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
           );
         })}
       </div>
+
+      {/* Annotation */}
+      {annotation && (
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: 28,
+            padding: "12px 24px",
+            backgroundColor: "rgba(240, 237, 232, 0.05)",
+            borderLeft: `3px solid ${ACCENT_PINK}`,
+            borderRadius: "0 6px 6px 0",
+            alignSelf: "center",
+            maxWidth: "85%",
+            opacity: interpolate(
+              frame - annotationStartFrame,
+              [0, 15],
+              [0, 1],
+              { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+            ),
+            transform: `translateY(${interpolate(
+              frame - annotationStartFrame,
+              [0, 15],
+              [8, 0],
+              { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+            )}px)`,
+          }}
+        >
+          <span
+            style={{
+              color: TEXT_MUTED,
+              fontSize: 24,
+              fontFamily: fontFamily || "Inter, sans-serif",
+              fontWeight: 500,
+              lineHeight: 1.5,
+            }}
+          >
+            {annotation}
+          </span>
+        </div>
+      )}
     </div>
   );
 };
