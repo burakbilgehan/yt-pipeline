@@ -4,8 +4,8 @@ import type { AtmosphereComponentProps } from '../types';
 
 // ─── Constants ────────────────────────────────────────────────
 
-const DEFAULT_COLOR = 'rgba(255,255,255,0.3)';
-const DEFAULT_SPACING = 40;
+const DEFAULT_COLOR = 'rgba(240,237,232,0.04)';
+const DEFAULT_SPACING = 28;
 const DOT_RADIUS = 1.5;
 
 // ─── Component ────────────────────────────────────────────────

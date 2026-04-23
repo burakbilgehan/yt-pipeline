@@ -23,7 +23,7 @@ const SalaryShuffleSceneShowcase: React.FC = () => (
         source: "OECD 2023",
       } as any}
       brandColor="#E88CA5"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

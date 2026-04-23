@@ -103,7 +103,7 @@ export const HookPunchline: React.FC<HookPunchlineProps> = ({
         backgroundColor: BG_COLOR,
         position: "relative",
         overflow: "hidden",
-        fontFamily: fontFamily || "Inter, sans-serif",
+        fontFamily: fontFamily || "Montserrat, sans-serif",
       }}
     >
       {/* ── Bars layer (blurs after 2s) ── */}
@@ -191,7 +191,7 @@ export const HookPunchline: React.FC<HookPunchlineProps> = ({
                   left: chartLeft,
                   width: 150,
                   textAlign: "right",
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "Montserrat, sans-serif",
                   fontSize: 20,
                   fontWeight: 600,
                   color: ACCENT_CREAM,
@@ -240,7 +240,7 @@ export const HookPunchline: React.FC<HookPunchlineProps> = ({
                   left: chartLeft,
                   width: 150,
                   textAlign: "right",
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "Montserrat, sans-serif",
                   fontSize: 20,
                   fontWeight: 600,
                   color: ACCENT_CREAM,

@@ -16,7 +16,7 @@ const ComparisonTableShowcase: React.FC = () => (
         unit: "%",
       }}
       brandColor="#6C63FF"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

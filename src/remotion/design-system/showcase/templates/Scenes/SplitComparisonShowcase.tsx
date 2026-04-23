@@ -34,7 +34,7 @@ const SplitComparisonShowcase: React.FC = () => (
         comparisonLabel: "Same basket. Different price.",
       }}
       brandColor="#E88CA5"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

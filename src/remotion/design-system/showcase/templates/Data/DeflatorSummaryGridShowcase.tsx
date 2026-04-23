@@ -33,7 +33,7 @@ const DeflatorSummaryGridShowcase: React.FC = () => (
         source: "BLS 2025",
       } as any}
       brandColor="#E88CA5"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

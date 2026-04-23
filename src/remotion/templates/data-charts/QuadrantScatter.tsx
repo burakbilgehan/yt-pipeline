@@ -184,8 +184,8 @@ interface QuadrantScatterProps {
 // ─── Default Theme Colors ─────────────────────────────────────
 
 const MUTED = TEXT_FAINT;
-const GRID = "rgba(163, 177, 138, 0.12)"; // sage-based grid, differs from palette GRID
-const ORIGIN_LINE = "rgba(163, 177, 138, 0.4)"; // derived from SAGE
+const GRID = "rgba(240, 237, 232, 0.08)"; // v6 grid token
+const ORIGIN_LINE = "rgba(240, 237, 232, 0.35)"; // axis color (v6 AXIS token)
 
 const QUADRANT_COLORS = {
   dream: { bg: "rgba(91, 191, 140, 0.06)", dot: POSITIVE, label: "rgba(91, 191, 140, 0.35)" },
@@ -993,7 +993,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                         fill={lineColor}
                         fontSize={22}
                         fontWeight={700}
-                        fontFamily="JetBrains Mono, monospace"
+                        fontFamily={fontFamily}
                         opacity={interpolate(connIn, [0.8, 1], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) * connOut}
                       >
                         <tspan>{lbl}</tspan>
@@ -1009,7 +1009,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
         {/* ── Origin label (stays in camera space — moves with data) ── */}
         <div style={{
           position: "absolute", top: originPy + 4, left: originPx + 8,
-          color: "rgba(163, 177, 138, 0.65)", fontSize: 20, fontWeight: 600,
+          color: "rgba(240, 237, 232, 0.35)", fontSize: 20, fontWeight: 600,
           letterSpacing: 1, opacity: axisIn,
         }}>
           OECD AVG
@@ -1246,7 +1246,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                       fontSize: 20,
                       fontWeight: 800,
                       marginLeft: "auto",
-                      fontFamily: "JetBrains Mono, monospace",
+                      fontFamily,
                     }}>
                       {spotlightCard.rankBadge}
                     </span>
@@ -1262,7 +1262,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                     <span style={{ color: MUTED, fontSize: 20, fontWeight: 500 }}>{stat.key}</span>
                     <span style={{
                       color: TEXT, fontSize: 20, fontWeight: 700,
-                      fontFamily: "JetBrains Mono, monospace",
+                      fontFamily,
                     }}>
                       {stat.value}
                     </span>
@@ -1325,7 +1325,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
               color: TEXT,
               fontSize: 20,
               fontWeight: 700,
-              fontFamily: "JetBrains Mono, monospace",
+              fontFamily,
               letterSpacing: 1,
               padding: "8px 16px",
               backgroundColor: "rgba(26, 27, 34, 0.8)",
@@ -1442,7 +1442,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                       <span style={{ color: MUTED, fontSize: Math.max(20, Math.round(20 * tooltipScale)), fontWeight: 500 }}>{key}</span>
                       <span style={{
                         color: TEXT, fontSize: Math.max(20, Math.round(26 * tooltipScale)), fontWeight: 700,
-                        fontFamily: "JetBrains Mono, monospace",
+                        fontFamily,
                       }}>
                         {val}
                       </span>
@@ -1503,7 +1503,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   fontWeight: 600,
                   padding: "4px 10px",
                   borderRadius: 6,
-                  fontFamily: "JetBrains Mono, monospace",
+                  fontFamily,
                   whiteSpace: "nowrap" as const,
                 }}>
                   {ann.text}
@@ -1708,7 +1708,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   color: "rgba(240, 237, 232, 0.6)",
                   fontSize: 22, fontWeight: 500, opacity: gridIn,
                   zIndex: 46, pointerEvents: "none" as const,
-                  fontFamily: "JetBrains Mono, monospace",
+                  fontFamily,
                 }}>
                   {val.toLocaleString()}
                 </div>
@@ -1730,7 +1730,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                   color: "rgba(240, 237, 232, 0.6)",
                   fontSize: 22, fontWeight: 500, opacity: gridIn,
                   zIndex: 46, pointerEvents: "none" as const,
-                  fontFamily: "JetBrains Mono, monospace",
+                  fontFamily,
                 }}>
                   {val >= 1000 ? `$${(val / 1000).toFixed(0)}K` : val.toLocaleString()}
                 </div>
@@ -1966,7 +1966,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                                       borderBottom: ti < Object.entries(sd.tooltip!).length - 1 ? "1px solid rgba(240,237,232,0.06)" : "none",
                                     }}>
                                       <span style={{ color: MUTED, fontSize: 20, fontWeight: 500 }}>{k}</span>
-                                      <span style={{ color: TEXT, fontSize: 20, fontWeight: 700, fontFamily: "JetBrains Mono, monospace" }}>{v}</span>
+                                      <span style={{ color: TEXT, fontSize: 20, fontWeight: 700, fontFamily }}>{v}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -2021,7 +2021,7 @@ export const QuadrantScatter: React.FC<QuadrantScatterProps> = ({
                                       borderBottom: ti < Object.entries(sd.tooltip!).length - 1 ? "1px solid rgba(240,237,232,0.06)" : "none",
                                     }}>
                                       <span style={{ color: MUTED, fontSize: 20, fontWeight: 500 }}>{k}</span>
-                                      <span style={{ color: TEXT, fontSize: 20, fontWeight: 700, fontFamily: "JetBrains Mono, monospace" }}>{v}</span>
+                                      <span style={{ color: TEXT, fontSize: 20, fontWeight: 700, fontFamily }}>{v}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -2258,14 +2258,14 @@ const DivisionFormula: React.FC<{ side: DivisionSide; progress: number }> = ({ s
       <div style={{
         color: MUTED, fontSize: 20, letterSpacing: 1,
         textTransform: "uppercase" as const, marginBottom: 2,
-        fontFamily: "JetBrains Mono, monospace",
+        fontFamily,
       }}>
         {formulaLabel}
       </div>
       <div style={{
         color: side.resultColor,
         fontSize: 36, fontWeight: 800,
-        fontFamily: "JetBrains Mono, monospace",
+        fontFamily,
         transform: `scale(${interpolate(progress, [0, 0.7, 1], [0.5, 1.05, 1])})`,
       }}>
         ${hourlyWage.toFixed(2)}

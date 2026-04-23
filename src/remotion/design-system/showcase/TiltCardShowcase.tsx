@@ -79,7 +79,7 @@ const TiltCardShowcase: React.FC = () => {
                   fontSize: 28,
                   fontWeight: 600,
                   color: TEXT,
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "Montserrat, sans-serif",
                 }}
               >
                 {cfg.label}
@@ -88,7 +88,7 @@ const TiltCardShowcase: React.FC = () => {
                 style={{
                   fontSize: 20,
                   color: TEXT_MUTED,
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "Montserrat, sans-serif",
                 }}
               >
                 speed={cfg.speed} · maxTilt={cfg.maxTilt}°

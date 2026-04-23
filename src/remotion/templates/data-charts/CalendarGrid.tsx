@@ -166,7 +166,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
               color: accent,
               fontSize: 24,
               fontWeight: 600,
-              fontFamily: "JetBrains Mono, monospace",
+              fontFamily,
               letterSpacing: 2,
             }}
           >
@@ -366,7 +366,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                   color: labelColor,
                   fontSize: isLarge ? 48 : 28,
                   fontWeight: isLarge ? 700 : 600,
-                  fontFamily: isLarge ? fontFamily : "JetBrains Mono, monospace",
+                  fontFamily,
                   textShadow: isLarge
                     ? `0 0 30px ${labelColor}40`
                     : "none",
@@ -483,7 +483,8 @@ const ComparisonSide: React.FC<{
                 color: accent,
                 fontSize: 20,
                 fontWeight: 700,
-                fontFamily: "JetBrains Mono, monospace",
+                fontFamily,
+                fontVariantNumeric: "tabular-nums lining-nums",
               }}
             >
               {typeof value === "number" ? value.toLocaleString() : value}

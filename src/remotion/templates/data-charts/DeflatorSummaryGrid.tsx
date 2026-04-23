@@ -54,7 +54,7 @@ const DotGrid: React.FC = () => (
     style={{
       position: "absolute",
       inset: 0,
-      backgroundImage: `radial-gradient(circle, ${SAGE} ${DOT_SIZE}px, transparent ${DOT_SIZE}px)`,
+      backgroundImage: `radial-gradient(circle, rgba(240,237,232,0.04) ${DOT_SIZE}px, transparent ${DOT_SIZE}px)`,
       backgroundSize: `${DOT_SPACING}px ${DOT_SPACING}px`,
       opacity: DOT_OPACITY,
       pointerEvents: "none",
@@ -187,7 +187,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
         padding: "10px 14px",
         borderRadius: 12,
         backgroundColor: "rgba(240, 237, 232, 0.03)",
-        border: `1px solid rgba(163, 177, 138, 0.15)`,
+        border: `1px solid rgba(240, 237, 232, 0.08)`,
         flex: 1,
         minWidth: 0,
       }}
@@ -212,7 +212,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
       {/* Count summary: "X above / Y below" */}
       <div
         style={{
-          fontFamily: "JetBrains Mono, monospace",
+          fontFamily,
           fontSize: 24,
           color: SAGE,
           marginBottom: 14,
@@ -275,7 +275,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
                 style={{
                   width: 120,
                   minWidth: 120,
-                  fontFamily: fontFamily || "Inter, sans-serif",
+                  fontFamily: fontFamily || "Montserrat, sans-serif",
                   fontSize: 24,
                   fontWeight: 500,
                   color: "rgba(240, 237, 232, 0.7)",
@@ -323,7 +323,7 @@ const MiniChart: React.FC<MiniChartProps> = ({
                       alignItems: "center",
                       justifyContent: "flex-end",
                       paddingRight: 6,
-                      fontFamily: "JetBrains Mono, monospace",
+                      fontFamily,
                       fontSize: 20,
                       fontWeight: 600,
                       color: "#fff",
@@ -447,7 +447,7 @@ export const DeflatorSummaryGrid: React.FC<DeflatorSummaryGridProps> = ({
       {source && (
         <div
           style={{
-            fontFamily: "JetBrains Mono, monospace",
+            fontFamily,
             fontSize: 20,
             color: SAGE,
             textAlign: "center",

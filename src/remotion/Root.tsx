@@ -22,7 +22,7 @@ const horseRaceFallbackProps: z.infer<typeof horseRaceCompositionSchema> = {
   timeRange: { start: 1925, end: 2025 },
   backgroundColor: "#0a0a0a",
   brandColor: "#FFD700",
-  fontFamily: "Inter, sans-serif",
+  fontFamily: "Montserrat, sans-serif",
 };
 
 /**
@@ -69,7 +69,7 @@ async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSch
     const audioPrefix = manifest?.audioPrefix || "production/audio";
     const bgmPrefix = manifest?.bgmPrefix || "bgm/";
     const brandColor = manifest?.brandColor || ACCENT_PINK;
-    const fontFamily = manifest?.fontFamily || "Inter, sans-serif";
+    const fontFamily = manifest?.fontFamily || "Montserrat, sans-serif";
 
     // Try to fetch storyboard skeleton — try latest versions first
     let storyboard: any = null;
@@ -199,7 +199,7 @@ export const RemotionRoot: React.FC = () => {
           showSubtitles: true,
           showProgressBar: true,
           brandColor: ACCENT_PINK,
-          fontFamily: "Inter, sans-serif",
+          fontFamily: "Montserrat, sans-serif",
         }}
         calculateMetadata={async ({ props }) => {
           await ensureFontsLoaded(props.fontFamily);
@@ -241,7 +241,7 @@ export const RemotionRoot: React.FC = () => {
           },
           durationInFrames: 90,
           brandColor: ACCENT_PINK,
-          fontFamily: "Inter, sans-serif",
+          fontFamily: "Montserrat, sans-serif",
         }}
         calculateMetadata={async ({ props }) => {
           await ensureFontsLoaded(props.fontFamily);
@@ -279,7 +279,7 @@ export const RemotionRoot: React.FC = () => {
           audioSegments: [],
           showSubtitles: true,
           brandColor: ACCENT_PINK,
-          fontFamily: "Inter, sans-serif",
+          fontFamily: "Montserrat, sans-serif",
         }}
         calculateMetadata={async ({ props }) => {
           await ensureFontsLoaded(props.fontFamily);
@@ -323,7 +323,7 @@ export const RemotionRoot: React.FC = () => {
             durationSeconds: 60,
   backgroundColor: BG,
             brandColor: ACCENT_PINK,
-            fontFamily: "Inter, sans-serif",
+            fontFamily: "Montserrat, sans-serif",
             showSubtitles: true,
             scenes: [],
             audioSegments: [],

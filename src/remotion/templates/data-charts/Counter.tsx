@@ -194,8 +194,9 @@ export const Counter: React.FC<CounterProps> = ({
             style={{
               color: brandColor,
               fontSize: 220,
-              fontFamily: "JetBrains Mono, monospace",
+              fontFamily,
               fontWeight: 700,
+              fontVariantNumeric: "tabular-nums lining-nums",
             }}
           >
             {prefix}
@@ -205,8 +206,9 @@ export const Counter: React.FC<CounterProps> = ({
           style={{
             color: TEXT,
             fontSize: 220,
-            fontFamily: "JetBrains Mono, monospace",
+            fontFamily,
             fontWeight: 700,
+            fontVariantNumeric: "tabular-nums lining-nums",
           }}
         >
           {formattedValue}
@@ -216,7 +218,7 @@ export const Counter: React.FC<CounterProps> = ({
             style={{
               color: ACCENT_PINK,
               fontSize: 88,
-              fontFamily: "JetBrains Mono, monospace",
+              fontFamily,
               fontWeight: 600,
               marginLeft: 10,
             }}
@@ -302,7 +304,7 @@ export const Counter: React.FC<CounterProps> = ({
                     flex: 1,
                     height: 44,
                     backgroundColor: TRACK_COLOR,
-                    borderRadius: 6,
+                    borderRadius: 0,
                     overflow: "hidden",
                   }}
                 >
@@ -311,7 +313,7 @@ export const Counter: React.FC<CounterProps> = ({
                       width: `${barPercent * itemSpring}%`,
                       height: "100%",
                       backgroundColor: barColor,
-                      borderRadius: 6,
+                      borderRadius: 0,
                     }}
                   />
                 </div>

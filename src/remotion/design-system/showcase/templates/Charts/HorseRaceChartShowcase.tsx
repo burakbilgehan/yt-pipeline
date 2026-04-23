@@ -61,7 +61,7 @@ const HorseRaceChartShowcase: React.FC = () => (
       ]}
       backgroundColor="#2A2A32"
       brandColor="#E88CA5"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
       yAxisLabel="Price/Wage Ratio"
     />
   </AbsoluteFill>

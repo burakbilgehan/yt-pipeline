@@ -133,7 +133,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
       {chart.title && (
         <div
           style={{
-            fontFamily: fontFamily || "Inter, sans-serif",
+            fontFamily: fontFamily || "Montserrat, sans-serif",
             fontSize: 52,
             fontWeight: 600,
             color: TEXT_COLOR,
@@ -190,7 +190,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                 style={{
                   width: 360,
                   minWidth: 360,
-                  fontFamily: fontFamily || "Inter, sans-serif",
+                  fontFamily: fontFamily || "Montserrat, sans-serif",
                   fontSize: 28,
                   fontWeight: 500,
                   color: labelColor,
@@ -209,7 +209,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                   flex: 1,
                   height: barHeight,
                   backgroundColor: TRACK,
-                  borderRadius: 6,
+                  borderRadius: 0,
                   overflow: "hidden",
                   position: "relative",
                 }}
@@ -219,7 +219,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                     width: `${widthPct * barSpring}%`,
                     height: "100%",
                     backgroundColor: color,
-                    borderRadius: 6,
+                    borderRadius: 0,
                     transition: "none",
                   }}
                 />
@@ -230,7 +230,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
                 style={{
                   width: 320,
                   minWidth: 320,
-                  fontFamily: fontFamily || "Inter, sans-serif",
+                  fontFamily: fontFamily || "Montserrat, sans-serif",
                   fontSize: 24,
                   fontWeight: 600,
                   color: valueColor,
@@ -278,7 +278,7 @@ export const HorizontalBarChart: React.FC<HorizontalBarChartProps> = ({
             style={{
               color: TEXT_MUTED,
               fontSize: 24,
-              fontFamily: fontFamily || "Inter, sans-serif",
+              fontFamily: fontFamily || "Montserrat, sans-serif",
               fontWeight: 500,
               lineHeight: 1.5,
             }}

@@ -79,7 +79,7 @@ const LayerComboShowcase: React.FC = () => {
                       fontSize: 40,
                       fontWeight: 400,
                       color: 'rgba(255,255,255,0.85)',
-                      fontFamily: 'Inter, sans-serif',
+                      fontFamily: 'Montserrat, sans-serif',
                     }}
                   >
                     World Energy is
@@ -93,7 +93,7 @@ const LayerComboShowcase: React.FC = () => {
                     fontSize={40}
                     fontWeight={700}
                     color="#FFFFFF"
-                    fontFamily="Inter, sans-serif"
+                    fontFamily="Montserrat, sans-serif"
                     loop
                     blurAmount={12}
                     showPill
@@ -118,7 +118,7 @@ const LayerComboShowcase: React.FC = () => {
                       ],
                     }}
                     brandColor={ACCENT}
-                    fontFamily="Inter, sans-serif"
+                    fontFamily="Montserrat, sans-serif"
                   />
                 </div>
               </BlurFadeIn>

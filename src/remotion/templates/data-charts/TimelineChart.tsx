@@ -227,8 +227,9 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
                   style={{
                     color,
                     fontSize: 28,
-                    fontFamily: "JetBrains Mono, monospace",
+                    fontFamily,
                     fontWeight: 700,
+                    fontVariantNumeric: "tabular-nums lining-nums",
                     marginTop: 4,
                     lineHeight: 1.3,
                   }}
@@ -255,7 +256,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
             style={{
               color: ACCENT_PINK,
               fontSize: 32,
-              fontFamily: "JetBrains Mono, monospace",
+              fontFamily,
               fontWeight: 700,
               letterSpacing: 1,
             }}

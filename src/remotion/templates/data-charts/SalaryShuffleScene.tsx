@@ -300,7 +300,8 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
                   color: TEXT,
                   fontSize: 32,
                   fontWeight: 700,
-                  fontFamily: "JetBrains Mono, monospace",
+                  fontFamily,
+                  fontVariantNumeric: "tabular-nums lining-nums",
                   opacity: interpolate(resortProgress, [0, 0.5], [1, 0.4], {
                     extrapolateRight: "clamp",
                   }),
@@ -326,7 +327,8 @@ export const SalaryShuffleScene: React.FC<SalaryShuffleSceneProps> = ({
                   color: isMoving && movedUp ? POSITIVE : isMoving && movedDown ? NEGATIVE : accent,
                   fontSize: 32,
                   fontWeight: 700,
-                  fontFamily: "JetBrains Mono, monospace",
+                  fontFamily,
+                  fontVariantNumeric: "tabular-nums lining-nums",
                   textShadow: isMoving
                     ? `0 0 20px ${glowColor}40`
                     : "none",

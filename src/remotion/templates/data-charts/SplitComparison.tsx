@@ -129,7 +129,7 @@ const CityPanel: React.FC<{
       {/* City name */}
       <div
         style={{
-          fontFamily: fontFamily || "Inter, sans-serif",
+          fontFamily: fontFamily || "Montserrat, sans-serif",
           fontSize: 32,
           fontWeight: 600,
           color: TEXT_COLOR,
@@ -140,7 +140,7 @@ const CityPanel: React.FC<{
       </div>
       <div
         style={{
-          fontFamily: fontFamily || "Inter, sans-serif",
+          fontFamily: fontFamily || "Montserrat, sans-serif",
           fontSize: 20,
           color: MUTED_TEXT,
           marginBottom: 30,
@@ -171,7 +171,7 @@ const CityPanel: React.FC<{
             >
               <div
                 style={{
-                  fontFamily: fontFamily || "Inter, sans-serif",
+                  fontFamily: fontFamily || "Montserrat, sans-serif",
                   fontSize: 20,
                   color: TEXT_COLOR,
                   display: "flex",
@@ -183,7 +183,7 @@ const CityPanel: React.FC<{
               </div>
               <div
                 style={{
-                  fontFamily: fontFamily || "Inter, sans-serif",
+                  fontFamily: fontFamily || "Montserrat, sans-serif",
                   fontSize: 22,
                   fontWeight: 600,
                   color: TEXT_COLOR,
@@ -224,7 +224,7 @@ const CityPanel: React.FC<{
           >
             <div
               style={{
-                fontFamily: fontFamily || "Inter, sans-serif",
+                fontFamily: fontFamily || "Montserrat, sans-serif",
                 fontSize: 22,
                 fontWeight: 600,
                 color: MUTED_TEXT,
@@ -234,7 +234,7 @@ const CityPanel: React.FC<{
             </div>
             <div
               style={{
-                fontFamily: fontFamily || "Inter, sans-serif",
+                fontFamily: fontFamily || "Montserrat, sans-serif",
                 fontSize: 30,
                 fontWeight: 700,
                 color: brandColor || ACCENT_PINK,
@@ -284,7 +284,7 @@ const MaterialDuelPanel: React.FC<{
       {/* Material title */}
       <div
         style={{
-          fontFamily: fontFamily || "Inter, sans-serif",
+          fontFamily: fontFamily || "Montserrat, sans-serif",
           fontSize: 34,
           fontWeight: 700,
           color: accentColor,
@@ -296,7 +296,7 @@ const MaterialDuelPanel: React.FC<{
       {data.subtitle && (
         <div
           style={{
-            fontFamily: fontFamily || "Inter, sans-serif",
+            fontFamily: fontFamily || "Montserrat, sans-serif",
             fontSize: 18,
             color: MUTED_TEXT,
             marginBottom: 28,
@@ -329,7 +329,7 @@ const MaterialDuelPanel: React.FC<{
             >
               <div
                 style={{
-                  fontFamily: fontFamily || "Inter, sans-serif",
+                  fontFamily: fontFamily || "Montserrat, sans-serif",
                   fontSize: 14,
                   fontWeight: 500,
                   color: MUTED_TEXT,
@@ -341,7 +341,7 @@ const MaterialDuelPanel: React.FC<{
               </div>
               <div
                 style={{
-                  fontFamily: fontFamily || "Inter, sans-serif",
+                  fontFamily: fontFamily || "Montserrat, sans-serif",
                   fontSize: 22,
                   fontWeight: 600,
                   color: TEXT_COLOR,
@@ -510,7 +510,7 @@ const MaterialDuelLayout: React.FC<{
       {title && (
         <div
           style={{
-            fontFamily: fontFamily || "Inter, sans-serif",
+            fontFamily: fontFamily || "Montserrat, sans-serif",
             fontSize: 38,
             fontWeight: 700,
             color: TEXT_COLOR,
@@ -556,7 +556,7 @@ const MaterialDuelLayout: React.FC<{
         >
           <div
             style={{
-              fontFamily: fontFamily || "Inter, sans-serif",
+              fontFamily: fontFamily || "Montserrat, sans-serif",
               fontSize: 18,
               fontWeight: 600,
               color: MUTED_TEXT,
@@ -586,7 +586,7 @@ const MaterialDuelLayout: React.FC<{
             left: "50%",
             transform: `translateX(-50%) translateY(${(1 - annotationSpring) * 15}px)`,
             opacity: annotationSpring,
-            fontFamily: fontFamily || "Inter, sans-serif",
+            fontFamily: fontFamily || "Montserrat, sans-serif",
             fontSize: 20,
             fontWeight: 500,
             color: MUTED_TEXT,
@@ -695,7 +695,7 @@ export const SplitComparison: React.FC<SplitComparisonProps> = ({
             left: "50%",
             transform: `translateX(-50%) translateY(${(1 - labelSpring) * 20}px)`,
             opacity: labelSpring,
-            fontFamily: fontFamily || "Inter, sans-serif",
+            fontFamily: fontFamily || "Montserrat, sans-serif",
             fontSize: 24,
             fontWeight: 500,
             color: MUTED_TEXT,

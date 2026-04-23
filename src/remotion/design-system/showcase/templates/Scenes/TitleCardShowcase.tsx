@@ -12,7 +12,7 @@ const TitleCardShowcase: React.FC = () => (
         icon: "Source: OECD",
       }}
       brandColor="#E88CA5"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

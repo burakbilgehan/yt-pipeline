@@ -51,7 +51,7 @@ const defaults = {
   afterColor: ACCENT_PINK,
   glowColor: "rgba(232, 140, 165, 0.35)",
   cornerLabelColor: "rgba(240, 237, 232, 0.6)",
-  fontFamily: "Inter, sans-serif",
+  fontFamily: "Montserrat, sans-serif",
   dividerColor: ACCENT_PINK,
   connectorColor: TEXT_FAINT,
 };

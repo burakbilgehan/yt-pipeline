@@ -219,7 +219,7 @@ export const RankingResortScene: React.FC<RankingResortSceneProps> = ({
                   color: MUTED,
                   fontSize: 20,
                   fontWeight: 700,
-                  fontFamily: "JetBrains Mono, monospace",
+                  fontFamily,
                   textAlign: "center" as const,
                 }}
               >
@@ -246,7 +246,7 @@ export const RankingResortScene: React.FC<RankingResortSceneProps> = ({
                   color: TEXT,
                   fontSize: 22,
                   fontWeight: 600,
-                  fontFamily: "JetBrains Mono, monospace",
+                  fontFamily,
                   opacity: 0.8,
                 }}
               >
@@ -402,7 +402,7 @@ export const RankingResortScene: React.FC<RankingResortSceneProps> = ({
                   color: highlightColor,
                   fontSize: 22,
                   fontWeight: 700,
-                  fontFamily: "JetBrains Mono, monospace",
+                  fontFamily,
                   textAlign: "center" as const,
                 }}
               >
@@ -429,7 +429,7 @@ export const RankingResortScene: React.FC<RankingResortSceneProps> = ({
                   color: highlightColor,
                   fontSize: 22,
                   fontWeight: 700,
-                  fontFamily: "JetBrains Mono, monospace",
+                  fontFamily,
                 }}
               >
                 {item.value}

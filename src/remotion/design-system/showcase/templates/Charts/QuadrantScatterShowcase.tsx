@@ -27,7 +27,7 @@ const QuadrantScatterShowcase: React.FC = () => (
         skipEntrance: false,
       } as any}
       brandColor="#E88CA5"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

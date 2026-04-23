@@ -58,7 +58,7 @@ export const AssetParade: React.FC<AssetParadeProps> = ({
   dataBadge,
   backgroundColor = "#F5F0E8",
   accentColor = "#C8A94E",
-  fontFamily = "Inter, sans-serif",
+  fontFamily = "Montserrat, sans-serif",
   formulaDuration = 6,
   assetDuration = 3.5,
 }) => {

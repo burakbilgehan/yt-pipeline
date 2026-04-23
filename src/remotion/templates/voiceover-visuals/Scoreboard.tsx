@@ -45,7 +45,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
   items,
   footerText,
   backgroundColor = "#F5F0E8",
-  fontFamily = "Inter, sans-serif",
+  fontFamily = "Montserrat, sans-serif",
   maxBarWidth = 65,
 }) => {
   const frame = useCurrentFrame();
@@ -177,7 +177,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
                   flex: 1,
                   height: 32,
                   backgroundColor: barTrackBg,
-                  borderRadius: 6,
+                  borderRadius: 0,
                   overflow: "hidden",
                   position: "relative",
                   marginRight: 16,
@@ -188,7 +188,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
                     width: `${barWidth}%`,
                     height: "100%",
                     backgroundColor: barColor,
-                    borderRadius: 6,
+                    borderRadius: 0,
                   }}
                 />
               </div>

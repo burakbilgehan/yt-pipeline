@@ -23,7 +23,7 @@ const LineChartShowcase: React.FC = () => (
         unit: "°C",
       }}
       brandColor="#FF6584"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

@@ -28,7 +28,7 @@ const RankingResortSceneShowcase: React.FC = () => (
         },
       } as any}
       brandColor="#E88CA5"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

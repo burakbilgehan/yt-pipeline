@@ -324,7 +324,7 @@ const HorizontalBars: React.FC<BarChartProps> = ({
                   flex: 1,
                   height: autoBarHeight,
                   backgroundColor: TRACK_COLOR,
-                  borderRadius: 6,
+                  borderRadius: 0,
                   overflow: "hidden",
                   position: "relative",
                 }}
@@ -334,7 +334,7 @@ const HorizontalBars: React.FC<BarChartProps> = ({
                     width: isZeroValue ? 4 : `${widthPercent * barSpring}%`,
                     height: "100%",
                     backgroundColor: barColor,
-                    borderRadius: 6,
+                    borderRadius: 0,
                   }}
                 />
               </div>
@@ -382,7 +382,7 @@ const HorizontalBars: React.FC<BarChartProps> = ({
         >
           <span
             style={{
-              fontFamily: "JetBrains Mono, monospace",
+              fontFamily,
               fontSize: 24,
               fontWeight: 600,
               color: ACCENT_PINK,
@@ -579,7 +579,7 @@ const VerticalBars: React.FC<BarChartProps> = ({
                   width: barWidth,
                   height: MAX_BAR_HEIGHT,
                   backgroundColor: TRACK_COLOR,
-                  borderRadius: 6,
+                  borderRadius: 0,
                   overflow: "hidden",
                   display: "flex",
                   flexDirection: "column",
@@ -591,7 +591,7 @@ const VerticalBars: React.FC<BarChartProps> = ({
                     width: "100%",
                     height: heightPx * barSpring,
                     backgroundColor: barColor,
-                    borderRadius: 6,
+                    borderRadius: 0,
                   }}
                 />
               </div>

@@ -99,8 +99,9 @@ export const PieChart: React.FC<PieChartProps> = ({
                 style={{
                   fill: TEXT,
                   fontSize: 72,
-                  fontFamily: "JetBrains Mono, monospace",
+                  fontFamily,
                   fontWeight: 700,
+                  fontVariantNumeric: "tabular-nums lining-nums",
                   opacity: centerOpacity,
                 }}
               >

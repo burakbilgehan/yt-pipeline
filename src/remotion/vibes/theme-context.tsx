@@ -167,7 +167,7 @@ export const VibeThemeProvider: React.FC<VibeThemeProviderProps> = ({
       brandColor,
       backgroundColor,
       fontFamily,
-      monoFont: monoFont ?? 'JetBrains Mono, monospace',
+      monoFont: monoFont ?? 'Montserrat, sans-serif',
       animation: ANIMATION_DEFAULTS[vibeId],
       layout: LAYOUT_DEFAULTS[vibeId],
       colors: buildColorConfig(vibeId, backgroundColor),

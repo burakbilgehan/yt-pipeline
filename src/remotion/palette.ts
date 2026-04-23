@@ -5,8 +5,8 @@
  * Edit `channels/<channel>/channel-assets/design-system.json` instead,
  * then run `npm run sync-palette` to regenerate.
  *
- * Source: design-system "dusty-editorial" v3
- * Generated: 2026-03-27T21:58:30.168Z
+ * Source: design-system "dusty-editorial" v6
+ * Generated: 2026-04-23T00:00:00.000Z
  *
  * Architecture:
  *   design-system.json  → SINGLE SOURCE OF TRUTH (edit here)
@@ -21,9 +21,13 @@ export const BG = "#2A2A32";
 export const TEXT = "#F0EDE8";
 export const ACCENT_PINK = "#E88CA5";
 export const ACCENT_BLUE = "#7BA7C9";
-export const SAGE = "#8A9A7A";
 export const POSITIVE = "#5BBF8C";
 export const NEGATIVE = "#E06070";
+
+// ─── Structural (no named sage in v6) ────────────────────────
+
+export const AXIS = "rgba(240, 237, 232, 0.35)";   // axis labels, tick marks
+export const SAGE = AXIS;                            // structural axis color only — not a brand color
 
 // ─── Text Variants ────────────────────────────────────────────
 
@@ -33,17 +37,17 @@ export const TEXT_FAINT = "rgba(240, 237, 232, 0.4)";
 
 // ─── Surface / Container ──────────────────────────────────────
 
-export const SURFACE = "rgba(255, 255, 255, 0.06)";
-export const SURFACE_HOVER = "rgba(255, 255, 255, 0.08)";
-export const SURFACE_BORDER = "rgba(255, 255, 255, 0.1)";
+export const SURFACE = "#2E2E38";
+export const SURFACE_HOVER = "#313140";
+export const SURFACE_BORDER = "rgba(240, 237, 232, 0.07)";
 export const SURFACE_BORDER_STRONG = "rgba(240, 237, 232, 0.12)";
 
 // ─── Chart-Specific ───────────────────────────────────────────
 
 export const TRACK = "rgba(240, 237, 232, 0.06)";
-export const GRID = "rgba(240, 237, 232, 0.15)";
-export const CARD_BG = "rgba(42, 42, 50, 0.92)";
-export const CARD_BORDER = "rgba(240, 237, 232, 0.08)";
+export const GRID = "rgba(240, 237, 232, 0.08)";
+export const CARD_BG = "#2E2E38";
+export const CARD_BORDER = "rgba(240, 237, 232, 0.10)";
 
 // ─── Data Palette ─────────────────────────────────────────────
 
@@ -52,10 +56,10 @@ export const DATA_PALETTE = [
   ACCENT_BLUE,
   POSITIVE,
   NEGATIVE,
-  SAGE,
   "#7EC8E3",
   "#F4A261",
-  "#9B59B6",
+  "#C084FC",
+  "#FB923C",
 ] as const;
 
 // ─── Convenience Object ───────────────────────────────────────
@@ -68,6 +72,7 @@ export const PALETTE = {
   textFaint: TEXT_FAINT,
   accentPink: ACCENT_PINK,
   accentBlue: ACCENT_BLUE,
+  axis: AXIS,
   sage: SAGE,
   positive: POSITIVE,
   negative: NEGATIVE,

@@ -268,7 +268,7 @@ export const ClosingSequence: React.FC<ClosingSequenceProps> = ({
             >
               <div
                 style={{
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "Montserrat, sans-serif",
                   fontSize: 20,
                   color: SAGE,
                   letterSpacing: "0.04em",
@@ -279,7 +279,7 @@ export const ClosingSequence: React.FC<ClosingSequenceProps> = ({
               {showSubscribe && (
                 <div
                   style={{
-                    fontFamily: "Inter, sans-serif",
+                    fontFamily: "Montserrat, sans-serif",
                     fontSize: 20,
                     color: TEXT_COLOR,
                     opacity: 0.4,

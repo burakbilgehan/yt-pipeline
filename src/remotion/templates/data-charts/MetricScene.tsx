@@ -55,8 +55,7 @@ const MUTED_TEXT = TEXT_MUTED;
 const SAGE_SILVER = SAGE;
 
 const FONT_HEADING = "Montserrat, sans-serif";
-const FONT_MONO = "'JetBrains Mono', monospace";
-const FONT_BODY = "Inter, sans-serif";
+const FONT_BODY = "Montserrat, sans-serif";
 
 const SPRING_COUNTER = { damping: 18, stiffness: 80 };
 const CROSSFADE_FRAMES = 8;
@@ -172,7 +171,7 @@ const ComparisonPanel: React.FC<{
       {/* Wage */}
       <div
         style={{
-          fontFamily: FONT_MONO,
+          fontFamily,
           fontSize: 52,
           fontWeight: 700,
           color: accentColor,
@@ -207,7 +206,7 @@ const ComparisonPanel: React.FC<{
         </div>
         <div
           style={{
-            fontFamily: FONT_MONO,
+            fontFamily,
             fontSize: 36,
             fontWeight: 600,
             color: TEXT_COLOR,
@@ -400,7 +399,7 @@ export const MetricScene: React.FC<MetricSceneProps> = ({
                         fontWeight: 300,
                         color: MUTED_TEXT,
                         padding: "0 8px",
-                        fontFamily: FONT_MONO,
+                        fontFamily,
                       }}
                     >
                       {part}

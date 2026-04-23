@@ -12,7 +12,7 @@ const LocationMapSceneShowcase: React.FC = () => (
         pinColor: "#34D399",
       }}
       brandColor="#E88CA5"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

@@ -82,8 +82,6 @@ function getTabDuration(
 const ACCORDION_FRAMES = 9;
 // Max height description can expand to (px) — must fit ~2 lines at 20px font, 1.5 line-height
 const MAX_DESC_HEIGHT = 180;
-// JetBrains Mono for stat numbers in InfoPanel
-const MONO_FONT = "'JetBrains Mono', 'Fira Code', 'SF Mono', monospace";
 
 // ─── Main component ─────────────────────────────────────────
 
@@ -426,7 +424,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
           {/* Large background index number */}
           <div
             style={{
-              fontFamily: MONO_FONT,
+              fontFamily,
               fontSize: 120,
               fontWeight: 700,
               color: brandColor,

@@ -16,7 +16,7 @@ const EndCardSceneShowcase: React.FC = () => (
         youtubeEndScreen: { enabled: false },
       } as any}
       brandColor="#E88CA5"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

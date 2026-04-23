@@ -41,7 +41,7 @@ export const FormulaCard: React.FC<FormulaCardProps> = ({
   dataBadge,
   backgroundColor = "#0a0a0a", // intentionally different from palette BG — dark formula-card theme
   accentColor = "#FFD700",
-  fontFamily = "Inter, sans-serif",
+  fontFamily = "Montserrat, sans-serif",
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();

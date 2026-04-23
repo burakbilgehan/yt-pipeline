@@ -16,7 +16,7 @@ const MetricSceneShowcase: React.FC = () => (
         phaseSplitSec: 999,
       }}
       brandColor="#E88CA5"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

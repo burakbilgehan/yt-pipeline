@@ -411,7 +411,7 @@ const HorizontalBarList: React.FC<ComparisonTableProps> = ({
                   flex: 1,
                   height: 84,
                   backgroundColor: TRACK_COLOR,
-                  borderRadius: 8,
+                  borderRadius: 0,
                   overflow: "hidden",
                   position: "relative",
                 }}
@@ -421,7 +421,7 @@ const HorizontalBarList: React.FC<ComparisonTableProps> = ({
                     width: `${widthPercent * barSpring}%`,
                     height: "100%",
                     backgroundColor: barColor,
-                    borderRadius: 8,
+                    borderRadius: 0,
                   }}
                 />
               </div>
@@ -675,7 +675,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
             style={{
               color: "#F0EDE8",
               fontSize: 20,
-              fontFamily: "Inter, sans-serif",
+              fontFamily: "Montserrat, sans-serif",
               fontWeight: 500,
               lineHeight: 1.5,
             }}
@@ -882,7 +882,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                       flex: leftPct,
                       height: 70,
                       backgroundColor: TRACK_COLOR,
-                      borderRadius: 6,
+                      borderRadius: 0,
                       overflow: "hidden",
                       display: "flex",
                       justifyContent: "flex-end",
@@ -893,7 +893,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                         width: `${100 * rowSpring}%`,
                         height: "100%",
                         backgroundColor: row.leftColor,
-                        borderRadius: 6,
+                        borderRadius: 0,
                         opacity: 0.9,
                       }}
                     />
@@ -918,7 +918,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                       flex: rightPct,
                       height: 70,
                       backgroundColor: TRACK_COLOR,
-                      borderRadius: 6,
+                      borderRadius: 0,
                       overflow: "hidden",
                       display: "flex",
                       justifyContent: "flex-start",
@@ -929,7 +929,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                         width: `${100 * rowSpring}%`,
                         height: "100%",
                         backgroundColor: row.rightColor,
-                        borderRadius: 6,
+                        borderRadius: 0,
                         opacity: 0.9,
                       }}
                     />

@@ -19,7 +19,7 @@ const HorizontalBarChartShowcase: React.FC = () => (
         gradientColors: { highest: "#5BBF8C", lowest: "#E06070" },
       }}
       brandColor="#7BA7C9"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

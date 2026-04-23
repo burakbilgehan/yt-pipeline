@@ -22,7 +22,9 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(python3 *)",
+      "Bash(xargs sed *)"
     ]
   },
   "hooks": {

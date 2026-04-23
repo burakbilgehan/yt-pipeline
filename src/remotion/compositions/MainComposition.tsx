@@ -420,7 +420,7 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
                     bottom: 24,
                     right: 32,
                     color: "rgba(240, 237, 232, 0.35)",
-                    fontFamily: "Inter, sans-serif",
+                    fontFamily: "Montserrat, sans-serif",
                     fontSize: 16,
                     fontWeight: 400,
                     maxWidth: 600,
@@ -443,7 +443,7 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
                     left: 20,
                     background: "rgba(0,0,0,0.85)",
                     color: "#fff",
-                    fontFamily: "Inter, sans-serif",
+                    fontFamily: "Montserrat, sans-serif",
                     fontSize: 28,
                     fontWeight: 600,
                     padding: "10px 20px",
@@ -634,7 +634,7 @@ const LinesTextOverlay: React.FC<{
             key={`line-${idx}`}
             style={{
               ...posStyle,
-              fontFamily: "Inter, sans-serif",
+              fontFamily: "Montserrat, sans-serif",
               fontWeight: 600,
               fontSize: 48,
               color: lineColor,
@@ -762,7 +762,7 @@ const FlipTextOverlayInner: React.FC<{
           fontSize={fontSize}
           fontWeight={700}
           color={color}
-          fontFamily="Montserrat, Inter, sans-serif"
+          fontFamily="Montserrat, sans-serif"
           showPill={true}
           loop={false}
           frameDuration={perTextFrames}

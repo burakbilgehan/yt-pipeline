@@ -149,7 +149,7 @@ export const HookScene: React.FC<HookSceneProps> = ({
         backgroundColor: BG,
         position: "relative",
         overflow: "hidden",
-        fontFamily: fontFamily || "Inter, sans-serif",
+        fontFamily: fontFamily || "Montserrat, sans-serif",
       }}
     >
       {/* ── Faz 1: Question text + Clock ── */}
@@ -174,7 +174,7 @@ export const HookScene: React.FC<HookSceneProps> = ({
           >
             <div
               style={{
-                fontFamily: fontFamily || "Inter, sans-serif",
+                fontFamily: fontFamily || "Montserrat, sans-serif",
                 fontSize: 52,
                 color: TEXT,
                 fontWeight: 500,

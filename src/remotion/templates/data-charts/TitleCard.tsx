@@ -85,7 +85,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({
       {/* Title */}
       <div
         style={{
-          fontFamily: fontFamily || "Inter, sans-serif",
+          fontFamily: fontFamily || "Montserrat, sans-serif",
           fontSize: 72,
           fontWeight: 700,
           color: titleColor,
@@ -115,7 +115,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({
       {subtitle && (
         <div
           style={{
-            fontFamily: fontFamily || "Inter, sans-serif",
+            fontFamily: fontFamily || "Montserrat, sans-serif",
             fontSize: 30,
             fontWeight: 400,
             color: subtitleColor,
@@ -136,7 +136,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({
           style={{
             position: "absolute",
             bottom: 80,
-            fontFamily: fontFamily || "Inter, sans-serif",
+            fontFamily: fontFamily || "Montserrat, sans-serif",
             fontSize: 20,
             fontWeight: 500,
             color: "rgba(240,237,232,0.3)",

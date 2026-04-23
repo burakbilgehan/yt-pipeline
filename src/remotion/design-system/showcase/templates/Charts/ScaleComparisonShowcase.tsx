@@ -16,7 +16,7 @@ const ScaleComparisonShowcase: React.FC = () => (
         ],
       }}
       brandColor="#F9D423"
-      fontFamily="Inter, sans-serif"
+      fontFamily="Montserrat, sans-serif"
     />
   </AbsoluteFill>
 );

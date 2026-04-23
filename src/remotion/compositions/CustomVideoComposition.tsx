@@ -75,7 +75,7 @@ interface VideoConfig {
   showSubtitles: boolean;
   /** Vibe ID — determines visual style for category-based scenes */
   vibe?: VibeId;
-  /** Mono font for dashboard vibe (optional, defaults to JetBrains Mono) */
+  /** Override font for dashboard/mono contexts (defaults to Montserrat) */
   monoFont?: string;
   horseRaceDataFile?: string;
   horseRaceYAxisLabel?: string;
