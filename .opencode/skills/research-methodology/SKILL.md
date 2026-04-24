@@ -7,17 +7,17 @@ description: "NotebookLM-first research workflow — orchestrate research, forma
 
 # Research Methodology
 
-How to conduct and document research for video content. **NotebookLM does the research; you orchestrate and format.**
+How to conduct and document research for video content. **NotebookLM does the research; Director orchestrates and formats.**
 
 ## Mental Model
 
 You are NOT the researcher — NotebookLM is. Your job:
-1. Feed it the right sources and queries
-2. Ask it the right questions
-3. Format its output into the research document
-4. Flag gaps and ask follow-up questions
+1. Prepare the right source list and query sequence for the user
+2. Process NotebookLM outputs into structured research doc
+3. Flag gaps and prepare follow-up queries
+4. Format everything into versioned research document
 
-**Do NOT run web research in parallel with NotebookLM.** NotebookLM is the primary tool — use it first. If its sources are insufficient, escalate to Director for fallback approval. This keeps token usage low and research quality high.
+**Human-in-the-loop**: You prepare prompts → user executes in NotebookLM web UI → user pastes outputs back → you process. See `notebooklm` skill for prompt templates and workflow details.
 
 ## File Locations
 
@@ -29,24 +29,25 @@ You are NOT the researcher — NotebookLM is. Your job:
 
 ## Workflow
 
-### Phase 1: Setup (notebook + sources)
-1. `notebooklm create "<slug>: <topic>"`
-2. Add known high-quality sources: `notebooklm source add "<url>"`
-3. Launch deep research: `notebooklm source add-research "<topic>" --mode deep --no-wait`
-4. Wait for completion: `notebooklm research wait --import-all --timeout 600`
+### Phase 1: Setup (prepare for user)
 
-### Phase 2: Extract (query the notebook)
-Ask structured questions — each `notebooklm ask` call extracts one section:
+1. Load `notebooklm` skill for prompt templates
+2. Identify high-quality sources for the topic (URLs, papers, existing research)
+3. Prepare query sequence: broad → specific → cross-cutting → gap-finding
+4. Present everything to user in a single copy-pasteable block
 
-1. **Key findings:** `notebooklm ask "What are the most important findings about <topic>? List with sources."`
-2. **Data & statistics:** `notebooklm ask "What are the key statistics and data points? Include numbers, dates, and source references."`
-3. **Angles:** `notebooklm ask "What are the most interesting or surprising angles for a YouTube video on this topic?"`
-4. **Gaps:** `notebooklm ask "What aspects of this topic lack strong evidence in the sources?"`
+### Phase 2: Extract (process user's outputs)
 
-If a gap is identified, add more sources or run another research query — don't WebFetch.
+When user pastes NotebookLM responses:
+
+1. **Parse** each response — extract facts, data points, quotes with source attribution
+2. **Cross-reference** across responses — find patterns, contradictions, complementary info
+3. **Assess coverage** — map findings against what the video needs
+4. **Identify gaps** — what's missing? Prepare follow-up queries if needed
 
 ### Phase 3: Write (format into research doc)
-Take NotebookLM's answers and format into the document structure below. Write progressively — section by section to disk.
+
+Take processed outputs and write the versioned research document. Write progressively — section by section to disk.
 
 ## Document Format
 
@@ -55,7 +56,7 @@ Take NotebookLM's answers and format into the document structure below. Write pr
 > version: <N>
 > based_on: —
 > date: <ISO date>
-> notebook_id: <NotebookLM notebook UUID>
+> notebook: <NotebookLM notebook name or "direct research">
 
 ## Key Findings
 - Finding [source](url)
@@ -78,7 +79,7 @@ Take NotebookLM's answers and format into the document structure below. Write pr
 **Never write the full document at once.** Follow this order strictly:
 
 1. Create the file immediately with header + empty section placeholders
-2. Fill in `## Key Findings` from NotebookLM response — write to disk
+2. Fill in `## Key Findings` from processed outputs — write to disk
 3. Fill in `## Data & Statistics` — write to disk
 4. Fill in `## Suggested Angles` — write to disk
 5. Fill in `## Open Questions` — write to disk
@@ -88,23 +89,22 @@ At every step the file on disk must be a coherent, readable document. If the tas
 
 ## Rules
 
-- **NotebookLM is the primary research tool.** Use it first for all research. This keeps token usage low and leverages its deep research capabilities.
-- If NotebookLM's sources are insufficient for a specific question, flag the gap. The fallback path (direct web research) requires Director approval — see "When NotebookLM Is Insufficient" below.
-- Flag unverified claims with `⚠️ UNVERIFIED` — resolve by querying NotebookLM further first.
-- Include `notebook_id` in the document header so anyone can revisit the notebook later.
+- **NotebookLM is the primary research tool.** Prepare prompts for user to execute there first. This keeps token usage low and leverages its deep research capabilities.
+- If NotebookLM's sources are insufficient for a specific question, flag the gap and prepare targeted follow-up queries or additional sources.
+- Flag unverified claims with `⚠️ UNVERIFIED` — resolve by asking user to query NotebookLM further.
+- Include notebook name in the document header so anyone can revisit later.
 - Present summary, wait for user approval before marking complete.
 
 ## When NotebookLM Is Insufficient
 
-If NotebookLM's sources don't cover a specific data point or claim after multiple query attempts:
-1. Stop and report the gap to Director
-2. Director decides: add more sources to NotebookLM, or approve targeted fallback to WebSearch/WebFetch for that specific gap
-3. If fallback approved, use direct web research **only for the identified gap** — note in the document: `> supplemental source: direct web research (NotebookLM gap: <description>)`
-4. Do NOT run general web research in parallel with NotebookLM — NotebookLM first, fallback second
+If outputs don't cover a specific data point after follow-up queries:
+1. Report the gap to user
+2. User decides: add more sources to NotebookLM, or you do targeted web research for that specific gap
+3. If web research used, note in the document: `> supplemental source: direct web research (NotebookLM gap: <description>)`
+4. Do NOT run general web research instead of NotebookLM — NotebookLM first, web fallback only for specific gaps
 
 ## When NotebookLM Is Unavailable
 
-Only if `notebooklm status` fails (auth issue, service down):
-1. Stop and report to Director
-2. Director decides: wait for fix, or approve fallback to WebSearch/WebFetch
-3. If fallback approved, use direct web research but note in the document header: `> method: direct (NotebookLM unavailable)`
+If user reports NotebookLM is down or inaccessible:
+1. Note it and offer direct web research as fallback
+2. If user approves, use WebFetch but note in document header: `> method: direct (NotebookLM unavailable)`

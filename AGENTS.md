@@ -11,7 +11,7 @@ AI-powered video production pipeline — from research to publishing.
 - **Config over hardcoding.** If a value exists in config, use it. Fall back to `pipeline-defaults.json`.
 - **`status: cancelled` = dead.** Skip in all operations.
 - **External components NEVER go to `src/components/ui/`.** That directory is exclusively for shadcn CLI (`npx shadcn add`). When a user pastes external component code or shares a reference link, it MUST go through the 4-step External Component Intake gate (Decompose → Adapt → Register → Showcase) into `src/remotion/design-system/<layer>/`. Never install external animation runtimes (`framer-motion`, `motion`, `gsap`, `anime.js`, `react-spring`). Always adapt to Remotion's frame-deterministic API. See `DESIGN-SYSTEM.md → External Component Intake`.
-- **Background music is REQUIRED for publishing.** No video may be uploaded without BGM tracks in `production/audio/bgm/` and a `backgroundMusic` config in the storyboard. The upload script enforces this as a hard gate. Storyboard agent must always include BGM config; production agent must verify BGM files exist before render.
+- **Background music is REQUIRED for publishing.** No video may be uploaded without BGM tracks in `production/audio/bgm/` and a `backgroundMusic` config in the storyboard. The upload script enforces this as a hard gate. Director must always include BGM config in storyboard; video-production agent must verify BGM files exist before render.
 
 ## Source of Truth: `.ai/`
 
@@ -89,7 +89,7 @@ yt-pipeline/                                        ← git repo (infrastructure
 │   │   └── templates/                              # Scene-level templates (data-charts, etc.)
 │   ├── scripts/                                    # CLI scripts (tts, render, upload, etc.)
 │   └── types/                                      # Shared TypeScript types
-├── .ai/                                            # Agents, skills, commands (source of truth)
+├── .ai/                                            # Agents, skills (source of truth)
 ├── templates/
 │   ├── channel-config.json                         # Channel config template
 │   ├── pipeline-defaults.json                      # Pipeline-wide defaults

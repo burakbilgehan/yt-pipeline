@@ -152,14 +152,18 @@ Load these with the `skill` tool by name when you need them. Do NOT read them up
 - `incremental-writing` — Mandatory incremental writing protocol — never batch-write files over ~50 lines
 - `design-system` — 5-layer Design System architecture, component constraints, and implementation workflow for Remotion visuals
 - `research-methodology` — NotebookLM-first research workflow — orchestrate research, format output into versioned documents
-- `notebooklm` — Programmatic access to Google NotebookLM — create notebooks, add sources, chat, generate artifacts
+- `notebooklm` — Human-in-the-loop NotebookLM research — Director prepares prompts, user executes in NotebookLM, Director processes outputs
 - `script-format` — Standard format and template for video scripts
 - `ssml-writing` — Write voiceover scripts with proper TTS delivery markup (SSML)
 - `duration-budgeting` — Calculate and verify script/scene duration against target video length
 - `storyboard-authoring` — Create scene-by-scene visual plans (skeleton + detail files) for Remotion production
 - `scene-timing` — Calculate scene start/end times from voiceover word counts and markup
+- `tts-generation` — Generate voiceover audio from scripts using Google Cloud TTS
+- `tts-deviation-handling` — Handle TTS audio duration mismatches against target timing
 - `youtube-metadata` — Rules for crafting YouTube titles, descriptions, and tags
 - `youtube-upload` — Workflow for uploading videos to YouTube and verifying success
 - `seo-optimization` — YouTube SEO best practices for optimizing video discoverability
 - `visual-collection` — Fetch and organize visual assets (stock media, AI images) for video production
 - `analytics-reporting` — Track and report video performance with actionable insights
+- `content-calendar` — Maintain and use the channel content calendar
+- `alignment-check` — Evaluate whether a video topic/script fits the channel brand and strategy

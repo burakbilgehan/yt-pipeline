@@ -5,9 +5,9 @@
  *
  * Usage: npm run upload <project-slug>
  *
- * Reads: projects/<slug>/publishing/metadata-v<latest>.json
- *        projects/<slug>/production/output/final.mp4
- * Writes: projects/<slug>/publishing/upload-log.md
+ * Reads: channels/<channel>/videos/<slug>/publishing/metadata-v<latest>.json
+ *        channels/<channel>/videos/<slug>/production/output/final.mp4
+ * Writes: channels/<channel>/videos/<slug>/publishing/upload-log.md
  */
 
 import "dotenv/config";
@@ -39,7 +39,7 @@ async function main() {
   if (!metadataFile) {
     console.error("No versioned metadata found in publishing/ directory.");
     console.error("Expected files like: metadata-v1.json, metadata-v2.json, etc.");
-    console.error("Run the publisher agent first.");
+    console.error("Run metadata generation first (Director handles this via youtube-metadata skill).");
     process.exit(1);
   }
 

@@ -395,9 +395,9 @@ The machine-readable catalog is at `src/remotion/design-system/component-catalog
 - **pairs** — which surfaces/atmospheres/motions work well together
 - **alternatives** — what to use instead if this doesn't fit
 
-**Agents must read `component-catalog.json` when:**
-- Storyboard agent is assigning visuals to scenes
-- Production agent is resolving storyboard hints to actual implementations
+**Read `component-catalog.json` when:**
+- Assigning visuals to scenes during storyboard authoring
+- Video Production agent is resolving storyboard hints to actual implementations
 - Critic is verifying component choices make sense for the scene context
 
 ## Quick Decision Guide

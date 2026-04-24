@@ -36,7 +36,7 @@ Total: XXX/500 chars
 - Titles: style depends on channel identity (curiosity-driven, authoritative, playful, etc.) — read channel config, don't assume one style fits all
 - Descriptions: front-load important keywords in first 2 lines (shown in search)
 - Tags: focus on a targeted set of well-chosen tags rather than filling to the limit. **No apostrophes** — rephrase instead.
-  - **YouTube tag character counting**: YouTube counts the total as `sum of all tag characters + (number of tags - 1)` for comma separators. Multi-word tags do NOT get extra quote overhead — the old "+2 per multi-word tag" assumption is wrong. To verify locally: join all tags with commas (NO spaces after commas), count the resulting string length. That number matches YouTube Studio's counter. Target ≤ 497 chars to leave a small buffer.
+  - **YouTube tag character counting**: YouTube counts the total as `sum of all tag characters + (number of tags - 1)` for comma separators. Multi-word tags do NOT get extra quote overhead — the old "+2 per multi-word tag" assumption is wrong. To verify locally: join all tags with commas (NO spaces after commas), count the resulting string length. That number matches YouTube Studio's counter. Target `pipeline-defaults.json → youtube.targetTagChars` (currently 490).
   - When generating tag lists, **always output comma-separated with no spaces after commas** so the user can paste directly and the count matches.
 - Thumbnails: style is channel-specific (data channels = minimal/graphic, vlogs = human faces, etc.). Read `channels/<channel>/channel-assets/brand-guide.md` for visual direction.
 

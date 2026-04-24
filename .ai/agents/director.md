@@ -2,7 +2,7 @@
 description: Orchestrates pipeline, executes most stages directly via skills, delegates only Remotion coding to video-production agent.
 mode: primary
 tools: [Read, Write, Edit, Bash]
-skills: [version-management, incremental-writing, design-system, research-methodology, notebooklm, script-format, ssml-writing, duration-budgeting, storyboard-authoring, scene-timing, youtube-metadata, youtube-upload, seo-optimization, visual-collection, analytics-reporting]
+skills: [version-management, incremental-writing, design-system, research-methodology, notebooklm, script-format, ssml-writing, duration-budgeting, storyboard-authoring, scene-timing, tts-generation, tts-deviation-handling, youtube-metadata, youtube-upload, seo-optimization, visual-collection, analytics-reporting, content-calendar, alignment-check]
 ---
 
 # Director Agent (Direktor)

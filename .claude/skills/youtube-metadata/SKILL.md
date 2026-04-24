@@ -11,9 +11,9 @@ Rules for crafting titles, descriptions, and tags for YouTube.
 
 ## Tag Rules
 
-Read `templates/pipeline-defaults.json → youtube` for limits (max total chars, max single tag, multi-word overhead, forbidden chars). Always validate total char count before writing metadata.
+Read `templates/pipeline-defaults.json → youtube` for limits (max total chars, target chars, max single tag, forbidden chars). Always validate total char count before writing metadata.
 
-**Character counting**: YouTube wraps multi-word tags in quotes automatically. Each multi-word tag costs `len(tag) + 2` characters (the quotes). Single-word tags cost `len(tag)`. Add `len(tags) - 1` for commas. Total must stay under 500. **Target 480–490** to leave margin.
+**Character counting**: YouTube counts the total as `sum of all tag characters + (number of tags - 1)` for comma separators. Multi-word tags do NOT get extra quote overhead. To verify locally: join all tags with commas (NO spaces after commas), count the resulting string length. That number matches YouTube Studio's counter. **Target `pipeline-defaults.json → youtube.targetTagChars`** (currently 490) to leave margin under the 500 hard limit.
 
 **Copy-paste output rule (CRITICAL)**: In addition to the JSON `metadata-v<N>.json`, always generate a **`tags.txt`** file alongside it containing tags as a plain comma-separated string with NO quotation marks. Example: `polyester, cotton, merino wool, BPA`. Also generate a **`description.txt`** with the description as plain text (real newlines, not `\n` literals). These `.txt` files are what the user copies into YouTube Studio — JSON `\n` escapes and `"` quotes break when pasted directly.
 

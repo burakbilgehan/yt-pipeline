@@ -180,7 +180,7 @@ function toOpenCodeCommand(parsed: ParsedFile): string {
 function generateOpenCodeJson(
   agentFiles: { filename: string; parsed: ParsedFile }[]
 ): string {
-  const SYNC_RULE = `CRITICAL: After editing any file under .ai/agents/ or .ai/commands/, you MUST run "npx tsx .ai/sync.ts" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly — they are auto-generated and will be overwritten.`;
+  const SYNC_RULE = `CRITICAL: After editing any file under .ai/agents/ or .ai/skills/, you MUST run "npx tsx .ai/sync.ts" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly — they are auto-generated and will be overwritten.`;
 
   const agents: Record<string, unknown> = {
     build: {

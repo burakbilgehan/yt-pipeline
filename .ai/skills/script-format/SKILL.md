@@ -75,5 +75,5 @@ At every step the file on disk must be a parseable, coherent script. A timeout a
 ## Rules
 
 - Write for spoken delivery — conversational, clear
-- Every section needs a `[VISUAL NOTE]` for the Storyboard agent
+- Every section needs a `[VISUAL NOTE]` for storyboard authoring
 - Present draft, wait for user approval before finalizing

@@ -51,13 +51,13 @@ It contains for each component:
 - `alternatives` — what to use instead
 
 **Flow:**
-1. Storyboard agent reads catalog → assigns `visual.motion`, `visual.surface`, `visual.atmosphere` in scene details
-2. Production agent reads scene hints → resolves to actual DS components via registry
+1. Director (storyboard authoring) reads catalog → assigns `visual.motion`, `visual.surface`, `visual.atmosphere` in scene details
+2. Video Production agent reads scene hints → resolves to actual DS components via registry
 3. Critic verifies choices match the catalog's `whenToUse` / `whenNotToUse` guidance
 
 ## Agent-Specific Rules
 
-### Storyboard Agent
+### Director (Storyboard Authoring)
 - **Read `component-catalog.json` before assigning visuals.** Match scene visual needs to catalog `keywords` and `useCases`.
 - Assign `visual.motion`, `visual.surface`, `visual.atmosphere` IDs in scene detail JSON (see `storyboard-authoring` skill → "Design System Hints").
 - Only reference IDs that exist in the catalog. If no matching component exists, note it: `"notes": "NEEDS DS COMPONENT: <description>"`.

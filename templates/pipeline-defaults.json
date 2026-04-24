@@ -39,8 +39,8 @@
   },
   "youtube": {
     "maxTagsTotalChars": 500,
+    "targetTagChars": 490,
     "maxSingleTagChars": 100,
-    "multiWordTagQuoteOverhead": 2,
     "forbiddenTagChars": ["&", "<", ">", "\"", "+", "'"],
     "apiQuotaUploadsPerDay": 6
   },
