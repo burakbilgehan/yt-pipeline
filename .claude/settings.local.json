@@ -24,7 +24,16 @@
       "Bash(git push:*)",
       "Bash(git pull:*)",
       "Bash(python3 *)",
-      "Bash(xargs sed *)"
+      "Bash(xargs sed *)",
+      "Bash(bun run *)",
+      "Bash(node *)",
+      "Bash(npm run *)",
+      "Bash(tee /tmp/render-chokepoints.log)",
+      "Bash(grep -n \"\\\\$\\\\|prefix\\\\|suffix\\\\|color\\\\|ACCENT\" src/remotion/templates/data-charts/Counter.tsx)",
+      "Bash(awk '{print length, $0}')",
+      "Bash(awk '{print $1}')",
+      "Bash(awk '{print length\\($0\\)}')",
+      "WebFetch(domain:x.com)"
     ]
   },
   "hooks": {

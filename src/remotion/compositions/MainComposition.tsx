@@ -304,12 +304,27 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
           "composite-phases",
           "closing-scene",
           "metric-scene",
+          "title-card",
+          "hook-reveal",
+          "scoreboard",
+          "closing-cta",
+          "world-map-scene",
+          "location-map",
+          "timeline",
+          "line-chart",
+          "horizontal-bar-chart",
+          "bar-chart",
+          "pie-chart",
+          "counter",
+          "comparison-table",
+          "progress-ring",
+          "scale-comparison",
         ]);
         const chartIsFullScreen = dc && FULL_SCREEN_CHART_TYPES.has(dc.type);
         const SurfaceComp = surfaceId && surfaceId !== "none" && !chartIsFullScreen
           ? getSurface(surfaceId) : undefined;
         const useBlurFade = motionId && motionId !== "none" && motionId === "blur-fade-in" && !chartIsFullScreen;
-        const useTilt = motionId === "tilt" && !chartIsFullScreen;
+        const useTilt = (motionId === "tilt" || motionId === "tilt-card") && !chartIsFullScreen;
 
         return (
           <Sequence

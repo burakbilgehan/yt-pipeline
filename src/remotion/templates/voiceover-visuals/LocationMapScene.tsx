@@ -50,7 +50,7 @@ const GridPattern: React.FC<{ scale: number }> = ({ scale }) => (
       inset: 0,
       width: "100%",
       height: "100%",
-      opacity: 0.03,
+      opacity: 0.08,
     }}
   >
     <defs>
@@ -440,13 +440,13 @@ export const LocationMapScene: React.FC<LocationMapSceneProps> = ({
     expandAtFrame = Math.round(fps * 1),
   } = chart;
 
-  // ─── Card dimensions (original: collapsed 240×140, expanded 360×280) ──
-  // Scaled 2.5x for 1080p video: collapsed 600×350, expanded 900×700
-  const SCALE = 2.5;
-  const COLLAPSED_W = 240 * SCALE; // 600
-  const COLLAPSED_H = 140 * SCALE; // 350
-  const EXPANDED_W = 360 * SCALE;  // 900
-  const EXPANDED_H = 280 * SCALE;  // 700
+   // ─── Card dimensions (original: collapsed 240×140, expanded 360×280) ──
+    // Scaled for 1080p video — use moderate scale to avoid overflow
+    const SCALE = 1.8;
+    const COLLAPSED_W = 240 * SCALE;
+    const COLLAPSED_H = 140 * SCALE;
+    const EXPANDED_W = 360 * SCALE;
+    const EXPANDED_H = 280 * SCALE;
 
   // ─── Entrance fade ───────────────────────────────────────────
   const entranceOpacity = interpolate(frame, [0, 15], [0, 1], {
@@ -485,7 +485,7 @@ export const LocationMapScene: React.FC<LocationMapSceneProps> = ({
           style={{
             width: cardWidth,
             height: cardHeight,
-            backgroundColor: BG,
+            backgroundColor: SURFACE,
             border: `1px solid ${SURFACE_BORDER}`,
             borderRadius: 20 * SCALE / 2.5, // rounded-2xl ≈ 16px → keep 20 for video
             overflow: "hidden",
@@ -498,7 +498,7 @@ export const LocationMapScene: React.FC<LocationMapSceneProps> = ({
             style={{
               position: "absolute",
               inset: 0,
-              background: `linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.04) 100%)`,
+              background: `linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.10) 100%)`,
               pointerEvents: "none",
             }}
           />

@@ -7,7 +7,7 @@ import {
   spring,
   Easing,
 } from "remotion";
-import { TEXT_SECONDARY } from "../../palette";
+import { TEXT_SECONDARY, BG } from "../../palette";
 
 interface HookRevealProps {
   /** The big "before" number (e.g. "26,000%") */
@@ -40,15 +40,23 @@ interface HookRevealProps {
   variant?: "classic" | "counting-ticker";
 }
 
-// ─── Parse numeric value from formatted string like "26,000%" ───
+// ─── Parse numeric value from formatted string like "26,000%" or "$119" ───
 function parseDisplayNumber(s: string): number {
-  return parseFloat(s.replace(/[,%]/g, ""));
+  const n = parseFloat(s.replace(/[,%$€£¥\s]/g, ""));
+  return Number.isFinite(n) ? n : 0;
 }
 
-// ─── Format number back with commas + suffix ───
-function formatDisplayNumber(n: number, suffix: string): string {
+// ─── Detect currency prefix ($, €, £, ¥) from a string ───
+function getPrefix(s: string): string {
+  const m = s.match(/^[\$€£¥]/);
+  return m ? m[0] : "";
+}
+
+// ─── Format number back with commas + suffix and optional prefix ───
+function formatDisplayNumber(n: number, suffix: string, prefix = ""): string {
+  if (!Number.isFinite(n)) return prefix + "0" + suffix;
   const rounded = Math.round(n);
-  return rounded.toLocaleString("en-US") + suffix;
+  return prefix + rounded.toLocaleString("en-US") + suffix;
 }
 
 // ─── Interpolate color between two hex colors ───
@@ -104,7 +112,7 @@ const CountingTickerVariant: React.FC<HookRevealProps> = ({
   contextDuration = 1.5,
   bigColor = "#2D8B4E",
   smallColor = "#C8A94E",
-  backgroundColor = "#F5F0E8",
+  backgroundColor = BG,
   fontFamily = "Montserrat, sans-serif",
   bigHoldDuration = 5,
   deflationDuration = 2.5,
@@ -130,6 +138,7 @@ const CountingTickerVariant: React.FC<HookRevealProps> = ({
   const bigVal = parseDisplayNumber(bigNumber);
   const smallVal = parseDisplayNumber(smallNumber);
   const suffix = bigNumber.includes("%") ? "%" : "";
+  const prefix = getPrefix(bigNumber) || getPrefix(smallNumber);
 
   // ── Timeline (in frames) ──
   const contextFrames = fps * contextDuration;          // 0 → 1.5s
@@ -190,24 +199,24 @@ const CountingTickerVariant: React.FC<HookRevealProps> = ({
 
   // ── Current displayed value ──
   const displayValue = useMemo(() => {
-    if (frame < countUpStart) return formatDisplayNumber(0, suffix);
+    if (frame < countUpStart) return formatDisplayNumber(0, suffix, prefix);
     if (frame <= countUpEnd) {
       // Count up: 0 → bigVal
       const val = countUpProgress * bigVal;
-      return formatDisplayNumber(val, suffix);
+      return formatDisplayNumber(val, suffix, prefix);
     }
     if (frame < rewindStart) {
       // Hold at peak
-      return formatDisplayNumber(bigVal, suffix);
+      return formatDisplayNumber(bigVal, suffix, prefix);
     }
     if (frame <= rewindEnd) {
       // Rewind: bigVal → smallVal
       const val = bigVal + (smallVal - bigVal) * rewindProgress;
-      return formatDisplayNumber(val, suffix);
+      return formatDisplayNumber(val, suffix, prefix);
     }
     // Done — show smallVal
-    return formatDisplayNumber(smallVal, suffix);
-  }, [frame, countUpStart, countUpEnd, rewindStart, rewindEnd, countUpProgress, rewindProgress, bigVal, smallVal, suffix]);
+    return formatDisplayNumber(smallVal, suffix, prefix);
+  }, [frame, countUpStart, countUpEnd, rewindStart, rewindEnd, countUpProgress, rewindProgress, bigVal, smallVal, suffix, prefix]);
 
   // ── Color transition ──
   const currentColor = useMemo(() => {
@@ -344,7 +353,7 @@ const CountingTickerVariant: React.FC<HookRevealProps> = ({
               filter: "blur(2px)",
             }}
           >
-            {formatDisplayNumber(Math.max(0, countUpProgress * bigVal - bigVal * 0.08), suffix)}
+            {formatDisplayNumber(Math.max(0, countUpProgress * bigVal - bigVal * 0.08), suffix, prefix)}
           </div>
           <div
             style={{
@@ -359,7 +368,7 @@ const CountingTickerVariant: React.FC<HookRevealProps> = ({
               filter: "blur(3px)",
             }}
           >
-            {formatDisplayNumber(Math.max(0, countUpProgress * bigVal - bigVal * 0.15), suffix)}
+            {formatDisplayNumber(Math.max(0, countUpProgress * bigVal - bigVal * 0.15), suffix, prefix)}
           </div>
         </>
       )}
@@ -465,7 +474,7 @@ const ClassicVariant: React.FC<HookRevealProps> = ({
   contextDuration = 1.5,
   bigColor = "#2D8B4E",
   smallColor = "#C8A94E",
-  backgroundColor = "#F5F0E8",
+  backgroundColor = BG,
   fontFamily = "Montserrat, sans-serif",
   bigHoldDuration = 5,
   deflationDuration = 2.5,

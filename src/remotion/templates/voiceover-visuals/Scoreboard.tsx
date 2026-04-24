@@ -7,7 +7,7 @@ import {
   spring,
   Easing,
 } from "remotion";
-import { TEXT, TEXT_MUTED, TEXT_FAINT } from "../../palette";
+import { TEXT, TEXT_MUTED, TEXT_FAINT, BG } from "../../palette";
 
 interface ScoreboardItem {
   label: string;
@@ -31,6 +31,8 @@ interface ScoreboardProps {
   fontFamily?: string;
   /** Max bar width as percentage of available width */
   maxBarWidth?: number;
+  /** Hide proportional bars — useful when items use different units */
+  showBars?: boolean;
 }
 
 /**
@@ -44,9 +46,10 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
   title,
   items,
   footerText,
-  backgroundColor = "#F5F0E8",
+  backgroundColor = BG,
   fontFamily = "Montserrat, sans-serif",
   maxBarWidth = 65,
+  showBars = true,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -125,12 +128,12 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
           const barWidth = interpolate(entrance, [0, 1], [0, barWidthPercent]);
           const displayValue = interpolate(entrance, [0, 1], [0, item.value]);
 
-          // Muted colors for light theme
-          const barColor = isPositive
+          // Use item color for bar, with reduced opacity for track-like feel
+          const barColor = item.color || (isPositive
             ? "rgba(45, 139, 78, 0.6)"
-            : "rgba(192, 57, 43, 0.5)";
+            : "rgba(192, 57, 43, 0.5)");
 
-          const textColor = isPositive ? "#2D8B4E" : "#C0392B";
+          const textColor = item.color || (isPositive ? "#2D8B4E" : "#C0392B");
 
           return (
             <div
@@ -172,42 +175,64 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
               </div>
 
               {/* Bar */}
+              {showBars && (
+                <div
+                  style={{
+                    flex: 1,
+                    height: 32,
+                    backgroundColor: barTrackBg,
+                    borderRadius: 0,
+                    overflow: "hidden",
+                    position: "relative",
+                    marginRight: 16,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${barWidth}%`,
+                      height: "100%",
+                      backgroundColor: barColor,
+                      borderRadius: 0,
+                    }}
+                  />
+                </div>
+              )}
+              {!showBars && <div style={{ flex: 1 }} />}
+
+              {/* Value + Period */}
               <div
                 style={{
-                  flex: 1,
-                  height: 32,
-                  backgroundColor: barTrackBg,
-                  borderRadius: 0,
-                  overflow: "hidden",
-                  position: "relative",
-                  marginRight: 16,
+                  width: 200,
+                  flexShrink: 0,
+                  textAlign: "right",
                 }}
               >
                 <div
                   style={{
-                    width: `${barWidth}%`,
-                    height: "100%",
-                    backgroundColor: barColor,
-                    borderRadius: 0,
+                    fontSize: 20,
+                    fontWeight: 800,
+                    color: textColor,
+                    fontVariantNumeric: "tabular-nums",
+                    lineHeight: 1.2,
                   }}
-                />
-              </div>
-
-              {/* Value */}
-              <div
-                style={{
-                  width: 110,
-                  fontSize: 22,
-                  fontWeight: 800,
-                  color: textColor,
-                  textAlign: "right",
-                  flexShrink: 0,
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {isPositive ? "+" : ""}
-                {displayValue.toFixed(1)}
-                {item.suffix || "%"}
+                >
+                  {isPositive && item.value > 0 ? "+" : ""}
+                  {Number.isInteger(item.value) ? Math.round(displayValue) : displayValue.toFixed(displayValue >= 10 ? 1 : 2)}
+                  {item.suffix ?? ""}
+                </div>
+                {item.period && (
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: textMuted,
+                      lineHeight: 1.2,
+                      marginTop: 2,
+                    }}
+                  >
+                    {item.period}
+                  </div>
+                )}
               </div>
             </div>
           );

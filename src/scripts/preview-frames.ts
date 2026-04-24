@@ -21,7 +21,8 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { bundle } from "@remotion/bundler";
 import { renderStill, selectComposition } from "@remotion/renderer";
-import { getProjectDir, loadProjectConfig, loadChannelConfig } from "../utils/project";
+import { getProjectDir, loadProjectConfig, loadChannelConfig, loadStoryboardResolved } from "../utils/project";
+import { bridgeAllScenes } from "../utils/storyboard-bridge";
 
 const REMOTION_ENTRY = path.resolve("src", "remotion", "index.ts");
 
@@ -278,76 +279,89 @@ async function main() {
     process.exit(1);
   }
 
-  // ── Load video-config.json ──
+  // ── Load scene data (video-config.json OR storyboard) ──
   const videoConfigPath = path.join(projectDir, "production", "video-config.json");
-  if (!fs.existsSync(videoConfigPath)) {
-    console.error("No video-config.json found. Run production pipeline first.");
-    process.exit(1);
-  }
+  const channelConfig = loadChannelConfig();
 
-  const videoConfig: VideoConfig = JSON.parse(fs.readFileSync(videoConfigPath, "utf-8"));
+  let scenes: VideoConfig["scenes"];
+  let fpsCfg: number;
+  let width: number;
+  let height: number;
+  let totalDuration: number;
+  let brandColor: string;
+  let fontFamilyCfg: string;
+  let titleCfg: string;
+  let audioFiles: string[] = [];
+  let audioSegments: Array<{ src: string; startTime: number }> = [];
 
-  // ── Remap colors from legacy palettes to dusty-editorial theme ──
-  // This remaps at runtime without modifying the original video-config.json
-  const COLOR_REMAP: Record<string, string> = {
-    "#1A1824": "#2A2A32",  // Legacy background → dusty editorial bg
-    "#1A1B22": "#2A2A32",  // Old dark bg → dusty editorial bg
-    "#2D2B3D": "#2A2A32",  // Old gradient end → solid bg
-    "#D47FA6": "#E88CA5",  // Legacy pink → new accent1
-    "#C97B9F": "#E88CA5",  // Legacy secondary pink → new accent1
-    "#D8A7B1": "#E88CA5",  // Old muted pink → new accent1
-    "#90AFC5": "#7BA7C9",  // Old muted blue → new accent2
-    "#E8E0D4": "#F0EDE8",  // Legacy cream → new text
-    "#EAE0D5": "#F0EDE8",  // Old accent cream → new text
-    "#A3B18A": "#8A9A7A",  // Old sage/grid → new grid
-  };
-
-  function remapColor(hex: string | undefined): string | undefined {
-    if (!hex) return hex;
-    const upper = hex.toUpperCase();
-    for (const [oldColor, newColor] of Object.entries(COLOR_REMAP)) {
-      if (upper === oldColor.toUpperCase()) return newColor;
+  if (fs.existsSync(videoConfigPath)) {
+    // ── Legacy: video-config.json path ──
+    const videoConfig: VideoConfig = JSON.parse(fs.readFileSync(videoConfigPath, "utf-8"));
+    scenes = videoConfig.scenes || [];
+    fpsCfg = videoConfig.fps || 30;
+    width = videoConfig.width || 1920;
+    height = videoConfig.height || 1080;
+    totalDuration = videoConfig.durationSeconds || 60;
+    brandColor = videoConfig.brandColor || channelConfig.visuals.brandColor;
+    fontFamilyCfg = videoConfig.fontFamily || channelConfig.visuals.fontFamily;
+    titleCfg = videoConfig.title || slug;
+    audioFiles = videoConfig.audioFiles || [];
+    audioSegments = videoConfig.audioSegments || [];
+  } else {
+    // ── Storyboard path ──
+    console.log("No video-config.json — using storyboard path.");
+    const storyboard = loadStoryboardResolved(slug);
+    if (!storyboard || !storyboard.scenes || storyboard.scenes.length === 0) {
+      console.error("No storyboard found or empty. Run storyboard agent first.");
+      process.exit(1);
     }
-    return hex;
-  }
+    console.log(`Using storyboard v${storyboard.version} (${storyboard.scenes.length} scenes)`);
 
-  // Remap top-level config colors
-  videoConfig.backgroundColor = remapColor(videoConfig.backgroundColor) || videoConfig.backgroundColor;
-  videoConfig.brandColor = remapColor(videoConfig.brandColor) || videoConfig.brandColor;
+    // Bridge dataVisualization → dataChart
+    bridgeAllScenes(storyboard.scenes);
 
-  // Remap per-scene item colors
-  let remappedCount = 0;
-  for (const scene of videoConfig.scenes) {
-    if (scene.visual.dataChart?.items) {
-      for (const item of scene.visual.dataChart.items as Array<{ color?: string }>) {
-        const newColor = remapColor(item.color);
-        if (newColor !== item.color) {
-          item.color = newColor;
-          remappedCount++;
+    scenes = storyboard.scenes as any;
+    const lastScene = storyboard.scenes[storyboard.scenes.length - 1];
+    fpsCfg = channelConfig.visuals.fps || 30;
+    width = channelConfig.visuals.resolution?.width || 1920;
+    height = channelConfig.visuals.resolution?.height || 1080;
+    totalDuration = (lastScene as any).endTime || storyboard.totalDuration || 60;
+    brandColor = channelConfig.visuals.brandColor;
+    fontFamilyCfg = channelConfig.visuals.fontFamily;
+    const config = loadProjectConfig(slug);
+    titleCfg = config?.title || slug;
+
+    // Load audio segments from manifest
+    const manifestPath = path.join(projectDir, "production", "audio", "audio-manifest.json");
+    if (fs.existsSync(manifestPath)) {
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+      for (const block of manifest.blocks) {
+        const audioRelPath = path.join("production", "audio", block.file);
+        const audioAbsPath = path.join(projectDir, audioRelPath);
+        if (fs.existsSync(audioAbsPath)) {
+          audioFiles.push(audioRelPath);
+          const matchingScene = storyboard.scenes.find((s: any) => s.id === block.id);
+          audioSegments.push({ src: audioRelPath, startTime: (matchingScene as any)?.startTime ?? block.startTime ?? 0 });
         }
       }
     }
   }
 
-  console.log(`🎨 Color remap: ${remappedCount} item colors + top-level bg/brand updated to dusty-editorial v3`);
-  const fps = videoConfig.fps || 30;
-  const width = videoConfig.width || 1920;
-  const height = videoConfig.height || 1080;
-  const totalDuration = videoConfig.durationSeconds || 60;
+  const fps = fpsCfg;
   const totalFrames = Math.ceil(totalDuration * fps);
 
-  console.log(`🎬 Preview: ${videoConfig.title || slug}`);
-  console.log(`   ${videoConfig.scenes.length} scenes, ${totalDuration}s, ${width}x${height} @ ${fps}fps`);
+  console.log(`🎬 Preview: ${titleCfg}`);
+  console.log(`   ${scenes.length} scenes, ${totalDuration}s, ${width}x${height} @ ${fps}fps`);
 
   // ── Prepare preview directory (wipe + recreate) ──
-  const previewDir = path.join(projectDir, "preview");
+  const previewDir = path.join(projectDir, "production", "test-renders");
   if (fs.existsSync(previewDir)) {
     fs.rmSync(previewDir, { recursive: true, force: true });
   }
   fs.mkdirSync(previewDir, { recursive: true });
 
   // ── Build frame jobs ──
-  const jobs = buildFrameJobs(videoConfig.scenes, fps);
+  const jobs = buildFrameJobs(scenes, fps);
 
   // Count by type
   const chartFrames = jobs.filter((j) => j.label === "start" || j.label === "end").length;
@@ -369,18 +383,17 @@ async function main() {
   console.log(`   Bundled in ${((Date.now() - bundleStart) / 1000).toFixed(1)}s`);
 
   // ── Select composition ──
-  const channelConfig = loadChannelConfig();
   const compositionId = "MainVideo";
 
   const inputProps = {
-    title: videoConfig.title || slug,
-    scenes: videoConfig.scenes || [],
-    audioFiles: videoConfig.audioFiles || [],
-    audioSegments: videoConfig.audioSegments || [],
-    showSubtitles: videoConfig.showSubtitles ?? true,
-    showProgressBar: videoConfig.showProgressBar ?? false,
-    brandColor: videoConfig.brandColor || channelConfig.visuals.brandColor,
-    fontFamily: videoConfig.fontFamily || channelConfig.visuals.fontFamily,
+    title: titleCfg,
+    scenes,
+    audioFiles,
+    audioSegments,
+    showSubtitles: false,
+    showProgressBar: false,
+    brandColor,
+    fontFamily: fontFamilyCfg,
   };
 
   const composition = await selectComposition({
@@ -430,7 +443,7 @@ async function main() {
   console.log(`📁 Output: ${previewDir}`);
 
   // ── Create contact sheet ──
-  await createContactSheet(previewDir, jobs, videoConfig.scenes, fps);
+  await createContactSheet(previewDir, jobs, scenes, fps);
 
   console.log("\n🎉 Done! Open the contact sheet in a browser to review all frames.");
 }

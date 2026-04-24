@@ -9,6 +9,17 @@ import {
 import { HorizontalBarChart } from "./HorizontalBarChart";
 import { SplitComparison } from "./SplitComparison";
 import { TitleCard } from "./TitleCard";
+import { Counter } from "./Counter";
+import { BarChart } from "./BarChart";
+import { PieChart } from "./PieChart";
+import { LineChart } from "./LineChart";
+import { TimelineChart } from "./TimelineChart";
+import { ScaleComparison } from "./ScaleComparison";
+import { ProgressRing } from "./ProgressRing";
+import { ComparisonTable } from "./ComparisonTable";
+import { VerticalTabScene } from "../voiceover-visuals/VerticalTabScene";
+import { LocationMapScene } from "../voiceover-visuals/LocationMapScene";
+import { SceneVisual } from "../voiceover-visuals/SceneVisual";
 import { BG } from "../../palette";
 
 /**
@@ -95,6 +106,94 @@ export const CompositePhases: React.FC<CompositePhasesProps> = ({
         return (
           <HorizontalBarChart
             chart={phaseChart}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+          />
+        );
+      case "counter":
+        return (
+          <Counter
+            chart={phaseChart}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+          />
+        );
+      case "bar-chart":
+        return (
+          <BarChart
+            chart={phaseChart}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+          />
+        );
+      case "pie-chart":
+        return (
+          <PieChart
+            chart={phaseChart}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+          />
+        );
+      case "line-chart":
+        return (
+          <LineChart
+            chart={phaseChart}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+          />
+        );
+      case "timeline":
+        return (
+          <TimelineChart
+            chart={phaseChart}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+          />
+        );
+      case "scale-comparison":
+        return (
+          <ScaleComparison
+            chart={phaseChart}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+          />
+        );
+      case "progress-ring":
+        return (
+          <ProgressRing
+            chart={phaseChart}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+          />
+        );
+      case "comparison-table":
+        return (
+          <ComparisonTable
+            chart={phaseChart}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+          />
+        );
+      case "vertical-tabs":
+        return (
+          <VerticalTabScene
+            chart={phaseChart}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+          />
+        );
+      case "location-map":
+        return (
+          <LocationMapScene
+            chart={phaseChart}
+            brandColor={brandColor}
+            fontFamily={fontFamily}
+          />
+        );
+      case "scene-visual":
+        return (
+          <SceneVisual
+            visual={phaseChart.visual || {}}
             brandColor={brandColor}
             fontFamily={fontFamily}
           />

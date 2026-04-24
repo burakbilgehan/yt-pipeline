@@ -123,7 +123,7 @@ export const VerticalTabScene: React.FC<VerticalTabSceneProps> = ({
       {/* ── Left column: heading + tabs ── */}
       <div
         style={{
-          width: hasAnyImage ? "42%" : "48%",
+          width: hasAnyImage ? "42%" : "100%",
           flexShrink: 0,
         }}
       >
@@ -177,9 +177,9 @@ export const VerticalTabScene: React.FC<VerticalTabSceneProps> = ({
         </div>
       </div>
 
-      {/* ── Right column: ImagePanel (with images) or InfoPanel (no images) ── */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        {hasAnyImage ? (
+      {/* ── Right column: ImagePanel only (skip InfoPanel — duplicates tab content) ── */}
+      {hasAnyImage && (
+        <div style={{ flex: 1, minWidth: 0 }}>
           <ImagePanel
             items={items}
             activeIndex={activeIndex}
@@ -188,17 +188,8 @@ export const VerticalTabScene: React.FC<VerticalTabSceneProps> = ({
             fps={fps}
             brandColor={brandColor}
           />
-        ) : (
-          <InfoPanel
-            items={items}
-            activeIndex={activeIndex}
-            localFrame={localFrame}
-            fps={fps}
-            brandColor={brandColor}
-            fontFamily={fontFamily}
-          />
-        )}
-      </div>
+        </div>
+      )}
     </AbsoluteFill>
   );
 };
@@ -334,11 +325,11 @@ const TabItemRow: React.FC<TabItemRowProps> = ({
       >
         <div
           style={{
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: 400,
             color: TEXT_MUTED,
             lineHeight: 1.5,
-            maxWidth: 460,
+            maxWidth: 720,
           }}
         >
           {item.description}

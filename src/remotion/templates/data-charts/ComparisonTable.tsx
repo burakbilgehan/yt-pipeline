@@ -827,9 +827,9 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
             // Numeric values — render animated butterfly bars
             const lv = row.leftValue as number;
             const rv = row.rightValue as number;
-            const total = lv + rv;
-            const leftPct = total > 0 ? (lv / total) * 100 : 50;
-            const rightPct = total > 0 ? (rv / total) * 100 : 50;
+            const maxVal = Math.max(Math.abs(lv), Math.abs(rv)) || 1;
+            const leftPct = (Math.abs(lv) / maxVal) * 100;
+            const rightPct = (Math.abs(rv) / maxVal) * 100;
 
             return (
               <div key={row.label + rowIndex}>
@@ -879,7 +879,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                   {/* Left bar */}
                   <div
                     style={{
-                      flex: leftPct,
+                      flex: 1,
                       height: 70,
                       backgroundColor: TRACK_COLOR,
                       borderRadius: 0,
@@ -890,7 +890,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                   >
                     <div
                       style={{
-                        width: `${100 * rowSpring}%`,
+                        width: `${leftPct * rowSpring}%`,
                         height: "100%",
                         backgroundColor: row.leftColor,
                         borderRadius: 0,
@@ -915,7 +915,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                   {/* Right bar */}
                   <div
                     style={{
-                      flex: rightPct,
+                      flex: 1,
                       height: 70,
                       backgroundColor: TRACK_COLOR,
                       borderRadius: 0,
@@ -926,7 +926,7 @@ const DuelComparison: React.FC<ComparisonTableProps> = ({
                   >
                     <div
                       style={{
-                        width: `${100 * rowSpring}%`,
+                        width: `${rightPct * rowSpring}%`,
                         height: "100%",
                         backgroundColor: row.rightColor,
                         borderRadius: 0,

@@ -192,11 +192,12 @@ export const Counter: React.FC<CounterProps> = ({
         {prefix && (
           <span
             style={{
-              color: brandColor,
+              color: TEXT,
               fontSize: 220,
               fontFamily,
               fontWeight: 700,
               fontVariantNumeric: "tabular-nums lining-nums",
+              opacity: 0.85,
             }}
           >
             {prefix}
@@ -216,11 +217,12 @@ export const Counter: React.FC<CounterProps> = ({
         {suffix && (
           <span
             style={{
-              color: ACCENT_PINK,
+              color: TEXT,
               fontSize: 88,
               fontFamily,
               fontWeight: 600,
               marginLeft: 10,
+              opacity: 0.75,
             }}
           >
             {suffix}

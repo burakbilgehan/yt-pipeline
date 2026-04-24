@@ -27,6 +27,11 @@ import { MetricScene } from "./MetricScene";
 import { HookPunchline } from "./HookPunchline";
 import { HorseRaceChart } from "./HorseRaceChart";
 import { VerticalTabScene } from "../voiceover-visuals/VerticalTabScene";
+import { WorldMapScene } from "./WorldMapScene";
+import { HookReveal } from "../voiceover-visuals/HookReveal";
+import { LocationMapScene } from "../voiceover-visuals/LocationMapScene";
+import { Scoreboard } from "../voiceover-visuals/Scoreboard";
+import { ClosingCTA } from "../voiceover-visuals/ClosingCTA";
 
 interface DataChartSceneProps {
   chart: DataChartInput;
@@ -166,6 +171,76 @@ export const DataChartScene: React.FC<DataChartSceneProps> = ({
       return (
         <VerticalTabScene chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
       );
+
+    case "world-map-scene": {
+      // Adapt scene dataChart → WorldMapScene config prop
+      const c = chart as any;
+      const wmConfig = {
+        type: "world-map" as const,
+        region: c.region || "world",
+        zoom: c.zoom || 1,
+        center: c.center || [30, 20] as [number, number],
+        highlights: c.highlights,
+        highlightColor: c.highlightColor,
+        chokepoints: c.markers?.map((m: any) => ({
+          name: m.label || m.id,
+          lon: m.lng ?? m.lon,
+          lat: m.lat,
+          color: m.color || brandColor,
+          pulse: m.status !== "blocked",
+        })),
+        annotations: c.annotations,
+        title: c.title,
+        subtitle: c.subtitle,
+        statusIndicator: c.statusIndicator,
+      };
+      return <WorldMapScene config={wmConfig as any} brandColor={brandColor} fontFamily={fontFamily} />;
+    }
+
+    case "hook-reveal": {
+      const c = chart as any;
+      return (
+        <HookReveal
+          bigNumber={c.bigNumber || ""}
+          smallNumber={c.smallNumber || ""}
+          subtitle={c.subtitle}
+          contextLine={c.contextLine}
+          variant={c.variant}
+        />
+      );
+    }
+
+    case "location-map":
+      return (
+        <LocationMapScene chart={chart as any} brandColor={brandColor} fontFamily={fontFamily} />
+      );
+
+    case "scoreboard": {
+      const c = chart as any;
+      return (
+        <Scoreboard
+          title={c.title}
+          items={c.items || []}
+          footerText={c.footerText}
+          fontFamily={fontFamily}
+          showBars={c.showBars !== false}
+        />
+      );
+    }
+
+    case "closing-cta": {
+      const c = chart as any;
+      return (
+        <ClosingCTA
+          message={c.message}
+          channelName={c.channelName}
+          ctaText={c.ctaText}
+          accentColor={brandColor}
+          fontFamily={fontFamily}
+          showEndScreen={c.showEndScreen}
+        />
+      );
+    }
 
     case "horse-race": {
       // Extract HorseRaceChartProps from the chart object.

@@ -7,7 +7,7 @@ import {
   spring,
   Easing,
 } from "remotion";
-import { TEXT, TEXT_SECONDARY, TEXT_MUTED } from "../../palette";
+import { TEXT, TEXT_SECONDARY, TEXT_MUTED, BG } from "../../palette";
 
 interface AssetItem {
   /** Asset name (e.g. "Oil (WTI)") */
@@ -56,7 +56,7 @@ export const AssetParade: React.FC<AssetParadeProps> = ({
   assets,
   goldPrice,
   dataBadge,
-  backgroundColor = "#F5F0E8",
+  backgroundColor = BG,
   accentColor = "#C8A94E",
   fontFamily = "Montserrat, sans-serif",
   formulaDuration = 6,

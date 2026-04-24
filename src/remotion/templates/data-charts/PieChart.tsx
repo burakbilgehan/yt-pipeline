@@ -80,9 +80,13 @@ export const PieChart: React.FC<PieChartProps> = ({
             />
           );
         })}
-        {/* Center label — shows the largest segment's percentage */}
+        {/* Center label — shows the highlighted segment, or largest by default */}
         {(() => {
-          const largest = items.reduce((a, b) => (a.value >= b.value ? a : b), items[0]);
+          const highlightLabel = (chart as any).highlightLabel as string | undefined;
+          const focused = highlightLabel
+            ? (items.find((i) => i.label === highlightLabel) ?? items[0])
+            : items.reduce((a, b) => (a.value >= b.value ? a : b), items[0]);
+          const largest = focused;
           const pct = total > 0 ? ((largest.value / total) * 100) : 0;
           const pctStr = pct % 1 === 0 ? `${pct}%` : `${pct.toFixed(1)}%`;
           const centerOpacity = interpolate(sweepProgress, [0.4, 0.8], [0, 1], {

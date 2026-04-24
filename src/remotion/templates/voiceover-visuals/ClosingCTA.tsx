@@ -7,7 +7,7 @@ import {
   spring,
   Easing,
 } from "remotion";
-import { TEXT, TEXT_SECONDARY } from "../../palette";
+import { TEXT, TEXT_SECONDARY, BG } from "../../palette";
 
 interface ClosingCTAProps {
   /** Main closing message */
@@ -38,7 +38,7 @@ export const ClosingCTA: React.FC<ClosingCTAProps> = ({
   message = "Nominal returns are an illusion.",
   channelName = "The World With Numbers",
   ctaText = "Subscribe",
-  backgroundColor = "#F5F0E8",
+  backgroundColor = BG,
   accentColor = "#C8A94E",
   fontFamily = "Montserrat, sans-serif",
   showEndScreen = true,
