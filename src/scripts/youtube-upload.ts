@@ -106,7 +106,7 @@ async function main() {
         snippet: {
           title: metadata.title,
           description: metadata.description,
-          tags: [], // DEBUG: empty tags to isolate error
+          tags: [finalTags.join(", ")],
           categoryId: getCategoryId(metadata.category),
           defaultLanguage: metadata.language || "en",
         },

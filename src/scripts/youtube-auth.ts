@@ -53,7 +53,7 @@ async function main() {
 
   // Try to open browser automatically
   const { exec } = await import("node:child_process");
-  exec(`start "" "${authUrl}"`);
+  exec(`open "${authUrl}"`);
 
   return new Promise<void>((resolve) => {
     const server = http.createServer(async (req, res) => {
