@@ -20,7 +20,7 @@ Default thresholds (from `pipeline-defaults.json → tts.deviationThresholds`, o
 | ≤ok% | No action needed |
 | ok–postProcess% | Accept, or post-process with `ffmpeg atempo` filter |
 | postProcess–regenBlock% | Re-generate specific blocks: `npm run tts <slug> -- --block <id> --speed <X>` |
-| >regenBlock% | STOP — script needs adjustment. Route back to content-writer. |
+| >regenBlock% | STOP — script needs adjustment. Edit the script to adjust word count/pacing. |
 
 ## Post-Process with ffmpeg
 

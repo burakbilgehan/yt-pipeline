@@ -9,65 +9,20 @@
       "mode": "primary",
       "prompt": "You are part of the yt-pipeline YouTube channel factory framework. Analyze, plan, and suggest without making changes. All conversation is in Turkish. Follow the architecture defined in AGENTS.md.\n\nCRITICAL: After editing any file under .ai/agents/ or .ai/commands/, you MUST run \"npx tsx .ai/sync.ts\" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly — they are auto-generated and will be overwritten."
     },
-    "analytics": {
-      "description": "Tracks post-publish performance and provides insights.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/analytics.md}"
-    },
-    "collector": {
-      "description": "Utility agent that fetches visuals, data, and text content from the internet.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/collector.md}"
-    },
-    "content-strategist": {
-      "description": "Tracks trends, manages content calendar, plans follow-ups and new topics. Ensures channel macro alignment.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/content-strategist.md}"
-    },
-    "content-writer": {
-      "description": "Writes video scripts and voiceover text from research output.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/content-writer.md}"
-    },
     "critic": {
-      "description": "Quality gate at every pipeline stage. Reviews for factual accuracy, engagement, and production quality. Blocks bullshit.",
+      "description": "Quality gate — reviews deliverables for accuracy, engagement, and production quality. Opt-in only.",
       "mode": "subagent",
       "prompt": "{file:.opencode/agents/critic.md}"
     },
     "director": {
-      "description": "Oversees all agents, coordinates pipeline, advises on channel strategy and direction.",
+      "description": "Orchestrates pipeline, executes most stages directly via skills, delegates only Remotion coding to video-production agent.",
       "mode": "primary",
       "prompt": "{file:.opencode/agents/director.md}\n\nCRITICAL: After editing any file under .ai/agents/ or .ai/commands/, you MUST run \"npx tsx .ai/sync.ts\" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly — they are auto-generated and will be overwritten."
     },
-    "publisher": {
-      "description": "Plans publishing strategy and uploads videos to YouTube.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/publisher.md}"
-    },
-    "qa": {
-      "description": "Quality assurance - reports pipeline issues, performs quality checks, suggests improvements.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/qa.md}"
-    },
-    "researcher": {
-      "description": "Researches topics for video content. Gathers data, sources, and facts. Performs fact-checking.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/researcher.md}"
-    },
-    "storyboard": {
-      "description": "Creates scene-by-scene visual plans from approved content.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/storyboard.md}"
-    },
     "video-production": {
-      "description": "Produces video using Remotion, TTS, and collected visuals.",
+      "description": "Remotion composition coding, DS component adaptation, visual debugging — with mandatory self-QA loop.",
       "mode": "subagent",
       "prompt": "{file:.opencode/agents/video-production.md}"
-    },
-    "youtube-expert": {
-      "description": "YouTube SEO, algorithm best practices, tag/description optimization, channel analytics.",
-      "mode": "subagent",
-      "prompt": "{file:.opencode/agents/youtube-expert.md}"
     }
   }
 }

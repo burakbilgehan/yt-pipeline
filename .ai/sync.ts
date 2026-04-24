@@ -1,8 +1,8 @@
 /**
  * .ai/ → .claude/ + .opencode/ sync script
  *
- * Single source of truth: .ai/agents/, .ai/commands/, .ai/skills/
- * Generated (read-only): .claude/agents/, .claude/commands/, .claude/skills/, .opencode/agents/, .opencode/commands/, opencode.json
+ * Single source of truth: .ai/agents/, .ai/skills/
+ * Generated (read-only): .claude/agents/, .claude/skills/, .opencode/agents/, .opencode/skills/, opencode.json
  *
  * Usage: npx tsx .ai/sync.ts
  */
@@ -294,7 +294,7 @@ function cleanOrphanSkills(targetSkillsDir: string, sourceSkillNames: string[]) 
       const skillFile = path.join(targetSkillsDir, name, "SKILL.md");
       if (fs.existsSync(skillFile)) {
         const content = fs.readFileSync(skillFile, "utf-8");
-        if (content.startsWith(AUTO_GENERATED_HEADER)) {
+        if (content.includes(AUTO_GENERATED_HEADER)) {
           fs.rmSync(path.join(targetSkillsDir, name), { recursive: true });
           console.log(`  Removed orphan skill: ${name}`);
         }
@@ -345,7 +345,7 @@ function syncSkills() {
 
 // ── Main sync ────────────────────────────────────────────────────────
 
-function syncDir(subdir: "agents" | "commands") {
+function syncDir(subdir: "agents") {
   const sourceDir = path.join(AI_DIR, subdir);
   const claudeDir = path.join(CLAUDE_DIR, subdir);
   const opencodeDir = path.join(OPENCODE_DIR, subdir);
@@ -407,10 +407,15 @@ function main() {
     console.log(`  ✓ ${filename}`);
   }
 
-  console.log("\nCommands:");
-  const commandResults = syncDir("commands");
-  for (const { filename } of commandResults) {
-    console.log(`  ✓ ${filename}`);
+  // Clean up orphan commands dirs from previous sync
+  for (const dir of [
+    path.join(CLAUDE_DIR, "commands"),
+    path.join(OPENCODE_DIR, "commands"),
+  ]) {
+    if (fs.existsSync(dir)) {
+      fs.rmSync(dir, { recursive: true });
+      console.log(`\n  Removed orphan dir: ${path.relative(ROOT, dir)}`);
+    }
   }
 
   console.log("\nSkills:");

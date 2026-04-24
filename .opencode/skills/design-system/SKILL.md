@@ -48,7 +48,7 @@ It contains for each component:
 - `useCases` — when this component is the right choice
 - `keywords` — semantic tags for matching
 - `whenToUse` / `whenNotToUse` — decision guidance
-- `storyboardHint` — exact fields the storyboard agent should set in scene detail JSON
+- `storyboardHint` — exact fields to set in scene detail JSON during storyboard authoring
 - `pairs` — which surfaces/atmospheres/motions work well together
 - `alternatives` — what to use instead
 

@@ -50,5 +50,5 @@ npm run analytics <channel-slug>  # Channel overview
 
 - Always compare to channel averages
 - Recommendations must be specific and actionable
-- Feed key insights to content-strategist for future planning
+- Feed key insights into content calendar for future planning
 - Benchmark against genre-appropriate norms — read `channels/<channel>/channel-config.json → channel.niche` to understand the content type. Retention curves, CTR, and engagement patterns differ significantly by genre (e.g., data/analytics channels vs. entertainment vs. tutorials). Compare to relevant benchmarks, not just channel averages.

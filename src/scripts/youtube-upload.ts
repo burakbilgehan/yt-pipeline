@@ -55,6 +55,17 @@ async function main() {
     process.exit(1);
   }
 
+  // ── Hard gate: Background music is REQUIRED for publishing ──
+  const bgmDir = path.join(projectDir, "production", "audio", "bgm");
+  const hasBgmFiles = fs.existsSync(bgmDir) && fs.readdirSync(bgmDir).some(f => /\.(mp3|wav|ogg|m4a)$/i.test(f));
+  if (!hasBgmFiles) {
+    console.error("❌ BLOCKED: No background music found in production/audio/bgm/");
+    console.error("Background music is a hard requirement for publishing.");
+    console.error("Add BGM tracks to the storyboard and re-render before uploading.");
+    process.exit(1);
+  }
+  console.log("✓ Background music check passed");
+
   const metadata: YouTubeMetadata = JSON.parse(
     fs.readFileSync(metadataPath, "utf-8")
   );

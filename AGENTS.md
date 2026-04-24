@@ -11,18 +11,17 @@ AI-powered video production pipeline — from research to publishing.
 - **Config over hardcoding.** If a value exists in config, use it. Fall back to `pipeline-defaults.json`.
 - **`status: cancelled` = dead.** Skip in all operations.
 - **External components NEVER go to `src/components/ui/`.** That directory is exclusively for shadcn CLI (`npx shadcn add`). When a user pastes external component code or shares a reference link, it MUST go through the 4-step External Component Intake gate (Decompose → Adapt → Register → Showcase) into `src/remotion/design-system/<layer>/`. Never install external animation runtimes (`framer-motion`, `motion`, `gsap`, `anime.js`, `react-spring`). Always adapt to Remotion's frame-deterministic API. See `DESIGN-SYSTEM.md → External Component Intake`.
+- **Background music is REQUIRED for publishing.** No video may be uploaded without BGM tracks in `production/audio/bgm/` and a `backgroundMusic` config in the storyboard. The upload script enforces this as a hard gate. Storyboard agent must always include BGM config; production agent must verify BGM files exist before render.
 
 ## Source of Truth: `.ai/`
 
-Agent/command/skill definitions live in `.ai/`. **Only edit files here.**
+Agent/skill definitions live in `.ai/`. **Only edit files here.**
 `.claude/`, `.opencode/`, `opencode.json` are auto-generated — sync with `npm run sync-ai`.
 
 ```
 .ai/
-├── agents/       # Agent personas (lean — "how you think")
-├── commands/     # Slash commands
+├── agents/       # 3 agents: director, video-production, critic
 ├── skills/       # Focused operational modules (referenced by agents via skills: frontmatter)
-├── protocols/    # Multi-step coordination workflows
 └── sync.ts       # Sync script
 ```
 
@@ -104,11 +103,21 @@ channels/                                           ← local only, NOT in git
     ├── channel-config.json                         # Channel identity, tone, visuals, TTS config
     ├── channel-assets/                             # Brand assets (logos, guides, design tokens)
     │   ├── brand-guide.md                          # Visual bible
-    │   └── design-system.json                      # Per-channel DS tokens and layer selections
+    │   ├── design-system.json                      # Per-channel DS tokens and layer selections
+    │   └── design-system/                          # Channel-specific DS docs (markdown)
+    │       ├── README.md                           # Brand at a glance
+    │       ├── colors.md                           # Exact hex values + usage rules
+    │       ├── typography.md                       # Font families, sizes, weights
+    │       ├── visual-rules.md                     # Do/don't, animation rules
+    │       ├── templates.md                        # Scene type blueprints
+    │       ├── layout-contracts.md                 # Safe zones, grid, spacing
+    │       ├── agent-contracts.md                  # VP role: select, don't design
+    │       └── checklist.md                        # 27-point pre-render QA gate
     ├── cache/                                      # Analytics runtime cache (auto-managed)
     ├── publishing/                                 # Channel-level publishing docs
     │   └── content-calendar.md                     # Content calendar
     ├── research/                                   # Channel-level research (TTS comparisons, etc.)
+    ├── qa-rules.md                                 # Institutional memory — process rules + learned pitfalls
     └── videos/
         └── <slug>/
             ├── config.json                         # Pipeline state & versions (ONLY file at video root)
@@ -161,6 +170,8 @@ channels/                                           ← local only, NOT in git
 | Final render | `channels/<channel>/videos/<slug>/production/output/final.mp4` | `out/` |
 | Storyboard archives | `channels/<channel>/videos/<slug>/storyboard/_archive/` | `storyboard/scenes-v*/` |
 | Brand assets | `channels/<channel>/channel-assets/` | Channel root |
+| Channel DS docs | `channels/<channel>/channel-assets/design-system/` | Channel root |
+| QA rules (institutional memory) | `channels/<channel>/qa-rules.md` | Video root, repo root |
 | Content calendar | `channels/<channel>/publishing/content-calendar.md` | Repo root |
 | QA report | `channels/<channel>/videos/<slug>/analytics/qa-report.md` | Video root |
 | QA log | `channels/<channel>/videos/<slug>/analytics/qa-log.md` | Video root |
@@ -204,6 +215,9 @@ npm run new-video <slug> [title] [--channel <slug>]
 npm run tts <slug>
 npm run render <slug>
 npm run upload <slug>
+npm run preflight <slug>
+npm run validate <slug> | --all
+npm run preview <slug>
 npm run analytics [slug|channel]
 npm run collect <slug> <type> <query>
 npm run studio -- --public-dir <project-path>
@@ -212,10 +226,14 @@ npm run sync-ai
 
 ## Orchestration Model
 
-**Director** is the primary orchestrator:
-- **Review Protocol**: opt-in only — run on user request or when output quality is clearly insufficient. Source: `.ai/protocols/multi-agent-review.md`. Do not run automatically after every deliverable.
-- **QA Loop**: reactive — triggered by user negative feedback or 3+ Critic failures.
-- **Content Strategist Alignment**: on request only.
+**Director** is both orchestrator and primary executor — does most work directly via skills:
+- **3 agents total**: Director (primary), Video Production (Remotion code subagent), Critic (opt-in quality gate)
+- **Director executes directly**: research, script writing, storyboard, metadata, publishing, analytics — all via loaded skills. No subagent spawn for these.
+- **Delegates to VP only** for Remotion composition coding, DS component adaptation, visual debugging.
+- **Critic**: opt-in only — invoked on user request or when output quality is clearly insufficient.
+- **Self-QA**: VP agent runs mandatory 3-layer self-QA (code review → contact sheet → targeted fix) before reporting done.
+- **qa-rules.md**: Channel-level institutional memory. Director reads at session start, updates when friction signals detected.
+- **Preflight gate**: `npm run preflight <slug>` must pass before upload command is presented.
 - **Stage transitions**: never automatic — require user approval.
 
 ## Windows / PowerShell
