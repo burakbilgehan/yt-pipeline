@@ -47,3 +47,21 @@ export {
   registerSurface,
   getSurface,
 } from './registry';
+
+// ─── Bauhaus Geometry Primitives (L2 structural) ──────────────
+
+export {
+  EdgeStrip,
+  LogoBlock,
+  AccentRule,
+  SectionHeader,
+  KpiCell,
+} from './primitives';
+export type {
+  EdgeStripProps,
+  EdgePosition,
+  LogoBlockProps,
+  AccentRuleProps,
+  SectionHeaderProps,
+  KpiCellProps,
+} from './primitives';

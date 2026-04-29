@@ -5,8 +5,8 @@
  * Edit `channels/<channel>/channel-assets/design-system.json` instead,
  * then run `npm run sync-palette` to regenerate.
  *
- * Source: design-system "dusty-editorial" v6
- * Generated: 2026-04-23T00:00:00.000Z
+ * Source: design-system "dusty-editorial" v7
+ * Generated: 2026-04-28T21:14:37.927Z
  *
  * Architecture:
  *   design-system.json  → SINGLE SOURCE OF TRUTH (edit here)
@@ -21,13 +21,13 @@ export const BG = "#2A2A32";
 export const TEXT = "#F0EDE8";
 export const ACCENT_PINK = "#E88CA5";
 export const ACCENT_BLUE = "#7BA7C9";
-export const POSITIVE = "#5BBF8C";
-export const NEGATIVE = "#E06070";
+export const POSITIVE = "#76B896";
+export const NEGATIVE = "#C96B7A";
 
-// ─── Structural (no named sage in v6) ────────────────────────
+// ─── Structural ───────────────────────────────────────────────
 
 export const AXIS = "rgba(240, 237, 232, 0.35)";   // axis labels, tick marks
-export const SAGE = AXIS;                            // structural axis color only — not a brand color
+export const SAGE = AXIS;          // structural axis color only — not a brand color
 
 // ─── Text Variants ────────────────────────────────────────────
 
@@ -47,7 +47,7 @@ export const SURFACE_BORDER_STRONG = "rgba(240, 237, 232, 0.12)";
 export const TRACK = "rgba(240, 237, 232, 0.06)";
 export const GRID = "rgba(240, 237, 232, 0.08)";
 export const CARD_BG = "#2E2E38";
-export const CARD_BORDER = "rgba(240, 237, 232, 0.10)";
+export const CARD_BORDER = "rgba(240, 237, 232, 0.1)";
 
 // ─── Data Palette ─────────────────────────────────────────────
 

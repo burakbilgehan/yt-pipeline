@@ -727,6 +727,25 @@ export const RemotionRoot: React.FC = () => {
             height={HEIGHT}
           />
         </Folder>
+
+        <Folder name="Bauhaus">
+          <Composition
+            id="BauhausHeroScene"
+            lazyComponent={() => import("./design-system/showcase/templates/Bauhaus/BauhausHeroSceneShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          <Composition
+            id="BentoDataVizScene"
+            lazyComponent={() => import("./design-system/showcase/templates/Bauhaus/BentoDataVizSceneShowcase")}
+            durationInFrames={180}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+        </Folder>
       </Folder>
     </>
   );

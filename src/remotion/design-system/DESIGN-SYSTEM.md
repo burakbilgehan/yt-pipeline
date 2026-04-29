@@ -8,11 +8,15 @@ Five layers, bottom-up. Higher layers compose lower ones.
 
 ```
 L5: SCENE TEMPLATES     "What are we showing"     hero, list, data-viz, comparison, narrative, cta
+                                                  Bauhaus suite: BauhausHeroScene, BentoDataVizScene
 L4: SURFACE TREATMENT   "How does the container"  glass, flat, glow, frosted, elevated
 L3: MOTION PRIMITIVES   "How does it move"        stagger-text-reveal, text-rotate, counter-up, bar-grow
 L2: ATMOSPHERE          "What's the mood"          dot-grid, film-grain, particles, aurora, flickering-grid
+    PRIMITIVES (geom)   "Structural elements"     EdgeStrip, LogoBlock, AccentRule, SectionHeader, KpiCell
 L1: DESIGN TOKENS       "Numeric values"           colors, typography, spacing, borders, shadows, opacity
 ```
+
+**Bauhaus suite:** DS v7 introduces structural geometry primitives at L2 (alongside atmospheres) and two reference scene templates at L5. These follow LC-7 (BauhausHero) and LC-8 (BentoDataViz) layout contracts. See `channels/<channel>/channel-assets/design-system/visual-rules.md` "Bauhaus Geometry Primitives" for usage rules.
 
 **Types**: `src/remotion/design-system/types.ts` defines all interfaces.
 **Runtime registry**: `src/remotion/design-system/registry.ts` provides `register*()` / `get*()` for L2-L4.

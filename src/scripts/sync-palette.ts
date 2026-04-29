@@ -37,7 +37,17 @@ interface DesignSystemColors {
 interface DesignSystem {
   name: string;
   version: number;
-  colors: DesignSystemColors;
+  colors?: DesignSystemColors;
+  tokens?: { colors?: DesignSystemColors };
+}
+
+function unwrapColors(ds: DesignSystem): DesignSystemColors {
+  const c = ds.tokens?.colors ?? ds.colors;
+  if (!c) {
+    console.error("❌ design-system.json missing colors (expected at .tokens.colors or .colors)");
+    process.exit(1);
+  }
+  return c;
 }
 
 // ─── Resolve channel ──────────────────────────────────────────
@@ -87,7 +97,7 @@ function rgbaStr(r: number, g: number, b: number, a: number): string {
 // ─── Generate palette.ts ──────────────────────────────────────
 
 function generatePalette(ds: DesignSystem): string {
-  const c = ds.colors;
+  const c = unwrapColors(ds);
   const textRgb = hexToRgb(c.text);
   const tr = textRgb.r, tg = textRgb.g, tb = textRgb.b;
 
@@ -101,17 +111,17 @@ function generatePalette(ds: DesignSystem): string {
   const textFaint = rgbaStr(tr, tg, tb, 0.4);
 
   // Surface variants
-  const surface = "rgba(255, 255, 255, 0.06)";
-  const surfaceHover = "rgba(255, 255, 255, 0.08)";
-  const surfaceBorder = "rgba(255, 255, 255, 0.1)";
+  const surface = c.surface;
+  const surfaceHover = "#313140";
+  const surfaceBorder = rgbaStr(tr, tg, tb, 0.07);
   const surfaceBorderStrong = c.border || rgbaStr(tr, tg, tb, 0.12);
 
   // Chart-specific
   const track = rgbaStr(tr, tg, tb, 0.06);
-  const grid = rgbaStr(tr, tg, tb, 0.15);
-  const bgRgb = hexToRgb(c.bgTop);
-  const cardBg = rgbaStr(bgRgb.r, bgRgb.g, bgRgb.b, 0.92);
-  const cardBorder = rgbaStr(tr, tg, tb, 0.08);
+  const grid = c.grid;
+  const cardBg = c.surface;
+  const cardBorder = rgbaStr(tr, tg, tb, 0.10);
+  const axis = rgbaStr(tr, tg, tb, 0.35);
 
   const now = new Date().toISOString();
 
@@ -138,9 +148,13 @@ export const BG = "${c.bgTop}";
 export const TEXT = "${c.text}";
 export const ACCENT_PINK = "${c.accent1}";
 export const ACCENT_BLUE = "${c.accent2}";
-export const SAGE = "${c.grid}";
 export const POSITIVE = "${c.positive}";
 export const NEGATIVE = "${c.negative}";
+
+// ─── Structural ───────────────────────────────────────────────
+
+export const AXIS = "${axis}";   // axis labels, tick marks
+export const SAGE = AXIS;          // structural axis color only — not a brand color
 
 // ─── Text Variants ────────────────────────────────────────────
 
@@ -169,10 +183,10 @@ export const DATA_PALETTE = [
   ACCENT_BLUE,
   POSITIVE,
   NEGATIVE,
-  SAGE,
   "#7EC8E3",
   "#F4A261",
-  "#9B59B6",
+  "#C084FC",
+  "#FB923C",
 ] as const;
 
 // ─── Convenience Object ───────────────────────────────────────
@@ -185,6 +199,7 @@ export const PALETTE = {
   textFaint: TEXT_FAINT,
   accentPink: ACCENT_PINK,
   accentBlue: ACCENT_BLUE,
+  axis: AXIS,
   sage: SAGE,
   positive: POSITIVE,
   negative: NEGATIVE,
@@ -213,7 +228,7 @@ function syncChannelConfig(channelSlug: string, ds: DesignSystem): void {
   }
 
   const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-  const c = ds.colors;
+  const c = unwrapColors(ds);
 
   // Sync brand.colors
   if (config.brand?.colors) {
