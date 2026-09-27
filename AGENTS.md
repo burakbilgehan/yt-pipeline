@@ -1,243 +1,122 @@
-# yt-pipeline — YouTube Channel Factory Framework
+# yt-pipeline
 
-AI-powered video production pipeline — from research to publishing.
+Turns a video idea into a finished YouTube video for "The World With Numbers" (data explainers, 8 to 15 minutes, English). TypeScript + Remotion. This file holds the invariants; procedures live in skills, enforcement in `.claude/settings.json` and `.ai/hooks/`.
 
 ## Core Rules
 
-- **NEVER batch-write.** Any output expected to exceed ~50 lines MUST be written incrementally: outline first → write to file → expand section by section → revise in place. Never "prepare" a large file in memory and write it all at once. This is the single most important rule in this project. See `incremental-writing` skill for details.
-- **Turkish conversation, content language from config.** Read `channels/<channel>/channel-config.json → channel.language` for YouTube output language. Default is English.
-- **TypeScript** everywhere in code.
-- **Never auto-chain** pipeline stages — wait for explicit user approval.
-- **Config over hardcoding.** If a value exists in config, use it. Fall back to `pipeline-defaults.json`.
-- **`status: cancelled` = dead.** Skip in all operations.
-- **External components NEVER go to `src/components/ui/`.** That directory is exclusively for shadcn CLI (`npx shadcn add`). When a user pastes external component code or shares a reference link, it MUST go through the 4-step External Component Intake gate (Decompose → Adapt → Register → Showcase) into `src/remotion/design-system/<layer>/`. Never install external animation runtimes (`framer-motion`, `motion`, `gsap`, `anime.js`, `react-spring`). Always adapt to Remotion's frame-deterministic API. See `DESIGN-SYSTEM.md → External Component Intake`.
-- **Background music is REQUIRED for publishing.** No video may be uploaded without BGM tracks in `production/audio/bgm/` and a `backgroundMusic` config in the storyboard. The upload script enforces this as a hard gate. Director must always include BGM config in storyboard; video-production agent must verify BGM files exist before render.
+- **Turkish conversation, content language from config.** YouTube output language is `channels/<channel>/channel-config.json` `channel.language` (default English).
+- **Determinism over model judgment.** The model only makes choices that need judgment (wording, picking a catalog scene type and its data). Everything else is code: timing, layout, sizing, colors, validation, checks. Model output is schema-validated data, never ad-hoc code. Same input must give the same output. When a step can be scripted, script it instead of describing it. (user, 26.09.2026)
+- **One source per fact.** Every fact lives in exactly one file (see Video Project Layout 2). Never copy a fact into a second file; derive it with a script. Generated files are never edited by hand.
+- **Every number is a claim.** A number spoken or shown in a video is an entry in `research/claims.json` with a verbatim-quoted source or a derivation, independently verified before publishing (`npm run claims`). (user, 26.09.2026)
+- **The user drives the stages.** Stage skills (`idea`, `research`, `script`, `storyboard`, `produce`, `publish`) are started by the user only, and each stage ends by showing the result and stopping. Within a task, do only what was asked; propose extras in one line and wait.
+- **User-only actions.** Upload, YouTube metadata changes, `git push` and discarding work are run by the user; print the command instead. Enforced by `.ai/hooks/guard-bash.mjs`. Never hand the user a bare command: say in plain words what it does, why now, and what happens if it is skipped; if it is not needed now, do not bring it up. (user, 27.09.2026)
+- **Renders.** The agent may run full renders. Renders are costly: for review prefer Remotion Studio (`npm run studio -- --public-dir channels/<channel>/videos/<slug>`), kept open for the user whenever possible, and render only when a file is actually needed. (user, 26.09.2026)
+- **No new Remotion components during a video.** Video stages pick from existing templates and design-system components. New components are added only in a dedicated design-system session with the user's approval (`design-system` skill).
+- **Config over hardcoding.** If a value exists in config, use it; fall back to `templates/pipeline-defaults.json`.
+- **Background music is required for publishing.** Enforced by the upload script.
+- **No em dash** in any written output: code, comments, docs, commit messages, UI copy.
+- **Show files by full path.** When pointing the user to a file to watch or read, give its absolute path and open it (or its folder) for them; never a bare file name. (user, 26.09.2026)
+- **`status: cancelled` projects are dead.** Skip them everywhere.
 
-## Source of Truth: `.ai/`
+## Learning from the user
 
-Agent/skill definitions live in `.ai/`. **Only edit files here.**
-`.claude/`, `.opencode/`, `opencode.json` are auto-generated — sync with `npm run sync-ai`.
+The pipeline is built incrementally from real production friction. User corrections are the highest-priority input.
 
-```
-.ai/
-├── agents/       # 3 agents: director, video-production, critic
-├── skills/       # Focused operational modules (referenced by agents via skills: frontmatter)
-└── sync.ts       # Sync script
-```
+- **Frustration is a high signal.** When the user is angry (profanity, "saçma", "yine mi"), stop and name the concrete inefficiency or error, fix it, then turn it into a lasting rule in the same turn. A `UserPromptSubmit` hook (`.ai/hooks/frustration-signal.mjs`) flags these prompts.
+- **Latest statement wins.** A newer user decision replaces an older one. Update every affected place so nothing still reflects the old decision.
+- **Contradiction check first.** Before applying, search the harness for a rule that conflicts. If one exists, do not apply; quote both to the user and ask "bu, <tarih>'te dediğin şununla çelişiyor, emin misin?".
+- **One owner per rule.** Invariant: this file. Procedure: the relevant skill. Role and scope: the agent file. Enforcement: `.claude/settings.json` or `.ai/hooks/`. Prefer enforcement (hook, script check) over prose when the rule is mechanical. Delete or rewrite any older text it replaces.
+- **Provenance.** End each user-derived rule with `(user, DD.MM.YYYY)`.
+- **Report in one line** what was changed and where. Channel-specific preferences (visual taste, tone) go to the channel's docs under `channels/<channel>/`, not to the framework.
 
-## Architecture
+## Harness
 
-Two separate git repos, both cloned side-by-side on every workstation:
+- Source of truth: `.ai/skills/`, `.ai/agents/`, `.ai/hooks/`. `.claude/skills/`, `.opencode/` and `opencode.json` are generated by `.ai/sync.ts` (runs automatically after edits under `.ai/skills/` or `.ai/agents/`, or `npm run sync-ai`).
+- After any harness change run `npm run lint-harness`: it fails on em dashes, unknown npm scripts or paths, unknown skills, out-of-sync generated files and rule sentences duplicated across files.
+- The main session orchestrates and talks to the user. Subagents get bounded, well-scoped work only.
+- Skills: stage skills `idea`, `research`, `script`, `storyboard`, `produce`, `publish` (user-invoked); `fix` (feedback loop); knowledge skills `ssml-writing`, `math-verification`, `design-system`, `remotion-best-practices` (vendored), `alignment-check`, `content-calendar`, `critique-methodology`, `seo-optimization`, `youtube-metadata`, `analytics-reporting`.
+- Agents (model and effort pinned in the file, write scope enforced by `.ai/hooks/guard-agent-scope.mjs`): `researcher` (writes only `research/`), `claim-verifier` (no file access, sees only the claims it is given). Both are spawned by the `research` skill.
 
-| Repo | GitHub | Visibility | Root dir | What it holds |
-|------|--------|-----------|----------|---------------|
-| **Infrastructure** | `burakbilgehan/yt-pipeline` | Public | `yt-pipeline/` | Framework code, agent prompts, Remotion templates, scripts — generic, channel-agnostic |
-| **Content** | `burakbilgehan/yt-pipeline-content` | Private | `yt-pipeline/channels/` | Video projects, research, scripts, configs — channel-specific |
+## Repositories
 
-### Setup on a new machine
+| Repo | GitHub | Root dir | Holds |
+|------|--------|----------|-------|
+| Infrastructure (public) | `burakbilgehan/yt-pipeline` | `yt-pipeline/` | code, harness, Remotion templates, scripts |
+| Content (private) | `burakbilgehan/yt-pipeline-content` | `yt-pipeline/channels/` | channel config, video projects, research |
 
-```bash
-git clone https://github.com/burakbilgehan/yt-pipeline.git
-cd yt-pipeline
-git clone https://github.com/burakbilgehan/yt-pipeline-content.git channels
-npm install
-```
+`channels/` is gitignored by the infrastructure repo and is its own git repo. Setup: clone infra, then `git clone https://github.com/burakbilgehan/yt-pipeline-content.git channels`, then `npm install`. The content repo tracks text and TTS wav files; renders, images and other media are local only.
 
-### Key points
+## Video Project Layout 2 (canonical)
 
-- `channels/` is gitignored by the infra repo — it's a nested but independent repo.
-- Content repo tracks **text files only** (configs, scripts, research, storyboards). All media (mp4, wav, mp3, png, jpg, etc.) is gitignored in the content repo.
-- `dist/` is regenerable (`npm run build` = `tsc`), not tracked in either repo.
-- Commit and push each repo independently. They have no git-level dependency (no submodules).
-
-## Project Resolution Protocol
-
-1. **Channel**: look under `channels/`. If only one, use it. If multiple, require `--channel <slug>` or ask.
-2. **Video**: `channels/<channel>/videos/<slug>/`.
-3. **Validation**: confirm `channels/<channel>/videos/<slug>/config.json` exists. If not, project doesn't exist.
-4. **Active project shortcut**: read all `channels/<channel>/videos/<slug>/config.json` files to find `status: "in_progress"`.
-5. **Cancelled**: skip any `"status": "cancelled"`.
-
-## Directory Structure
-
-This is the SINGLE SOURCE OF TRUTH for all file and directory locations in the pipeline. Every file the pipeline creates, collects, or uses must have a home defined here. If a new need arises requiring new files/directories, update this section FIRST.
+A project is layout 2 iff its `config.json` has `"layout": 2`. `npm run new-video` creates one with `"renderer": "catalog"` (scenes picked from the scene catalog, see `storyboard` skill); migrated legacy copies have `"renderer": "legacy"`. Generated files are rebuilt by scripts; hand edits are denied in `.claude/settings.json`.
 
 ```
-yt-pipeline/                                        ← git repo (infrastructure only)
-├── src/
-│   ├── components/
-│   │   └── ui/                                     # shadcn/ui primitives ONLY (npx shadcn add ...)
-│   ├── lib/
-│   │   └── utils.ts                                # cn() helper (clsx + tailwind-merge)
-│   ├── remotion/
-│   │   ├── styles.css                              # Tailwind v4 + shadcn CSS variables
-│   │   ├── design-system/
-│   │   │   ├── DESIGN-SYSTEM.md                    # DS reference doc (source of truth)
-│   │   │   ├── types.ts                            # L1-L5 TypeScript interfaces
-│   │   │   ├── registry.ts                         # Runtime registries (register*/get*)
-│   │   │   ├── component-catalog.json              # Machine-readable component catalog
-│   │   │   ├── index.ts                            # Barrel exports
-│   │   │   ├── atmospheres/                        # L2: full-screen background layers
-│   │   │   │   └── index.ts                        # Exports + registrations
-│   │   │   ├── motion/                             # L3: animation primitives
-│   │   │   │   └── index.ts                        # Exports + registrations
-│   │   │   ├── surfaces/                           # L4: card/container treatments
-│   │   │   │   └── index.ts                        # Exports + registrations
-│   │   │   └── showcase/                           # Visual demo compositions (DS- prefix)
-│   │   ├── components/                             # Shared Remotion components (ProgressBar, etc.)
-│   │   ├── compositions/                           # Remotion entry compositions
-│   │   └── templates/                              # Scene-level templates (data-charts, etc.)
-│   ├── scripts/                                    # CLI scripts (tts, render, upload, etc.)
-│   └── types/                                      # Shared TypeScript types
-├── .ai/                                            # Agents, skills (source of truth)
-├── templates/
-│   ├── channel-config.json                         # Channel config template
-│   ├── pipeline-defaults.json                      # Pipeline-wide defaults
-│   ├── tts-style-guide.md                          # SSML/markup reference
-│   └── project/                                    # Video project folder template
-├── public/<video-slug>/                            # Remotion assets (gitignored)
-└── package.json
-
-channels/                                           ← local only, NOT in git
-└── <channel>/
-    ├── channel-config.json                         # Channel identity, tone, visuals, TTS config
-    ├── channel-assets/                             # Brand assets (logos, guides, design tokens)
-    │   ├── brand-guide.md                          # Visual bible
-    │   ├── design-system.json                      # Per-channel DS tokens and layer selections
-    │   └── design-system/                          # Channel-specific DS docs (markdown)
-    │       ├── README.md                           # Brand at a glance
-    │       ├── colors.md                           # Exact hex values + usage rules
-    │       ├── typography.md                       # Font families, sizes, weights
-    │       ├── visual-rules.md                     # Do/don't, animation rules
-    │       ├── templates.md                        # Scene type blueprints
-    │       ├── layout-contracts.md                 # Safe zones, grid, spacing
-    │       ├── agent-contracts.md                  # VP role: select, don't design
-    │       └── checklist.md                        # 27-point pre-render QA gate
-    ├── cache/                                      # Analytics runtime cache (auto-managed)
-    ├── publishing/                                 # Channel-level publishing docs
-    │   └── content-calendar.md                     # Content calendar
-    ├── research/                                   # Channel-level research (TTS comparisons, etc.)
-    ├── qa-rules.md                                 # Institutional memory — process rules + learned pitfalls
-    └── videos/
-        └── <slug>/
-            ├── config.json                         # Pipeline state & versions (ONLY file at video root)
-            ├── research/
-            │   ├── research-v<N>.md                # Versioned research document
-            │   ├── data/                           # Raw data files, CSVs
-            │   └── sources/                        # Source references, saved articles
-            ├── content/
-            │   ├── script-v<N>.md                  # Versioned video script
-            │   └── changes-v<N>.md                 # Batch edit manifest (when 3+ changes)
-            ├── storyboard/
-            │   ├── storyboard-v<N>.json            # Skeleton → final storyboard (JSON only)
-            │   ├── storyboard-summary-v<N>.md      # Human-readable summary
-            │   ├── critique-v<N>.md                # Critic feedback
-            │   ├── scenes/                         # Active scene detail files
-            │   │   └── scene-NNN.json              # Per-scene visual details
-            │   └── _archive/                       # Superseded storyboard versions
-            ├── production/
-            │   ├── asset-log.md                    # Download log for all collected assets
-            │   ├── audio/                          # TTS output (.wav)
-            │   │   ├── {section}--{scene-id}.wav   # TTS audio files
-            │   │   ├── audio-manifest.json         # Duration, word count, speed per block
-            │   │   ├── bgm/                        # Background music files
-            │   │   └── _archive/                   # Superseded audio versions
-            │   ├── visuals/                        # Stock media, AI images, hook videos
-            │   ├── output/                         # Rendered videos
-            │   │   └── final.mp4                   # Final render (only permanent file)
-            │   ├── test-renders/                   # Frame-by-frame test stills (.png)
-            │   └── render-props.json               # Remotion render configuration
-            ├── publishing/
-            │   ├── seo-notes-v<N>.md               # SEO optimization notes
-            │   ├── publish-plan-v<N>.md             # Upload strategy and schedule
-            │   ├── metadata-v<N>.json               # Title, description, tags, category
-            │   └── upload-log.md                    # Upload attempts, results, video IDs
-            └── analytics/
-                ├── snapshot-<YYYY-MM-DD>.json     # Snapshot-based performance data
-                ├── report-<YYYY-MM-DD>.md         # Analytics report
-                ├── qa-report.md                    # QA audit report
-                └── qa-log.md                       # QA root-cause analysis log
+channels/<channel>/videos/<slug>/
+├── config.json                  # identity, metadata (targetLength, format, tone), "layout": 2, optional "tts" override
+├── script/
+│   ├── order.json               # sections and block order (the only place order lives)
+│   └── <block-id>.md            # narration of one block, exactly what TTS speaks
+├── storyboard/
+│   ├── <block-id>.json          # visual spec of one block + holdSec (seconds shown after narration ends)
+│   └── global.json              # video-wide settings (backgroundMusic, sharedComponents)
+├── research/
+│   ├── brief.md                 # approved question and angle (idea stage)
+│   ├── notes.md                 # findings, caveats, sources (researcher)
+│   ├── claims.json              # every number: value, unit, quoted source or derivation, usedIn (src/pipeline/claims.ts)
+│   └── verification.json        # generated by npm run claims --record: verifier verdicts stamped with claim hashes
+├── feedback/feedback.json       # user feedback items, each tied to a block (npm run feedback)
+├── publishing/
+│   ├── metadata.json            # title, description with {{chapters}}, tags, category, visibility (src/pipeline/publish.ts)
+│   ├── description.txt, tags.txt  # generated by npm run metadata (chapters from the timeline)
+│   ├── thumbnail.png
+│   └── upload-log.md            # appended by the upload script
+├── analytics/                   # performance snapshots and reports
+└── production/
+    ├── audio/<block-id>.<hash8>.wav   # generated by npm run tts (hash of text + voice settings)
+    ├── audio/manifest.json            # generated by npm run tts
+    ├── timeline.json                  # generated by npm run assemble (audio duration + holdSec, no gaps)
+    ├── render-input.json              # generated by npm run assemble; the only input Remotion reads
+    ├── previews/<block-id>.mp4        # generated by npm run preview-scene
+    └── output/final.mp4 + final.render.json  # npm run render; the stamp records which render input produced the file
 ```
 
-## Canonical Locations
+Edit loop: change a block, then `npm run tts` (only changed blocks are synthesized), `npm run preview-scene` (renders that scene with audio and opens it). Voice settings come from `channel-config.json` `tts`, overridable per video in `config.json` `tts`. Code: `src/pipeline/v2.ts`.
 
-| Thing | Full Path | Never put here |
-|-------|-----------|----------------|
-| Test renders / stills | `channels/<channel>/videos/<slug>/production/test-renders/` | Repo root, `preview/` |
-| Background music | `channels/<channel>/videos/<slug>/production/audio/bgm/` | Repo root, video root `bgm/` |
-| Stock media + hook videos | `channels/<channel>/videos/<slug>/production/visuals/` | `public/`, video root |
-| TTS audio | `channels/<channel>/videos/<slug>/production/audio/` | Anywhere else |
-| Final render | `channels/<channel>/videos/<slug>/production/output/final.mp4` | `out/` |
-| Storyboard archives | `channels/<channel>/videos/<slug>/storyboard/_archive/` | `storyboard/scenes-v*/` |
-| Brand assets | `channels/<channel>/channel-assets/` | Channel root |
-| Channel DS docs | `channels/<channel>/channel-assets/design-system/` | Channel root |
-| QA rules (institutional memory) | `channels/<channel>/qa-rules.md` | Video root, repo root |
-| Content calendar | `channels/<channel>/publishing/content-calendar.md` | Repo root |
-| QA report | `channels/<channel>/videos/<slug>/analytics/qa-report.md` | Video root |
-| QA log | `channels/<channel>/videos/<slug>/analytics/qa-log.md` | Video root |
-| Analytics report | `channels/<channel>/videos/<slug>/analytics/report-<YYYY-MM-DD>.md` | Video root |
-| Asset log | `channels/<channel>/videos/<slug>/production/asset-log.md` | `production/visuals/` |
-| Upload log | `channels/<channel>/videos/<slug>/publishing/upload-log.md` | Video root |
-| Design tokens (per-channel) | `channels/<channel>/channel-assets/design-system.json` | Channel root |
-| DS atmosphere components | `src/remotion/design-system/atmospheres/<Name>.tsx` | `src/components/ui/`, repo root |
-| DS motion primitives | `src/remotion/design-system/motion/<Name>.tsx` | `src/components/ui/`, repo root |
-| DS surface components | `src/remotion/design-system/surfaces/<Name>.tsx` | `src/components/ui/`, repo root |
-| DS showcase compositions | `src/remotion/design-system/showcase/<Name>Showcase.tsx` | `src/remotion/compositions/` |
-| DS reference doc | `src/remotion/design-system/DESIGN-SYSTEM.md` | Anywhere else |
-| Component catalog | `src/remotion/design-system/component-catalog.json` | Anywhere else |
-| shadcn/ui primitives | `src/components/ui/<name>.tsx` | `src/remotion/design-system/` |
+## Legacy projects (read-only)
 
-## File & Directory Hygiene
+Projects without `"layout": 2` (the five published videos) are legacy: versioned files (`content/script-vN.md`, `storyboard/storyboard-vN.json` + `storyboard/scenes/`, `production/audio/audio-manifest.json`). Do not edit them. To change one, migrate a copy: `npm run migrate-v2 -- <legacy-slug> <new-slug>`.
 
-- **No files at video root** except `config.json`. Everything goes in its pipeline subdirectory.
-- **No ad-hoc directories.** Only directories defined in the Directory Structure above are valid. `preview/`, `bgm/` at video root, `background-music/`, `voice-samples/`, `edge-tts-backup/` inside `production/audio/` are all non-standard and must be moved or removed during audit.
-- **No `video-config.json`.** Pipeline state lives in `channels/<channel>/videos/<slug>/config.json`. Remotion render props go in `channels/<channel>/videos/<slug>/production/render-props.json`.
-- **Storyboard format is JSON.** `storyboard-v<N>.json` is canonical. Markdown storyboards (`storyboard-v<N>.md`) are legacy and should not be created for new projects. Existing ones are kept as history.
-- **Pipeline status values** must be one of: `pending`, `in_progress`, `completed`, `cancelled`. Never use `complete` (missing -d).
-- **Scene files live in `storyboard/scenes/`** — always the current/latest version. Superseded scenes go to `storyboard/_archive/`.
-- **Audio format**: new projects use WAV (LINEAR16 encoding). Legacy projects may have MP3 — don't convert, just note in config.
-- **History entry format**: use `{ "action": "<stage>.<event>", "at": "<ISO date>", "version": <N>, "reason": "...", "agent": "..." }`. This matches `src/types/index.ts → HistoryEntry` — the single source of truth. Legacy entries with `"event"` or `"timestamp"` keys exist in old projects — do not retroactively fix, do not write new ones in that format.
+Not yet layout-2 aware (still read legacy files): `validate`, `preview`, `video-status`, `channel-status`. For legacy projects, `preflight`, `upload` and `youtube-update` keep reading `publishing/metadata-v<N>.json`. `channel-config.json` `visuals` (brandColor, fontFamily) is read only by the legacy renderer; catalog videos take every visual value from `src/remotion/catalog/tokens.ts`.
 
 ## Config Files
 
-| File | Full Path | Scope | What it configures |
-|------|-----------|-------|--------------------|
-| `channel-config.json` | `channels/<channel>/channel-config.json` | Per channel | TTS voice/model, brand colors, fonts, resolution, YouTube defaults |
-| `pipeline-defaults.json` | `templates/pipeline-defaults.json` | Global | WPM, pause durations, format specs, tag limits, stock constraints |
-| `config.json` | `channels/<channel>/videos/<slug>/config.json` | Per video | Pipeline versions, status, history, format, target length |
-| `brand-guide.md` | `channels/<channel>/channel-assets/brand-guide.md` | Per channel | Visual bible — colors, fonts, image style, animation rules |
+| File | Scope | Configures |
+|------|-------|------------|
+| `channels/<channel>/channel-config.json` | channel | TTS voice/model/speed, brand colors, fonts, resolution, YouTube defaults |
+| `templates/pipeline-defaults.json` | global | WPM, pause durations, format specs, tag limits |
+| `channels/<channel>/videos/<slug>/config.json` | video | identity, layout, metadata, optional tts override |
+| `channels/<channel>/channel-assets/brand-guide.md` | channel | visual rules: colors, fonts, image style |
 
 ## NPM Scripts
 
 ```bash
-npm run new-channel <slug> [name]
-npm run new-video <slug> [title] [--channel <slug>]
-npm run tts <slug>
-npm run render <slug>
-npm run upload <slug>
-npm run preflight <slug>
-npm run validate <slug> | --all
-npm run preview <slug>
-npm run analytics [slug|channel]
-npm run collect <slug> <type> <query>
-npm run studio -- --public-dir <project-path>
+npm run new-video <slug> [title]           # create a layout-2 project
+npm run status <slug> [--block <id>]       # blocks, durations vs target, stale audio, open feedback
+npm run tts <slug>                         # incremental TTS
+npm run assemble <slug>                    # timeline + render input
+npm run preview-scene <slug> <block-id>    # one scene with audio, opens the clip
+npm run feedback <slug> add|list|fixed|wontfix|reopen
+npm run claims <slug> [--strict|--export|--record <file>]  # claim check, verifier export/import
+npm run metadata <slug>                    # validate publishing/metadata.json, write description.txt + tags.txt
+npm run preflight <slug>                   # publishing gates (src/pipeline/gates.ts)
+npm run stills <slug> --out <dir>          # reference stills of MainVideo
+npm run migrate-v2 <legacy> <new>          # copy a legacy project into layout 2
+npm run render <slug>                      # full render (costly; prefer Studio for review)
+npm run upload <slug>                      # YouTube upload (user-only)
+npm run analytics [slug]
+npm run showcase                           # catalog review reel
+npm run design-tokens --out|--diff <file>  # Claude Design tokens.json from/against tokens.ts
+npm run lint-harness
 npm run sync-ai
+npm run studio
 ```
-
-## Orchestration Model
-
-**Director** is both orchestrator and primary executor — does most work directly via skills:
-- **3 agents total**: Director (primary), Video Production (Remotion code subagent), Critic (opt-in quality gate)
-- **Director executes directly**: research, script writing, storyboard, metadata, publishing, analytics — all via loaded skills. No subagent spawn for these.
-- **Delegates to VP only** for Remotion composition coding, DS component adaptation, visual debugging.
-- **Critic**: opt-in only — invoked on user request or when output quality is clearly insufficient.
-- **Self-QA**: VP agent runs mandatory 3-layer self-QA (code review → contact sheet → targeted fix) before reporting done.
-- **qa-rules.md**: Channel-level institutional memory. Director reads at session start, updates when friction signals detected.
-- **Preflight gate**: `npm run preflight <slug>` must pass before upload command is presented.
-- **Stage transitions**: never automatic — require user approval.
-
-## Windows / PowerShell
-
-- `$variable` in Bash tool calls gets eaten by PowerShell. Use Node.js one-liners or `npx tsx` instead.
-- Use forward slashes `/` in code paths.
-- Files may have `\r\n` line endings.

@@ -5,15 +5,14 @@
  *
  * Usage: npm run new-video <slug> [title] [--channel <channel-slug>] [--format short|long] [--short]
  *
- * Creates: channels/<channel>/videos/<slug>/
+ * Creates a layout-2 project (see AGENTS.md > Video Project Layout 2):
+ *   channels/<channel>/videos/<slug>/{config.json, research/, script/, storyboard/, production/audio/, feedback/, publishing/, analytics/}
  */
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { ProjectConfig } from "../types/index.js";
 import { getVideosDir, loadChannelConfig } from "../utils/project.js";
-
-const TEMPLATE_PATH = path.resolve("templates/project/config.json");
+import { BLOCK_ID } from "../pipeline/v2.js";
 
 function main() {
   const args = process.argv.slice(2);
@@ -43,7 +42,7 @@ function main() {
   const slug = args[0];
   const title = args[1] || slug;
 
-  if (!slug) {
+  if (!slug || !BLOCK_ID.test(slug)) {
     console.error("Usage: npm run new-video <slug> [title] [--channel <channel-slug>] [--format short|long] [--short]");
     process.exit(1);
   }
@@ -63,18 +62,7 @@ function main() {
   }
 
   // Create directory structure
-  const dirs = [
-    "",
-    "research",
-    "content",
-    "storyboard",
-    "production",
-    "production/audio",
-    "production/visuals",
-    "production/output",
-    "publishing",
-    "analytics",
-  ];
+  const dirs = ["", "research", "script", "storyboard", "production/audio", "feedback", "publishing", "analytics"];
 
   for (const dir of dirs) {
     fs.mkdirSync(path.join(projectDir, dir), { recursive: true });
@@ -100,36 +88,31 @@ function main() {
     console.log("Note: No channel-config.json found, using template defaults.");
   }
 
-  // Create config.json from template
-  const template = JSON.parse(fs.readFileSync(TEMPLATE_PATH, "utf-8")) as ProjectConfig;
-
-  let targetLength = channelDefaults.targetLength || template.metadata.targetLength;
+  let targetLength = channelDefaults.targetLength || 600;
   if (format === "short") {
     try {
-      const channelConfig = loadChannelConfig(channelSlug);
-      targetLength = (channelConfig as any).shorts?.defaultLength || 45;
+      targetLength = (loadChannelConfig(channelSlug) as any).shorts?.defaultLength || 45;
     } catch {
       targetLength = 45;
     }
   }
 
-  const config: ProjectConfig = {
-    ...template,
+  const config = {
     slug,
     title,
+    layout: 2,
+    renderer: "catalog",
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     metadata: {
-      ...template.metadata,
-      tone: channelDefaults.tone || template.metadata.tone,
-      targetAudience: channelDefaults.targetAudience || template.metadata.targetAudience,
-      language: channelDefaults.language || template.metadata.language,
+      tone: channelDefaults.tone,
+      targetAudience: channelDefaults.targetAudience,
+      language: channelDefaults.language,
       targetLength,
       format,
     },
   };
 
-  fs.writeFileSync(path.join(projectDir, "config.json"), JSON.stringify(config, null, 2));
+  fs.writeFileSync(path.join(projectDir, "config.json"), JSON.stringify(config, null, 2) + "\n");
 
   console.log(`\nVideo "${slug}" created at ${projectDir}`);
   console.log(`Title:          ${title}`);
@@ -138,7 +121,7 @@ function main() {
   console.log(`Target length:  ${config.metadata.targetLength}s`);
   console.log(`Tone:           ${config.metadata.tone}`);
   console.log(`Audience:       ${config.metadata.targetAudience}`);
-  console.log(`\nNext step: /research ${slug} <topic>`);
+  console.log(`\nNext step: research, then write script/order.json and script/<block-id>.md (see the script skill).`);
 }
 
 main();

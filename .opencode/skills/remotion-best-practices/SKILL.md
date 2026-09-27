@@ -2,7 +2,7 @@
 name: remotion-best-practices
 description: "Best practices for Remotion video creation in React"
 ---
-<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+<!-- AUTO-GENERATED from .ai/. DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
 
 # Remotion Best Practices

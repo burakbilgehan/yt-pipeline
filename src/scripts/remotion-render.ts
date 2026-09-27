@@ -20,6 +20,9 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
+import { assemble } from "./assemble.js";
+import { paths } from "../pipeline/v2.js";
+import { sha256, writeRenderStamp } from "../pipeline/publish.js";
 import { webpackOverride } from "../remotion/webpack-override";
 import { getLatestVersionedFile, loadProjectConfig, saveProjectConfig, loadChannelConfig, getProjectDir, loadStoryboardResolved } from "../utils/project";
 import { bridgeAllScenes } from "../utils/storyboard-bridge";
@@ -122,8 +125,28 @@ async function main() {
   const videoConfigPath = path.join(projectDir, "production", "video-config.json");
   const hasVideoConfig = fs.existsSync(videoConfigPath);
 
-  if (hasVideoConfig) {
-    // ── Video-config path (preferred) ──
+  /** Hash of the exact render-input bytes this render reads (layout 2), for the render stamp. */
+  let renderInputHash: string | undefined;
+  if ((config as any).layout === 2) {
+    // ── Layout-2 path: regenerate timeline + render-input from sources, render only that ──
+    const { stale } = assemble(slug);
+    if (stale.length > 0) {
+      console.error(`Audio is missing or out of date for: ${stale.join(", ")}. Run npm run tts -- ${slug}`);
+      process.exit(1);
+    }
+    const renderInputBytes = fs.readFileSync(paths(slug).renderInput);
+    renderInputHash = sha256(renderInputBytes);
+    inputProps = JSON.parse(renderInputBytes.toString("utf-8"));
+    const scenes = inputProps.scenes as Array<{ endTime: number }>;
+    totalDurationSec = scenes[scenes.length - 1].endTime;
+    fps = channelConfig.visuals.fps;
+    totalFrames = Math.ceil((totalDurationSec + START_PADDING_SEC + END_PADDING_SEC) * fps);
+    compositionId = "MainVideo";
+    width = channelConfig.visuals.resolution.width;
+    height = channelConfig.visuals.resolution.height;
+    console.log(`Layout 2: ${scenes.length} scenes, ${totalDurationSec.toFixed(2)}s (${totalFrames} frames @ ${fps}fps)`);
+  } else if (hasVideoConfig) {
+    // ── Video-config path (legacy) ──
     const videoConfig = JSON.parse(fs.readFileSync(videoConfigPath, "utf-8"));
     console.log(`Using video-config.json (${videoConfig.scenes?.length || 0} scenes, ${videoConfig.audioSegments?.length || 0} audio segments)`);
 
@@ -454,7 +477,14 @@ async function main() {
   console.log(`\n\nRender complete in ${elapsed}s`);
   console.log(`Output: ${outputPath}`);
 
-  // ── Update config ──
+  // Layout-2 config.json holds identity only; pipeline state is not tracked there.
+  if ((config as any).layout === 2) {
+    // Stamp which render input produced this file; preflight compares it to decide freshness.
+    writeRenderStamp(slug, renderInputHash!);
+    return;
+  }
+
+  // ── Update config (legacy) ──
   const version = config.pipeline.production.version || 1;
   config.pipeline.production.status = "completed";
   config.pipeline.production.completedAt = new Date().toISOString();

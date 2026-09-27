@@ -24,14 +24,14 @@ npm run analytics <channel-slug>  # Channel overview
 ## Report Format
 
 ```markdown
-# Analytics Report: <Title> — <YYYY-MM-DD>
+# Analytics Report: <Title> - <YYYY-MM-DD>
 
 ## Performance
 - Views: X | Watch time: X hrs | Avg duration: X:XX (X%) | CTR: X%
 
 ## Retention
-- Drop-offs: [timestamp — reason]
-- High engagement: [timestamp — reason]
+- Drop-offs: [timestamp - reason]
+- High engagement: [timestamp - reason]
 
 ## Traffic Sources
 - Search X% | Suggested X% | Browse X% | External X%
@@ -51,4 +51,4 @@ npm run analytics <channel-slug>  # Channel overview
 - Always compare to channel averages
 - Recommendations must be specific and actionable
 - Feed key insights into content calendar for future planning
-- Benchmark against genre-appropriate norms — read `channels/<channel>/channel-config.json → channel.niche` to understand the content type. Retention curves, CTR, and engagement patterns differ significantly by genre (e.g., data/analytics channels vs. entertainment vs. tutorials). Compare to relevant benchmarks, not just channel averages.
+- Benchmark against genre-appropriate norms - read `channels/<channel>/channel-config.json → channel.niche` to understand the content type. Retention curves, CTR, and engagement patterns differ significantly by genre (e.g., data/analytics channels vs. entertainment vs. tutorials). Compare to relevant benchmarks, not just channel averages.

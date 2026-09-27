@@ -30,11 +30,31 @@ import { ContainerTextFlip } from '../design-system/motion/ContainerTextFlip';
 // ─── Debug overlay (Studio only) ──────────────────────────────
 const IS_STUDIO = getRemotionEnvironment().isStudio;
 
-// ─── Video padding (silence + dark screen) ────────────────────
-/** Seconds of dark padding before first scene */
-export const START_PADDING_SEC = 0.75;
-/** Seconds of dark padding after last scene */
-export const END_PADDING_SEC = 1.5;
+// ─── Video padding (silence + dark screen): defined once in ../timing ───
+import { START_PADDING_SEC, END_PADDING_SEC } from "../timing";
+export { START_PADDING_SEC, END_PADDING_SEC };
+
+// ─── Scene overlap (no empty frames between scenes) ───────────
+/**
+ * Each scene stays on screen this many frames past its end and fades out,
+ * while the next scene fades in on top. Without this, a scene boundary shows
+ * the bare background until the next scene's entrance animation has drawn something.
+ */
+export const SCENE_OVERLAP_FRAMES = 18;
+
+/** Fades its children out over [from, from + duration) in local frames. */
+const ExitFade: React.FC<{ from: number; duration: number; children: React.ReactNode }> = ({ from, duration, children }) => {
+  const frame = useCurrentFrame();
+  const opacity = duration > 0 ? interpolate(frame, [from, from + duration], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 1;
+  return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
+};
+
+/** Transition used when a scene enters. Hard cuts become a short crossfade; continuity types stay cuts. */
+function enterTransition(type: string | undefined, continuous: boolean): any {
+  if (continuous || type === "seamless") return "cut";
+  if (!type || type === "cut") return "crossfade";
+  return type;
+}
 
 // ─── Continuous chart group detection ─────────────────────────
 
@@ -247,21 +267,22 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
         if (groupDuration <= 0) return null;
 
         const mergedConfig = buildGroupChartConfig(scenes, group);
+        const groupOverlap = group.endIdx < scenes.length - 1 ? SCENE_OVERLAP_FRAMES : 0;
 
         return (
           <Sequence
             key={`chart-group-${groupIdx}`}
             from={groupStartFrame}
-            durationInFrames={groupDuration}
+            durationInFrames={groupDuration + groupOverlap}
             name={`Continuous Chart ${groupIdx + 1}`}
           >
-            <AbsoluteFill>
+            <ExitFade from={groupDuration} duration={groupOverlap}>
               <DataChartScene
                 chart={mergedConfig}
                 brandColor={brandColor}
                 fontFamily={fontFamily}
               />
-            </AbsoluteFill>
+            </ExitFade>
           </Sequence>
         );
       })}
@@ -330,12 +351,14 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
           <Sequence
             key={scene.id}
             from={startFrame}
-            durationInFrames={sceneDuration}
+            durationInFrames={sceneDuration + (index < scenes.length - 1 ? SCENE_OVERLAP_FRAMES : 0)}
             name={`Scene: ${scene.section}`}
           >
+            <ExitFade from={sceneDuration} duration={index < scenes.length - 1 ? SCENE_OVERLAP_FRAMES : 0}>
             <TransitionWrapper
-              type={isInChartGroup ? "cut" : scene.transition}
+              type={enterTransition(scene.transition, isInChartGroup && index > 0 && chartGroupSceneIndices.has(index - 1))}
               sceneDurationInFrames={sceneDuration}
+              transitionDuration={SCENE_OVERLAP_FRAMES}
             >
               {/* Layer 0 (DS): Atmosphere background — full-screen behind everything */}
               {AtmosphereComp && !isInChartGroup && (
@@ -472,6 +495,7 @@ const MainComposition: React.FC<VideoCompositionProps> = ({
                 </div>
               )}
             </TransitionWrapper>
+            </ExitFade>
           </Sequence>
         );
       })}

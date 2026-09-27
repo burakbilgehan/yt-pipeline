@@ -15,7 +15,7 @@ const AI_DIR = path.join(ROOT, ".ai");
 const CLAUDE_DIR = path.join(ROOT, ".claude");
 const OPENCODE_DIR = path.join(ROOT, ".opencode");
 
-const AUTO_GENERATED_HEADER = `<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->`;
+const AUTO_GENERATED_HEADER = `<!-- AUTO-GENERATED from .ai/. DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->`;
 
 // ── Frontmatter parsing ──────────────────────────────────────────────
 
@@ -80,7 +80,7 @@ function buildSkillsReference(skillNames: string[]): string {
   const list = skillNames
     .map((s) => {
       const desc = skillDescriptions.get(s);
-      return desc ? `- \`${s}\` — ${desc}` : `- \`${s}\``;
+      return desc ? `- \`${s}\`: ${desc}` : `- \`${s}\``;
     })
     .join("\n");
   return `\n\n## Skills (lazy load)\n\nLoad these with the \`skill\` tool by name when you need them. Do NOT read them upfront.\n\n${list}\n`;
@@ -99,11 +99,16 @@ function toClaudeAgent(parsed: ParsedFile, filename: string): string {
     : [];
 
   const skillsRef = buildSkillsReference(skills);
+  // Optional model routing, passed through verbatim (Claude Code agent frontmatter keys).
+  const routing = (["model", "effort"] as const)
+    .filter((k) => typeof parsed.frontmatter[k] === "string")
+    .map((k) => `\n${k}: ${parsed.frontmatter[k]}`)
+    .join("");
 
   return `---
 name: ${name}
 description: ${desc}
-tools: ${tools}
+tools: ${tools}${routing}
 ---
 ${AUTO_GENERATED_HEADER}
 ${parsed.body}${skillsRef}`;
@@ -180,7 +185,7 @@ function toOpenCodeCommand(parsed: ParsedFile): string {
 function generateOpenCodeJson(
   agentFiles: { filename: string; parsed: ParsedFile }[]
 ): string {
-  const SYNC_RULE = `CRITICAL: After editing any file under .ai/agents/ or .ai/skills/, you MUST run "npx tsx .ai/sync.ts" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly — they are auto-generated and will be overwritten.`;
+  const SYNC_RULE = `CRITICAL: After editing any file under .ai/agents/ or .ai/skills/, you MUST run "npx tsx .ai/sync.ts" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly; they are auto-generated and will be overwritten.`;
 
   const agents: Record<string, unknown> = {
     build: {
@@ -229,13 +234,13 @@ function copySkillDir(
 ): boolean {
   const skillFile = path.join(srcSkillDir, "SKILL.md");
   if (!fs.existsSync(skillFile)) {
-    console.warn(`  ⚠ Skipping ${skillName} — no SKILL.md`);
+    console.warn(`  ⚠ Skipping ${skillName}: no SKILL.md`);
     return false;
   }
 
   fs.mkdirSync(destSkillDir, { recursive: true });
 
-  // Copy all files (flat — subdirectories handled recursively)
+  // Copy all files (flat, subdirectories handled recursively)
   const copyRecursive = (src: string, dest: string) => {
     const entries = fs.readdirSync(src, { withFileTypes: true });
     for (const entry of entries) {
@@ -294,7 +299,7 @@ function cleanOrphanSkills(targetSkillsDir: string, sourceSkillNames: string[]) 
       const skillFile = path.join(targetSkillsDir, name, "SKILL.md");
       if (fs.existsSync(skillFile)) {
         const content = fs.readFileSync(skillFile, "utf-8");
-        if (content.includes(AUTO_GENERATED_HEADER)) {
+        if (content.includes("AUTO-GENERATED from .ai/")) {
           fs.rmSync(path.join(targetSkillsDir, name), { recursive: true });
           console.log(`  Removed orphan skill: ${name}`);
         }
@@ -354,9 +359,10 @@ function syncDir(subdir: "agents") {
   fs.mkdirSync(claudeDir, { recursive: true });
   fs.mkdirSync(opencodeDir, { recursive: true });
 
-  const files = fs
-    .readdirSync(sourceDir)
-    .filter((f) => f.endsWith(".md"));
+  // A missing source dir means "no agents": generated agent files are still cleaned up below.
+  const files = fs.existsSync(sourceDir)
+    ? fs.readdirSync(sourceDir).filter((f) => f.endsWith(".md"))
+    : [];
 
   const results: { filename: string; parsed: ParsedFile }[] = [];
 
@@ -397,7 +403,7 @@ function syncDir(subdir: "agents") {
 function main() {
   console.log("Syncing .ai/ → .claude/ + .opencode/\n");
 
-  // Load skill descriptions first — needed for agent skill references
+  // Load skill descriptions first, needed for agent skill references
   loadSkillDescriptions();
   console.log(`Loaded ${skillDescriptions.size} skill descriptions\n`);
 

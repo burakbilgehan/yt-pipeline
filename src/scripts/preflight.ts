@@ -11,6 +11,8 @@
  *
  * Usage: npm run preflight <slug> [--channel <channel-slug>]
  *
+ * Layout-2 projects run the gates in src/pipeline/gates.ts instead of the legacy checks below.
+ *
  * Exit codes:
  *   0 = all gates passed — safe to upload
  *   1 = one or more gates failed
@@ -23,6 +25,8 @@ import {
   getLatestVersionedFile,
   loadProjectConfig,
 } from "../utils/project.js";
+import { isLayout2 } from "../pipeline/v2.js";
+import { runGates } from "../pipeline/gates.js";
 
 interface Gate {
   name: string;
@@ -59,6 +63,14 @@ function main() {
   if (!fs.existsSync(projectDir)) {
     console.error(`Project not found: ${projectDir}`);
     process.exit(1);
+  }
+
+  if (isLayout2(slug)) {
+    const results = runGates(slug);
+    for (const r of results) console.log(`${r.passed ? "PASS" : "FAIL"} ${r.name.padEnd(18)} ${r.message}`);
+    const failed = results.filter((r) => !r.passed).length;
+    console.log(failed ? `\n${failed} gate(s) failed.` : `\nAll gates passed. The user uploads with: npm run upload -- ${slug}`);
+    process.exit(failed ? 1 : 0);
   }
 
   console.log(`\n🔍 Preflight check: ${slug}\n`);

@@ -3,26 +3,21 @@
   "agent": {
     "build": {
       "mode": "primary",
-      "prompt": "You are part of the yt-pipeline YouTube channel factory framework. You help build and implement the video production pipeline. All conversation is in Turkish. YouTube content language comes from channels/<channel>/channel-config.json → channel.language (default: English). Use TypeScript everywhere. Follow the architecture defined in AGENTS.md.\n\nCRITICAL: After editing any file under .ai/agents/ or .ai/skills/, you MUST run \"npx tsx .ai/sync.ts\" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly — they are auto-generated and will be overwritten."
+      "prompt": "You are part of the yt-pipeline YouTube channel factory framework. You help build and implement the video production pipeline. All conversation is in Turkish. YouTube content language comes from channels/<channel>/channel-config.json → channel.language (default: English). Use TypeScript everywhere. Follow the architecture defined in AGENTS.md.\n\nCRITICAL: After editing any file under .ai/agents/ or .ai/skills/, you MUST run \"npx tsx .ai/sync.ts\" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly; they are auto-generated and will be overwritten."
     },
     "plan": {
       "mode": "primary",
-      "prompt": "You are part of the yt-pipeline YouTube channel factory framework. Analyze, plan, and suggest without making changes. All conversation is in Turkish. Follow the architecture defined in AGENTS.md.\n\nCRITICAL: After editing any file under .ai/agents/ or .ai/skills/, you MUST run \"npx tsx .ai/sync.ts\" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly — they are auto-generated and will be overwritten."
+      "prompt": "You are part of the yt-pipeline YouTube channel factory framework. Analyze, plan, and suggest without making changes. All conversation is in Turkish. Follow the architecture defined in AGENTS.md.\n\nCRITICAL: After editing any file under .ai/agents/ or .ai/skills/, you MUST run \"npx tsx .ai/sync.ts\" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly; they are auto-generated and will be overwritten."
     },
-    "critic": {
-      "description": "Quality gate — reviews deliverables for accuracy, engagement, and production quality. Opt-in only.",
+    "claim-verifier": {
+      "description": "Independently checks sourced numeric claims against the web and returns verdicts as JSON. Sees only the claims passed in its prompt. Spawned by the research skill only.",
       "mode": "subagent",
-      "prompt": "{file:.opencode/agents/critic.md}"
+      "prompt": "{file:.opencode/agents/claim-verifier.md}"
     },
-    "director": {
-      "description": "Orchestrates pipeline, executes most stages directly via skills, delegates only Remotion coding to video-production agent.",
-      "mode": "primary",
-      "prompt": "{file:.opencode/agents/director.md}\n\nCRITICAL: After editing any file under .ai/agents/ or .ai/skills/, you MUST run \"npx tsx .ai/sync.ts\" to regenerate .claude/ and .opencode/ directories. Never edit files in .claude/ or .opencode/ directly — they are auto-generated and will be overwritten."
-    },
-    "video-production": {
-      "description": "Remotion composition coding, DS component adaptation, visual debugging — with mandatory self-QA loop.",
+    "researcher": {
+      "description": "Researches one video in a single deep round and writes research/notes.md and research/claims.json. Spawned by the research skill only.",
       "mode": "subagent",
-      "prompt": "{file:.opencode/agents/video-production.md}"
+      "prompt": "{file:.opencode/agents/researcher.md}"
     }
   }
 }

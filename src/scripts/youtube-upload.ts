@@ -8,6 +8,9 @@
  * Reads: channels/<channel>/videos/<slug>/publishing/metadata-v<latest>.json
  *        channels/<channel>/videos/<slug>/production/output/final.mp4
  * Writes: channels/<channel>/videos/<slug>/publishing/upload-log.md
+ *
+ * Layout-2 projects: see uploadLayout2 (publishing/metadata.json, gates from src/pipeline/gates.ts).
+ *   npm run upload -- <slug> [--override <gate>="<reason>" ...]   overrides are logged before the upload
  */
 
 import "dotenv/config";
@@ -21,6 +24,10 @@ import {
   loadProjectConfig,
   saveProjectConfig,
 } from "../utils/project.js";
+import { isLayout2 } from "../pipeline/v2.js";
+import { applyOverrides, parseOverrides, runGates, type Override } from "../pipeline/gates.js";
+import { buildMetadata, publishPaths, videoResource } from "../pipeline/publish.js";
+import { youtubeClient } from "../pipeline/youtube-client.js";
 
 async function main() {
   const slug = process.argv[2];
@@ -29,6 +36,8 @@ async function main() {
     console.error("Usage: npm run upload <project-slug>");
     process.exit(1);
   }
+
+  if (isLayout2(slug)) return uploadLayout2(slug, parseOverrides(process.argv.slice(3)));
 
   const projectDir = getProjectDir(slug);
   const config = loadProjectConfig(slug);
@@ -165,6 +174,65 @@ async function main() {
     const log = `# Upload Log: ${metadata.title}\n\n- **Date:** ${new Date().toISOString()}\n- **Status:** FAILED\n- **Error:** ${error}\n`;
     fs.writeFileSync(logPath, log);
     process.exit(1);
+  }
+}
+
+/**
+ * Layout 2: every publishing gate must pass or be overridden by the user (logged), the request comes from src/pipeline/publish.ts,
+ * and the log is written the moment the API answers, before anything else can fail.
+ */
+async function uploadLayout2(slug: string, overrides: Override[]) {
+  const results = runGates(slug);
+  const { blocking, used } = applyOverrides(results, overrides);
+  if (blocking.length) {
+    for (const r of blocking) console.error(`FAIL ${r.name}: ${r.message}`);
+    console.error(`\nUpload blocked. Run npm run preflight -- ${slug} for the full list.`);
+    process.exit(1);
+  }
+  const p = publishPaths(slug);
+  const built = buildMetadata(slug);
+  const resource = videoResource(slug, built);
+  const youtube = youtubeClient();
+  const log = (lines: string[]) => fs.appendFileSync(p.uploadLog, `\n## ${new Date().toISOString()}\n\n${lines.map((l) => `- ${l}`).join("\n")}\n`);
+  // Read before the upload: after the API answers, nothing may throw before the log is written.
+  const renderedAt = fs.existsSync(p.renderStamp) ? JSON.parse(fs.readFileSync(p.renderStamp, "utf8")).renderedAt : "no render stamp (overridden)";
+  const thumb = fs.readdirSync(p.thumbnailDir).find((f) => /^thumbnail\.(png|jpe?g)$/i.test(f));
+  if (used.length) {
+    log(used.map((o) => `OVERRIDE ${o.gate}: ${o.reason} (gate said: ${results.find((r) => r.name === o.gate)!.message})`));
+    for (const o of used) console.log(`Override: ${o.gate} (${o.reason})`);
+  }
+
+  console.log(`Uploading "${built.metadata.title}" (${built.metadata.visibility}${built.metadata.scheduledAt ? `, scheduled ${built.metadata.scheduledAt}` : ""})...`);
+  let videoId: string;
+  try {
+    const res = await youtube.videos.insert({ part: ["snippet", "status"], requestBody: resource, media: { body: fs.createReadStream(p.video) } });
+    videoId = res.data.id!;
+  } catch (error) {
+    log(["Status: FAILED", `Error: ${String(error).split("\n")[0]}`, "A failed or timed-out upload may still have been processed: check YouTube Studio before retrying (quota is spent either way)."]);
+    console.error("Upload failed:", error);
+    console.error("Check YouTube Studio before retrying.");
+    process.exit(1);
+  }
+  const url = `https://www.youtube.com/watch?v=${videoId}`;
+  log(["Status: SUCCESS", `Video ID: ${videoId}`, `URL: ${url}`, `Visibility: ${built.metadata.visibility}`, `Render: ${renderedAt}`]);
+  console.log(`Uploaded: ${url}`);
+
+  const configFile = path.join(getProjectDir(slug), "config.json");
+  const config = JSON.parse(fs.readFileSync(configFile, "utf8"));
+  config.youtube = { videoId, url, publishedAt: new Date().toISOString() };
+  fs.writeFileSync(configFile, JSON.stringify(config, null, 2) + "\n");
+
+  if (!thumb) {
+    log(["Thumbnail: none (overridden); set it in YouTube Studio"]);
+    return;
+  }
+  try {
+    await youtube.thumbnails.set({ videoId, media: { body: fs.createReadStream(path.join(p.thumbnailDir, thumb)) } });
+    log([`Thumbnail: ${thumb} set`]);
+    console.log(`Thumbnail set: ${thumb}`);
+  } catch (error) {
+    log([`Thumbnail: FAILED (${String(error).split("\n")[0]}); set it in YouTube Studio`]);
+    console.error(`Thumbnail upload failed; set it in YouTube Studio. ${error}`);
   }
 }
 

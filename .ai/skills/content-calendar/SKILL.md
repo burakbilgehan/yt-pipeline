@@ -28,7 +28,7 @@ How to maintain and use the channel content calendar.
 
 ## Planning Rules
 
-- Factor in existing calendar when evaluating new topics — avoid overlap
+- Factor in existing calendar when evaluating new topics - avoid overlap
 - Flag time-sensitive topics with urgency level
 - Channel maturity matters (read `channels/<channel>/channel-config.json → channel.maturity`):
   - `seed`: experimentation OK, test different formats/topics

@@ -9,6 +9,15 @@ import { resolveHorseRaceScenes } from "../utils/horse-race-resolver";
 import { BG, ACCENT_PINK } from "./palette";
 import { START_PADDING_SEC, END_PADDING_SEC } from "./compositions/MainComposition";
 import type { z } from "zod";
+import { CatalogVideo } from "./catalog/CatalogVideo";
+import { SHOWCASE, SHOWCASE_FPS } from "./catalog/showcase-data";
+import { totalFrames } from "./timing";
+import { StyleFrame as StyleFrameA, STYLEFRAME_DURATION as SFA_DUR } from "./styleframes/a";
+import { StyleFrame as StyleFrameB, STYLEFRAME_DURATION as SFB_DUR } from "./styleframes/b";
+import { StyleFrame as StyleFrameC, STYLEFRAME_DURATION as SFC_DUR } from "./styleframes/c";
+import { StyleFrame as StyleFrameD, STYLEFRAME_DURATION as SFD_DUR } from "./styleframes/d";
+import { StyleFrame as StyleFrameE, STYLEFRAME_DURATION as SFE_DUR } from "./styleframes/e";
+import { FontCompare, FONTS_DURATION, FONTS_SIZE } from "./styleframes/fonts";
 
 const FPS = 30;
 const WIDTH = 1920;
@@ -57,6 +66,13 @@ function bridgeBackgroundMusic(raw: any, bgmPrefix: string): any | undefined {
  *   bgm/ — background music tracks
  */
 async function tryLoadProjectProps(): Promise<z.infer<typeof videoCompositionSchema> | null> {
+  // Layout-2 projects: production/render-input.json (built by `npm run assemble`) is the only input.
+  try {
+    const res = await fetch(staticFile("production/render-input.json"));
+    if (res.ok) return await res.json();
+  } catch { /* not a layout-2 project */ }
+
+  // Legacy projects (read-only): storyboard-vN.json discovery below.
   try {
     // Try to load project-manifest.json first (preferred)
     let manifest: any = null;
@@ -171,8 +187,7 @@ export const RemotionRoot: React.FC = () => {
       {/* Main video composition - used for full video renders */}
       <Composition
         id="MainVideo"
-        lazyComponent={() => import("./compositions/MainComposition")}
-        schema={videoCompositionSchema}
+        lazyComponent={() => import("./compositions/VideoRouter")}
         durationInFrames={FPS * 60}
         fps={FPS}
         width={WIDTH}
@@ -202,7 +217,7 @@ export const RemotionRoot: React.FC = () => {
           fontFamily: "Montserrat, sans-serif",
         }}
         calculateMetadata={async ({ props }) => {
-          await ensureFontsLoaded(props.fontFamily);
+          await ensureFontsLoaded((props as { fontFamily?: string }).fontFamily);
           // Try to load real project data from publicDir (for Studio preview)
           const projectProps = await tryLoadProjectProps();
           if (projectProps) {
@@ -217,6 +232,27 @@ export const RemotionRoot: React.FC = () => {
           }
           return {};
         }}
+      />
+
+      {/* Style frame directions for the visual reset (design-system skill > Choosing a look) */}
+      <Folder name="StyleFrames">
+        <Composition id="StyleFrameA" component={StyleFrameA} durationInFrames={SFA_DUR} fps={FPS} width={WIDTH} height={HEIGHT} />
+        <Composition id="StyleFrameB" component={StyleFrameB} durationInFrames={SFB_DUR} fps={FPS} width={WIDTH} height={HEIGHT} />
+        <Composition id="StyleFrameC" component={StyleFrameC} durationInFrames={SFC_DUR} fps={FPS} width={WIDTH} height={HEIGHT} />
+        <Composition id="StyleFrameD" component={StyleFrameD} durationInFrames={SFD_DUR} fps={FPS} width={WIDTH} height={HEIGHT} />
+        <Composition id="StyleFrameE" component={StyleFrameE} durationInFrames={SFE_DUR} fps={FPS} width={WIDTH} height={HEIGHT} />
+        <Composition id="FontCompare" component={FontCompare} durationInFrames={FONTS_DURATION} fps={FPS} width={FONTS_SIZE.width} height={FONTS_SIZE.height} />
+      </Folder>
+
+      {/* Scene catalog v1 look review (work/design-brief.md) */}
+      <Composition
+        id="CatalogShowcase"
+        component={CatalogVideo as unknown as React.FC<Record<string, unknown>>}
+        durationInFrames={totalFrames(SHOWCASE.scenes[SHOWCASE.scenes.length - 1].endTime, SHOWCASE_FPS)}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        defaultProps={SHOWCASE as unknown as Record<string, unknown>}
       />
 
       {/* Data chart preview - for testing chart animations */}

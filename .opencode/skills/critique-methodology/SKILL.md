@@ -2,7 +2,7 @@
 name: critique-methodology
 description: "Quality gate evaluation methodology for pipeline deliverables"
 ---
-<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+<!-- AUTO-GENERATED from .ai/. DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
 
 # Critique Methodology
@@ -52,6 +52,6 @@ ISSUES:
 ## Rules
 
 - Every criticism needs a concrete fix with file path
-- Benchmark against top-tier content in the channel's genre — read `channels/<channel>/channel-config.json → channel.niche` to understand the content type and find appropriate quality benchmarks
+- Benchmark against top-tier content in the channel's genre - read `channels/<channel>/channel-config.json → channel.niche` to understand the content type and find appropriate quality benchmarks
 - Math displayed to viewers = always verify (see `math-verification` skill)
 - Wrong math = automatic D grade minimum

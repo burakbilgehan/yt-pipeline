@@ -1,88 +1,41 @@
 ---
 name: design-system
-description: "5-layer Design System architecture, component constraints, and implementation workflow for Remotion visuals"
+description: "How the scene catalog and its tokens are built and changed: tokens.ts as the single source of visual values, the stage, scene components, and the procedure for adding or changing a scene type in a dedicated design-system session."
 ---
-<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+<!-- AUTO-GENERATED from .ai/. DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
 
-# Design System Skill
+# Design system
 
-Load this skill when working with visual components, storyboards, or Remotion production.
+## Where things live
 
-## Quick Reference
+- `src/remotion/catalog/tokens.ts`: every color, type role and size, layout position, easing curve, duration, motion and shape value. The only place such values exist; components import them and never hard-code a value. The visual language is style frame E (`src/remotion/styleframes/e/`, the approved reference; do not edit it).
+- `src/remotion/catalog/schema.ts`: the scene contract (types, props, limits, cues, which types are implemented).
+- `src/remotion/catalog/motion.ts` and `ui.tsx`: the motion vocabulary (ramp, overshoot, punch, drift, blur) and the primitives every scene builds on (Layer, Snap, Panel, Chip, Card).
+- `src/remotion/catalog/Stage.tsx`, `Atmosphere.tsx`, `CatalogVideo.tsx`: the header, chip and source line, the grain, and the renderer with its transitions (push inside a section, stage turn at a section boundary) and kicks.
+- `src/remotion/catalog/scenes/`: one component per scene type.
+- `src/remotion/catalog/showcase-data.ts`: the review reel (`npm run showcase`).
+- `channels/<channel>/channel-assets/brand-guide.md`: the rules in words; it names tokens and never repeats values.
 
-Read `src/remotion/design-system/DESIGN-SYSTEM.md` for the full reference. That file is the single source of truth for:
+Code under `src/remotion/templates/`, `src/remotion/design-system/` and `src/remotion/compositions/MainComposition.tsx` serves legacy projects only. Do not extend it.
 
-- 5-layer architecture (L1 Tokens → L2 Atmospheres → L3 Motion → L4 Surfaces → L5 Scene Templates)
-- Hard constraints (Remotion-native animation, Tailwind CSS for styling, no framer-motion/GSAP)
-- How to add new components (decompose → implement → register → showcase → verify)
-- Registry system (`registerMotion`, `registerAtmosphere`, `registerSurface`)
-- File map and naming conventions
-- Current inventory of implemented components
+## Changing a token
 
-## Styling Stack
+1. Change the value in `tokens.ts` only. If the user changed it in the Claude Design system, download its `project/tokens.json` and run `npm run design-tokens -- --diff <file>` to list what to apply.
+2. `npm run showcase` and look at the reel. Then `npm run design-tokens -- --out <file>` and publish that file to the Claude Design system so both sides match.
 
-- **Tailwind CSS v4** — all static styling via utility classes. Enabled via `@remotion/tailwind-v4` webpack override.
-- **`cn()` helper** — `src/lib/utils.ts` — use for conditional/merged class names.
-- **shadcn/ui** — pre-built components in `src/components/ui/`. Add new ones: `npx shadcn add <component>`.
-- **Inline `style={{}}`** — ONLY for dynamic/animated values driven by `interpolate()` or `spring()`.
-- **CSS variables** — shadcn theme vars in `src/remotion/styles.css`. Dark theme is default (video bg is dark).
+## Choosing a look (before any system work)
 
-### Styling Decision Tree
+A new visual direction, or a scene type whose look is not already approved, starts with style frames: at least three clearly different directions for the same real beats, rendered in Remotion as stills and short clips, shown to the user in Studio. The user picks or mixes; only then are tokens and scene types built from the chosen frames. Research documents inform the directions but never define a look on their own. (user, 26.09.2026)
 
-See `DESIGN-SYSTEM.md → Styling Decision Tree` for the canonical version. In short: animated values → inline `style={{}}`, everything else → Tailwind class via `cn()`.
+Before anything visual is shown to the user (style frames included), review it at full resolution frame by frame: alignment of every label to its mark and to the grid, one consistent type system, icon quality, and every number, route and shape traced to a source. Anything invented is fixed or named to the user as invented; never shown silently. A contact sheet is not a review. (user, 26.09.2026) Every render is analyzed automatically: `.ai/hooks/auto-watch.mjs` runs `npm run watch` on the output (cuts, motion, holds, periodic pulses, blank frames, full-resolution frames at those moments) and puts the report in front of you; read it and those frames before showing the clip. `.ai/hooks/clean-watch.mjs` deletes analysis folders after an hour.
 
-## Adding shadcn Components
+## Adding or changing a scene type (design-system session only, with the user)
 
-```bash
-npx shadcn add card badge button    # adds to src/components/ui/
-```
+1. Contract first: add or change the props schema, limits and cue names in `schema.ts`.
+2. Component in `scenes/`: fills the content area, reads only tokens and the primitives in `ui.tsx`, has visible content within `MOTION.sceneEnterDelay` frames of its start, draws data to scale from zero. Layers carrying data marks are `flat` and sit on the grid; only figures and panels drift.
+3. Wire it in `CatalogVideo.tsx`, add a showcase entry with real data, add the type to `IMPLEMENTED_TYPES`.
+4. Update the type table in the `storyboard` skill.
+5. `npx tsc --noEmit`, `npm run showcase`, user approval.
 
-These are stock shadcn components. For DS-specific primitives (atmospheres, surfaces, motions), follow the layer registration workflow in DESIGN-SYSTEM.md.
-
-## Component Catalog
-
-`src/remotion/design-system/component-catalog.json` is the machine-readable mapping from **visual needs** to **DS primitives**. Every agent that picks or uses DS components must read this file.
-
-It contains for each component:
-- `useCases` — when this component is the right choice
-- `keywords` — semantic tags for matching
-- `whenToUse` / `whenNotToUse` — decision guidance
-- `storyboardHint` — exact fields to set in scene detail JSON during storyboard authoring
-- `pairs` — which surfaces/atmospheres/motions work well together
-- `alternatives` — what to use instead
-
-**Flow:**
-1. Director (storyboard authoring) reads catalog → assigns `visual.motion`, `visual.surface`, `visual.atmosphere` in scene details
-2. Video Production agent reads scene hints → resolves to actual DS components via registry
-3. Critic verifies choices match the catalog's `whenToUse` / `whenNotToUse` guidance
-
-## Agent-Specific Rules
-
-### Director (Storyboard Authoring)
-- **Read `component-catalog.json` before assigning visuals.** Match scene visual needs to catalog `keywords` and `useCases`.
-- Assign `visual.motion`, `visual.surface`, `visual.atmosphere` IDs in scene detail JSON (see `storyboard-authoring` skill → "Design System Hints").
-- Only reference IDs that exist in the catalog. If no matching component exists, note it: `"notes": "NEEDS DS COMPONENT: <description>"`.
-- Use `pairs` from catalog to pick complementary combinations.
-
-### Video Production Agent
-- **Read scene `visual.motion`, `visual.surface`, `visual.atmosphere` hints.** These are DS primitive IDs to resolve.
-- Import DS components from `src/remotion/design-system/` barrel exports.
-- Use `getMotion(id)`, `getAtmosphere(id)`, `getSurface(id)` for dynamic lookup.
-- If a hint references a `"planned"` component, flag it and fall back gracefully (e.g., simple fade instead of missing `blur-fade-in`).
-- Use Tailwind classes + `cn()` for static styling, inline `style={{}}` only for animated values.
-- shadcn/ui components available from `@/components/ui/`.
-
-### Critic Agent
-- Verify scenes use registered DS components (not ad-hoc inline animations)
-- Check that `visual.motion`/`visual.surface`/`visual.atmosphere` IDs match catalog entries
-- Verify choices make sense per catalog `whenToUse` / `whenNotToUse`
-- Check font sizes meet VB-4 minimums (see `DESIGN-SYSTEM.md → VB-4: Typography Hierarchy` for exact values)
-- Flag any framer-motion, GSAP, anime.js usage as automatic FAIL
-
-### Director Agent
-- **External Component Intake is mandatory.** When user pastes code or shares a reference link, run the 4-step gate defined in `DESIGN-SYSTEM.md → External Component Intake` BEFORE writing any file. Steps: (1) Decompose → identify DS layer, (2) Adapt → rewrite to Remotion-native, (3) Register → correct directory + catalog, (4) Showcase → visual proof in Studio.
-- **Never copy-paste external code as-is.** Every user-provided component goes through the 4-step gate into `src/remotion/design-system/<layer>/`. `src/components/ui/` is only touched by shadcn CLI, never by us manually. Never install external animation runtimes (framer-motion, gsap, etc.). Always adapt to Remotion's frame-deterministic API.
-- New components need: adaptation → implementation → registry entry → **catalog entry** → showcase composition → TypeScript compile check → user visual approval
-- Never skip the showcase step — every new primitive must be visually verified before production use
-- After adding a new component, update `component-catalog.json` with use cases, keywords, and pairing info
+Never port an external animation runtime (framer-motion, gsap, anime.js, react-spring); motion is a pure function of the frame.

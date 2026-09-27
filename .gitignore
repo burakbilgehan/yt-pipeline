@@ -48,3 +48,8 @@ ab-test/
 
 # Render output (should always go to channels/<ch>/videos/<slug>/production/output/)
 out/
+
+# Claude Code local state
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.cache/

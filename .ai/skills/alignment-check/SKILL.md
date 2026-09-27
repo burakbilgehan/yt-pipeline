@@ -11,7 +11,7 @@ Evaluate whether a video topic/script fits the channel's brand and strategy.
 
 - Project start (topic proposal)
 - Script finalization (before storyboard)
-- Director triggers automatically at these points
+- Run it at these points
 
 ## Inputs
 
@@ -26,7 +26,7 @@ SCORE: X/5  (1=off-brand, 3=acceptable, 5=perfect fit)
 CHANNEL FIT: [why this does/doesn't match]
 CONCERNS: [if score < 4]
 SUGGESTIONS: [improvements to align better]
-STRATEGIC CONTEXT: [how this fits the bigger picture — recent uploads, calendar, audience trends]
+STRATEGIC CONTEXT: [how this fits the bigger picture - recent uploads, calendar, audience trends]
 ```
 
 ## Score Guide
@@ -35,5 +35,5 @@ STRATEGIC CONTEXT: [how this fits the bigger picture — recent uploads, calenda
 |-------|---------|--------|
 | 5 | Perfect fit | Proceed |
 | 4 | Good fit | Proceed, minor tweaks optional |
-| 3 | Acceptable | Get Director's suggestions before proceeding |
+| 3 | Acceptable | Suggest adjustments before proceeding |
 | 1-2 | Off-brand | Reconsider topic or angle |

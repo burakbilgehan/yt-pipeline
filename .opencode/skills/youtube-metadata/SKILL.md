@@ -2,22 +2,30 @@
 name: youtube-metadata
 description: "Rules for crafting YouTube titles, descriptions, and tags"
 ---
-<!-- AUTO-GENERATED from .ai/ — DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
+<!-- AUTO-GENERATED from .ai/. DO NOT EDIT. Run "npm run sync-ai" to regenerate. -->
 
 
 # YouTube Metadata
 
-Rules for crafting titles, descriptions, and tags for YouTube.
+How to write `publishing/metadata.json` of a layout-2 video. Schema and checks: `src/pipeline/publish.ts`; `npm run metadata -- <slug>` validates it and generates the copy-paste files.
 
-## Tag Rules
+## File
 
-Read `templates/pipeline-defaults.json → youtube` for limits (max total chars, target chars, max single tag, forbidden chars). Always validate total char count before writing metadata.
+```json
+{
+  "title": "The Strait That Moves a Fifth of the World's Oil",
+  "description": "Hook line.\n\n{{chapters}}\n\nTwo or three sentences with keywords.\n\nSources:\n...\n\n#hashtag1 #hashtag2",
+  "tags": ["strait of hormuz", "oil prices"],
+  "category": "Education",
+  "visibility": "private",
+  "scheduledAt": "2026-10-03T16:00:00+03:00"
+}
+```
 
-**Character counting**: YouTube counts the total as `sum of all tag characters + (number of tags - 1)` for comma separators. Multi-word tags do NOT get extra quote overhead. To verify locally: join all tags with commas (NO spaces after commas), count the resulting string length. That number matches YouTube Studio's counter. **Target `pipeline-defaults.json → youtube.targetTagChars`** (currently 490) to leave margin under the 500 hard limit.
-
-**Copy-paste output rule (CRITICAL)**: In addition to the JSON `metadata-v<N>.json`, always generate a **`tags.txt`** file alongside it containing tags as a plain comma-separated string with NO quotation marks. Example: `polyester, cotton, merino wool, BPA`. Also generate a **`description.txt`** with the description as plain text (real newlines, not `\n` literals). These `.txt` files are what the user copies into YouTube Studio — JSON `\n` escapes and `"` quotes break when pasted directly.
-
-**No apostrophes in tags.** Apostrophes (`'`) count as extra characters in YouTube and cause inconsistent behavior. Rephrase instead: `what is safe` not `what's safe`.
+- `{{chapters}}` on its own line: the script fills it with one timestamp per section of `script/order.json`, from the real timeline. Never type timestamps. YouTube needs at least 3 chapters of 10 seconds or more; if the sections do not allow that, the fix is in `order.json` (a user decision), not in the description.
+- Shorts have no `{{chapters}}` line.
+- `scheduledAt` requires `visibility: "private"`.
+- Tag limits and counting (API rule: commas count, a tag with a space counts 2 more) are enforced by the script against `templates/pipeline-defaults.json` `youtube`. No apostrophes in tags; rephrase (`what is safe`, not `what's safe`).
 
 ## Tag Strategy
 
@@ -28,26 +36,24 @@ Mix of:
 
 ## Title Rules
 
-- 3–5 options ranked by expected CTR
+- 3 to 5 options ranked by expected CTR; the user picks
 - Lead with curiosity or surprise
 - Include primary keyword naturally
+- Every number in the title or description is a claim in `research/claims.json`
 - **Shorts**: keep under 60 chars (read `templates/pipeline-defaults.json → formats.short.maxTitleChars`)
 
 ## Description Structure (long format)
 
 ```
-[Hook line — 1-2 sentences]
+[Hook line - 1-2 sentences]
 
-[Chapter timestamps]
-0:00 — Intro
-0:15 — Section title
-...
+{{chapters}}
 
 [2-3 sentences expanding on video content with keywords]
 
 [CTA: subscribe, comment prompt]
 
-[Credits / sources / links]
+[Sources: publisher and title of each source behind an on-screen number]
 
 #hashtag1 #hashtag2 #hashtag3
 ```
@@ -56,7 +62,7 @@ Mix of:
 
 | | Long | Short |
 |--|------|-------|
-| Chapters | Yes (timestamps) | No |
+| Chapters | Yes (`{{chapters}}`) | No |
 | End screens | Yes | No |
 | Description | Full with chapters | Brief, 2-3 sentences |
 | Tags | Full set | `#Shorts` required, hashtags over tags |

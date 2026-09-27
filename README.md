@@ -95,10 +95,7 @@ opencode
 # Create a new video project
 npm run new-video my-first-video "The World's Most Expensive Liquids" --channel my-channel-slug
 
-# Use agents to work through the pipeline:
-@researcher research "most expensive liquids in the world" for project my-first-video
-@content-writer write a script for my-first-video based on research
-@storyboard create storyboard for my-first-video
+# Work through the pipeline stage by stage in a Claude Code or OpenCode session (see AGENTS.md).
 
 # Run production scripts:
 npm run tts my-first-video
@@ -195,26 +192,12 @@ All API keys go in `.env`. Here's how to get each one:
 | `npm run upload <slug>` | Upload to YouTube |
 | `npm run analytics <slug>` | Fetch YouTube analytics |
 | `npm run collect <slug> <image\|video> <query>` | Download Pexels stock media |
-| `npm run generate-image <slug> <prompt>` | Generate AI image |
 | `npm run studio` | Open Remotion Studio |
 | `npm run sync-ai` | Sync .ai/ → .claude/ + .opencode/ |
 
 ## Agents
 
-| Agent | Role |
-|-------|------|
-| `@director` | Pipeline orchestration, coordinates all other agents |
-| `@researcher` | Topic research, fact gathering, source validation |
-| `@content-writer` | Script writing with voiceover markers |
-| `@content-strategist` | Topic ideation, trend analysis, content calendar |
-| `@storyboard` | Scene-by-scene visual planning |
-| `@collector` | Stock media & asset gathering |
-| `@video-production` | Production oversight, render coordination |
-| `@publisher` | YouTube metadata, SEO, upload |
-| `@youtube-expert` | YouTube algorithm strategy |
-| `@analytics` | Performance analysis and insights |
-| `@critic` | Quality gate at every pipeline stage |
-| `@qa` | Process improvement, friction detection |
+Agent and skill definitions live in `.ai/` (source of truth) and are synced to `.claude/` and `.opencode/` with `npm run sync-ai`. See `AGENTS.md` for the current set.
 
 ## Multiple Channels
 

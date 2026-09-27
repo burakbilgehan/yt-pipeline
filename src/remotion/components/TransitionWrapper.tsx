@@ -18,7 +18,7 @@ interface TransitionWrapperProps {
 }
 
 /**
- * Wraps a scene with enter/exit transitions.
+ * Wraps a scene with its enter transition.
  * Fade, slide, zoom transitions are supported. Cut = no transition.
  */
 export const TransitionWrapper: React.FC<TransitionWrapperProps> = ({
@@ -39,19 +39,9 @@ export const TransitionWrapper: React.FC<TransitionWrapperProps> = ({
     extrapolateRight: "clamp",
   });
 
-  // Exit transition (last N frames)
-  const exitProgress = interpolate(
-    frame,
-    [sceneDurationInFrames - transitionDuration, sceneDurationInFrames],
-    [1, 0],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    }
-  );
-
-  // Use the minimum of enter and exit for smooth in/out
-  const progress = Math.min(enterProgress, exitProgress);
+  // Enter only. The exit is handled by the caller overlapping the next scene
+  // (MainComposition ExitFade), so the screen never dips to the bare background.
+  const progress = enterProgress;
 
   const style = getTransitionStyle(type, progress);
 

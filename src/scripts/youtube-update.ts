@@ -19,6 +19,27 @@ import {
   getLatestVersionedFile,
   loadProjectConfig,
 } from "../utils/project.js";
+import { isLayout2 } from "../pipeline/v2.js";
+import { buildMetadata, publishPaths, videoResource } from "../pipeline/publish.js";
+import { youtubeClient } from "../pipeline/youtube-client.js";
+
+/** Layout 2: pushes publishing/metadata.json (chapters from the current timeline) to the uploaded video. */
+async function updateLayout2(slug: string) {
+  const videoId = (loadProjectConfig(slug) as any).youtube?.videoId;
+  if (!videoId) throw new Error("No youtube.videoId in config.json. Upload the video first.");
+  const built = buildMetadata(slug);
+  if (built.errors.length) throw new Error(`metadata invalid: ${built.errors.join("; ")}`);
+  // Status is sent only while a schedule is still ahead: metadata.json keeps saying "private" after a
+  // scheduled video went public, and sending it then would take the live video down.
+  const { snippet, status } = videoResource(slug, built);
+  const reschedule = !!built.metadata.scheduledAt && Date.parse(built.metadata.scheduledAt) > Date.now();
+  await youtubeClient().videos.update({
+    part: reschedule ? ["snippet", "status"] : ["snippet"],
+    requestBody: reschedule ? { id: videoId, snippet, status } : { id: videoId, snippet },
+  });
+  fs.appendFileSync(publishPaths(slug).uploadLog, `\n## ${new Date().toISOString()}\n\n- Metadata updated: "${built.metadata.title}"${reschedule ? `, scheduled ${built.metadata.scheduledAt}` : " (snippet only, visibility untouched)"}\n`);
+  console.log(`Updated https://www.youtube.com/watch?v=${videoId}`);
+}
 
 async function main() {
   const slug = process.argv[2];
@@ -27,6 +48,8 @@ async function main() {
     console.error("Usage: npx tsx src/scripts/youtube-update.ts <project-slug>");
     process.exit(1);
   }
+
+  if (isLayout2(slug)) return updateLayout2(slug);
 
   const projectDir = getProjectDir(slug);
   const config = loadProjectConfig(slug);

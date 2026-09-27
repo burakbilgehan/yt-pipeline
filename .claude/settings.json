@@ -1,0 +1,119 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run tts:*)",
+      "Bash(npm run preview:*)",
+      "Bash(npm run validate:*)",
+      "Bash(npm run preflight:*)",
+      "Bash(npm run channel-status:*)",
+      "Bash(npm run video-status:*)",
+      "Bash(npm run text-utils:*)",
+      "Bash(npm run sync-ai)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(npm run assemble:*)",
+      "Bash(npm run stills:*)",
+      "Bash(npm run preview-scene:*)",
+      "Bash(npm run migrate-v2:*)",
+      "Bash(npm run feedback:*)",
+      "Bash(npm run lint-harness)",
+      "Bash(npm run status:*)",
+      "Bash(npm run render:*)",
+      "Bash(npm run studio:*)",
+      "Bash(npm run claims:*)",
+      "Bash(npm run metadata:*)"
+    ],
+    "ask": [
+      "Bash(npm install:*)",
+      "Bash(npm i:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm run collect:*)",
+      "Bash(git commit:*)"
+    ],
+    "deny": [
+      "Bash(npm run upload:*)",
+      "Bash(npm run youtube-update:*)",
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean:*)",
+      "Bash(rm -rf:*)",
+      "Read(./.env)",
+      "Edit(./.env)",
+      "Edit(channels/**/production/audio/manifest.json)",
+      "Edit(channels/**/production/timeline.json)",
+      "Edit(channels/**/production/render-input.json)",
+      "Edit(channels/**/research/verification.json)",
+      "Edit(channels/**/publishing/description.txt)",
+      "Edit(channels/**/publishing/tags.txt)",
+      "Edit(channels/**/production/output/final.render.json)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.ai/hooks/guard-bash.mjs\""
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.ai/hooks/guard-agent-scope.mjs\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.ai/hooks/sync-ai.mjs\"",
+            "statusMessage": "Syncing .ai/ configs..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.ai/hooks/auto-watch.mjs\"",
+            "timeout": 900,
+            "statusMessage": "Analyzing the rendered clip..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.ai/hooks/frustration-signal.mjs\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.ai/hooks/clean-watch.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}
