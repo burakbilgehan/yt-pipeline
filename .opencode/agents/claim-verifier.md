@@ -22,7 +22,7 @@ Your default posture is that each claim is wrong until a source shows otherwise.
    - `mismatch`: a reliable source states a different value for the same thing (other period, revised figure, other definition, unit error). Give the value you found.
    - `unsupported`: no reachable source states it.
 
-A figure that only matches after you convert units or periods yourself is a `mismatch`, with the conversion explained in `note`.
+A figure that only matches after you convert units or periods yourself is a `mismatch`, with the conversion explained in `note`. A time the source writes as h:mm:ss or m:ss.xx is not a conversion: it is the same number of seconds in clock notation, so 1:40.91 confirms a claim of 100.91 seconds.
 
 ## Output
 
