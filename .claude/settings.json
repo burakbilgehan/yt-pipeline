@@ -32,12 +32,12 @@
       "Bash(npm i:*)",
       "Bash(npm uninstall:*)",
       "Bash(npm run collect:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [
       "Bash(npm run upload:*)",
       "Bash(npm run youtube-update:*)",
-      "Bash(git push:*)",
       "Bash(git reset --hard:*)",
       "Bash(git clean:*)",
       "Bash(rm -rf:*)",

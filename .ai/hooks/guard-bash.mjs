@@ -15,7 +15,6 @@ const RULES = [
   { re: /\bnpm\s+run\s+upload\b/, why: "YouTube upload is user-only. Print the command for the user instead." },
   { re: new RegExp(RUN + String.raw`youtube-update(?:\.ts)?\b`), why: "Changing live YouTube metadata is user-only." },
   { re: /\bnpm\s+run\s+youtube-update\b/, why: "Changing live YouTube metadata is user-only." },
-  { re: /\bgit\s+push\b/, why: "git push is user-only." },
   { re: /\bgit\s+reset\s+--hard\b|\bgit\s+clean\b|\bgit\s+checkout\s+--\s|\bgit\s+restore\b/, why: "Discarding work is user-only." },
   { re: /\brm\s+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b/, why: "rm -rf is blocked. Delete specific files, or ask the user." },
 ];
