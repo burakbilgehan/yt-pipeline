@@ -30,7 +30,7 @@ A new visual direction, or a scene type whose look is not already approved, star
 
 Before anything visual is shown to the user (style frames included), review it at full resolution frame by frame: alignment of every label to its mark and to the grid, one consistent type system, icon quality, and every number, route and shape traced to a source. Anything invented is fixed or named to the user as invented; never shown silently. A contact sheet is not a review. (user, 26.09.2026) Every render is analyzed automatically: `.ai/hooks/auto-watch.mjs` runs `npm run watch` on the output (cuts, motion, holds, periodic pulses, blank frames, full-resolution frames at those moments) and puts the report in front of you; read it and those frames before showing the clip. `.ai/hooks/clean-watch.mjs` deletes analysis folders after an hour.
 
-## Adding or changing a scene type (design-system session only, with the user)
+## Adding or changing a scene type (a new type: design-system session only, with the user; a flagged detail of an existing type: fixed during the video, see AGENTS.md)
 
 1. Contract first: add or change the props schema, limits and cue names in `schema.ts`.
 2. Component in `scenes/`: fills the content area, reads only tokens and the primitives in `ui.tsx`, has visible content within `MOTION.sceneEnterDelay` frames of its start, draws data to scale from zero. Layers carrying data marks are `flat` and sit on the grid; only figures and panels drift.
