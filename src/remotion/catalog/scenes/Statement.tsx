@@ -8,9 +8,9 @@
  * "n in d" lands centered under them.
  */
 import React from "react";
-import { useCurrentFrame } from "remotion";
+
 import { COLOR, DUR, EASE, LAYOUT, MOTION, SHAPE, TYPE, body, giant, value } from "../tokens";
-import { blurFor, mixColor, overshoot, progress } from "../motion";
+import { blurFor, mixColor, overshoot, progress, useFrame } from "../motion";
 import { Layer } from "../ui";
 
 export interface StatementProps {
@@ -24,7 +24,7 @@ export interface StatementProps {
 const BAR = { top: 800, h: 40, gap: 8 };
 
 export const Statement: React.FC<StatementProps> = ({ text, emphasis, attribution, fraction, emphasisAt }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const { content } = LAYOUT;
   const size = text.length > 90 ? TYPE.giant.sizes.statementSmall : text.length > 64 ? TYPE.giant.sizes.statement : TYPE.giant.sizes.statementLarge;
   const words = text.split(" ");
@@ -89,7 +89,7 @@ export const Statement: React.FC<StatementProps> = ({ text, emphasis, attributio
 
 /** d equal segments across the content width; the first n fill left to right with highlight. */
 const FractionBar: React.FC<{ n: number; d: number; at: number }> = ({ n, d, at }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const { content } = LAYOUT;
   const width = content.right - content.left;
   const w = (width - (d - 1) * BAR.gap) / d;

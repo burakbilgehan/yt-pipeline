@@ -1,8 +1,23 @@
 /**
  * Motion vocabulary of the catalog (style frame E). Every value is a pure function of the frame.
+ * Frames here are design frames (DESIGN_FPS); read them with useFrame, never useCurrentFrame.
  */
-import { interpolate } from "remotion";
+import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { toDesign } from "../timing";
 import { DUR, EASE, MOTION } from "./tokens";
+
+/** Current frame in design frames (fractional above DESIGN_FPS). */
+export function useFrame(): number {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  return toDesign(frame, fps);
+}
+
+/** Length of the current sequence in design frames. */
+export function useDuration(): number {
+  const { durationInFrames, fps } = useVideoConfig();
+  return toDesign(durationInFrames, fps);
+}
 
 export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;

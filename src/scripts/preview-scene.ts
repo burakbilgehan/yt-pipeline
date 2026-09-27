@@ -15,6 +15,7 @@ import { renderMedia, selectComposition } from "@remotion/renderer";
 import { toFrame } from "../remotion/timing.js";
 import { assemble } from "./assemble.js";
 import { paths } from "../pipeline/v2.js";
+import { paddingRanges, sceneSpans, watchDir, watchVideo } from "../pipeline/watch.js";
 
 const HANDLE_SEC = 1;
 
@@ -48,6 +49,19 @@ async function main() {
   const started = Date.now();
   await renderMedia({ composition, serveUrl, codec: "h264", outputLocation: output, frameRange: [from, to] });
   console.log(`${sceneId}: ${((to - from + 1) / fps).toFixed(1)}s clip rendered in ${((Date.now() - started) / 1000).toFixed(0)}s -> ${output}`);
+
+  // Watch gate: the designed empty frames of the full video, shifted into clip time, are exempt.
+  const offset = from / fps;
+  const { lines, violations } = await watchVideo(output, {
+    out: watchDir(output),
+    ignore: paddingRanges(composition.durationInFrames / fps, fps).map(([s, e]) => [s - offset, e - offset]),
+    scenes: (f) => sceneSpans(slug, f, offset),
+  });
+  console.log(`\nWatch:\n${lines.join("\n")}`);
+  if (violations.length) {
+    console.error(`\n${sceneId}: the clip breaks the watch rules; not opened. Fix the scene, then preview again.`);
+    process.exit(1);
+  }
   if (!process.argv.includes("--no-open")) spawnSync("open", [output]);
 }
 

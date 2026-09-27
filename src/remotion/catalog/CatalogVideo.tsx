@@ -16,17 +16,17 @@
  * Kick: a short scale punch of the frame at a scene's "kick" cue, only if the storyboard sets one.
  */
 import React from "react";
-import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Sequence, staticFile, useVideoConfig } from "remotion";
 import { loadFont as loadInter } from "@remotion/google-fonts/Inter";
 import { loadFont as loadRedHatDisplay } from "@remotion/google-fonts/RedHatDisplay";
 import { BackgroundMusicLayer } from "../components";
 import type { BackgroundMusicConfig } from "../components";
-import { toFrame } from "../timing";
+import { DESIGN_FPS, toDesign, toFrame } from "../timing";
 import { Stage, type StageSlot } from "./Stage";
 import { COLOR, DUR, EASE, LAYOUT, MOTION } from "./tokens";
 import { Grain } from "./Atmosphere";
 import { KICK_CUE, type SceneType } from "./schema";
-import { blurFor, overshoot, punch, ramp, turnBlurFor } from "./motion";
+import { blurFor, overshoot, punch, ramp, turnBlurFor, useFrame } from "./motion";
 import { BlurDefs, type ChipTone } from "./ui";
 import { Statement } from "./scenes/Statement";
 import { BigNumber } from "./scenes/BigNumber";
@@ -54,12 +54,14 @@ export interface CatalogRenderScene {
   status?: { text: string; tone: ChipTone };
   chapter?: { index: number; total: number };
   props: any;
-  /** Cue name -> frame offset from the scene start. */
+  /** Cue name -> offset from the scene start in design frames (DESIGN_FPS). */
   cues: Record<string, number>;
 }
 
 export interface CatalogVideoProps {
   renderer: "catalog";
+  /** Output frame rate (channel config); the catalog itself runs on design frames. */
+  fps?: number;
   title: string;
   scenes: CatalogRenderScene[];
   audioSegments: Array<{ src: string; startTime: number }>;
@@ -110,7 +112,7 @@ const TURN_LEAD = (() => {
  * the scene). exitAt: slide out to the left, fading over the last two thirds.
  */
 const SceneMotion: React.FC<{ enter: boolean; exitAt?: number; children: React.ReactNode }> = ({ enter, exitAt, children }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const at = enter ? MOTION.sceneEnterDelay : 0;
   const pos = (f: number) => {
     let x = enter ? MOTION.sceneIn * (1 - overshoot((f - at) / DUR.snap)) : 0;
@@ -130,7 +132,7 @@ const SceneMotion: React.FC<{ enter: boolean; exitAt?: number; children: React.R
 
 /** The whole face turning at section boundaries, with the mid-turn slab. Same element tree on every frame. */
 const Turning: React.FC<{ boundaries: number[]; children: React.ReactNode }> = ({ boundaries, children }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const b = boundaries.find((x) => frame >= x - TURN_LEAD && frame < x - TURN_LEAD + DUR.turn);
   let face: React.CSSProperties = {};
   let w = 0;
@@ -168,29 +170,33 @@ const Turning: React.FC<{ boundaries: number[]; children: React.ReactNode }> = (
 
 /** Scale punch of the frame at each kick. */
 const Kick: React.FC<{ kicks: number[]; children: React.ReactNode }> = ({ kicks, children }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const k = kicks.reduce((acc, at) => acc * punch(frame, at), 1);
   return <AbsoluteFill style={{ transform: `scale(${k.toFixed(4)})` }}>{children}</AbsoluteFill>;
 };
 
 export const CatalogVideo: React.FC<CatalogVideoProps> = ({ scenes, audioSegments, backgroundMusic }) => {
   const { fps } = useVideoConfig();
+  // Sequences are placed in output frames; everything the components compare with the clock
+  // (slots, boundaries, kicks, exitAt) is handed over in design frames.
+  const d = (frames: number) => toDesign(frames, fps);
+  const snapOut = Math.ceil((DUR.snapOut * fps) / DESIGN_FPS);
   const placed = scenes.map((s, i) => {
     const from = toFrame(s.startTime, fps);
     const turn = i > 0 && scenes[i - 1].section !== s.section;
     return { s, from, duration: toFrame(s.endTime, fps) - from, turn };
   });
-  const slots: StageSlot[] = placed.map(({ s, from, turn }) => ({ from, turn, kicker: s.kicker, title: s.title, source: s.source, status: s.status }));
-  const boundaries = placed.filter((p) => p.turn).map((p) => p.from);
-  const kicks = placed.map((p) => (p.s.cues?.[KICK_CUE] !== undefined ? p.from + p.s.cues[KICK_CUE] : undefined)).filter((k): k is number => k !== undefined);
+  const slots: StageSlot[] = placed.map(({ s, from, turn }) => ({ from: d(from), turn, kicker: s.kicker, title: s.title, source: s.source, status: s.status }));
+  const boundaries = placed.filter((p) => p.turn).map((p) => d(p.from));
+  const kicks = placed.map((p) => (p.s.cues?.[KICK_CUE] !== undefined ? d(p.from) + p.s.cues[KICK_CUE] : undefined)).filter((k): k is number => k !== undefined);
 
   const sequences = placed.map(({ s, from, duration }, i) => {
     const next = placed[i + 1];
     // The outgoing scene keeps rendering while it slides out, unless the stage turns away from it.
     const slidesOut = !!next && !next.turn;
     return (
-      <Sequence key={s.id} from={from} durationInFrames={duration + (slidesOut ? DUR.snapOut : 0)} name={`${s.type}: ${s.id}`}>
-        <SceneMotion enter={!placed[i].turn} exitAt={slidesOut ? duration : undefined}>
+      <Sequence key={s.id} from={from} durationInFrames={duration + (slidesOut ? snapOut : 0)} name={`${s.type}: ${s.id}`}>
+        <SceneMotion enter={!placed[i].turn} exitAt={slidesOut ? d(duration) : undefined}>
           <SceneBody scene={s} />
         </SceneMotion>
       </Sequence>

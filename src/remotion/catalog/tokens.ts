@@ -123,7 +123,7 @@ export const EASE = {
   exit: Easing.bezier(0.3, 0, 0.8, 0.15),
 } as const;
 
-/** Durations in frames at 30 fps. */
+/** Durations in design frames (timing.ts DESIGN_FPS), the same speed at any output fps. */
 export const DUR = {
   /** A snap: slide in with overshoot. */
   snap: 10,

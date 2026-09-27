@@ -14,9 +14,9 @@
  * value in highlight, reference in neutral, the reference row landing on cue "reference".
  */
 import React from "react";
-import { useCurrentFrame } from "remotion";
+
 import { COLOR, DUR, EASE, LAYOUT, MOTION, SHAPE, TYPE, body, caption, giant, value as valueStyle } from "../tokens";
-import { progress } from "../motion";
+import { progress, useFrame } from "../motion";
 import { Layer, Panel, Snap } from "../ui";
 import { SegLabel, fitGiant, formatNumber, giantInkOffset, giantWidth, segLabelWidth, segLabels } from "./common";
 
@@ -43,7 +43,7 @@ const SIDE_MIN = 520;
 const SIDE_GAP = 72;
 
 export const BigNumber: React.FC<BigNumberProps> = ({ value, decimals = 0, prefix = "", unit, context, label, reference, referenceAt, remainderAt }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const fmt = (v: number) => `${prefix}${formatNumber(v, decimals)}`;
   const main = fmt(value);
   const part = reference?.kind === "part" ? reference : undefined;

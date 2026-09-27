@@ -220,13 +220,18 @@ export function videoResource(slug: string, built: BuiltMetadata) {
 export const sha256 = (data: Buffer) => createHash("sha256").update(data).digest("hex");
 const sha = (file: string) => sha256(fs.readFileSync(file));
 
+/** Final render size as a multiple of the composition (templates/pipeline-defaults.json rendering.uploadScale). */
+export function uploadScale(): number {
+  return JSON.parse(fs.readFileSync(path.resolve("templates/pipeline-defaults.json"), "utf8")).rendering.uploadScale as number;
+}
+
 /**
  * Called by the renderer after final.mp4 is written. `renderInputHash` is the hash of the bytes the
  * render actually read, not of the file now on disk, which another assemble may have rewritten since.
  */
 export function writeRenderStamp(slug: string, renderInputHash: string): void {
   const p = publishPaths(slug);
-  fs.writeFileSync(p.renderStamp, JSON.stringify({ renderInput: renderInputHash, video: sha(p.video), renderedAt: new Date().toISOString() }, null, 2) + "\n");
+  fs.writeFileSync(p.renderStamp, JSON.stringify({ renderInput: renderInputHash, scale: uploadScale(), video: sha(p.video), renderedAt: new Date().toISOString() }, null, 2) + "\n");
 }
 
 /** Whether final.mp4 was rendered from the current render-input.json and is the file the stamp describes. */
@@ -237,5 +242,6 @@ export function renderIsCurrent(slug: string): { ok: boolean; why: string } {
   const s = JSON.parse(fs.readFileSync(p.renderStamp, "utf8"));
   if (s.video !== sha(p.video)) return { ok: false, why: "final.mp4 changed after its render" };
   if (s.renderInput !== sha(paths(slug).renderInput)) return { ok: false, why: "render-input.json changed since final.mp4 was rendered; re-render" };
+  if (s.scale !== uploadScale()) return { ok: false, why: `final.mp4 was rendered at scale ${s.scale ?? 1}, upload scale is now ${uploadScale()}; re-render` };
   return { ok: true, why: `rendered ${s.renderedAt}` };
 }

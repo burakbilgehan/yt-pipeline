@@ -12,7 +12,6 @@
  * Country ids are ISO 3166-1 numeric (world-atlas). Pure function of the frame.
  */
 import React, { useId, useMemo } from "react";
-import { useCurrentFrame, useVideoConfig } from "remotion";
 import { geoCentroid, geoContains, geoEqualEarth, geoGraticule10, geoPath, type GeoProjection } from "d3-geo";
 import { feature, mesh } from "topojson-client";
 import { cutPath, getLength, getPointAtLength } from "@remotion/paths";
@@ -21,6 +20,7 @@ import world from "world-atlas/countries-50m.json";
 import { COLOR, DUR, EASE, LAYOUT, MAP, MOTION, TYPE } from "../tokens";
 import { Card, Layer } from "../ui";
 import { progress } from "./common";
+import { useFrame, useDuration } from "../motion";
 
 type Anchor = "tr" | "br" | "tl" | "bl";
 type LonLat = [number, number];
@@ -191,8 +191,8 @@ const BODY: TextMetrics = { lines: [], size: TYPE.body.sizes.m, lineH: TYPE.body
 
 export const MapFocus: React.FC<MapFocusProps> = ({ focus, contrast = [], labels = [], route, routeLabel, marker, frame: frameOn = "countries", zoomAt: zoomAtCue }) => {
   const zoomAt = Math.max(zoomAtCue ?? 30, DUR.cardTurnIn - 6);
-  const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
+  const frame = useFrame();
+  const durationInFrames = useDuration();
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
 
   const focusFeatures = useMemo(() => countries.features.filter((f) => focus.includes(String(f.id))), [focus]);

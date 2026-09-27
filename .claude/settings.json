@@ -24,7 +24,8 @@
       "Bash(npm run render:*)",
       "Bash(npm run studio:*)",
       "Bash(npm run claims:*)",
-      "Bash(npm run metadata:*)"
+      "Bash(npm run metadata:*)",
+      "Bash(npm run watch:*)"
     ],
     "ask": [
       "Bash(npm install:*)",
@@ -48,7 +49,8 @@
       "Edit(channels/**/research/verification.json)",
       "Edit(channels/**/publishing/description.txt)",
       "Edit(channels/**/publishing/tags.txt)",
-      "Edit(channels/**/production/output/final.render.json)"
+      "Edit(channels/**/production/output/final.render.json)",
+      "Edit(channels/**/production/output/final.watch.json)"
     ]
   },
   "hooks": {

@@ -20,7 +20,7 @@
   "formats": {
     "long": {
       "resolution": { "width": 1920, "height": 1080 },
-      "fps": 30,
+      "fps": 60,
       "aspectRatio": "16:9",
       "chapters": true,
       "endScreens": true
@@ -48,6 +48,14 @@
     "minResolution": { "width": 1920, "height": 1080 }
   },
   "rendering": {
-    "transitionBufferSeconds": 0.5
+    "transitionBufferSeconds": 0.5,
+    "$uploadScale": "Final render size as a multiple of the 1920x1080 composition. 2 = 3840x2160: YouTube encodes 4K uploads at a much higher bitrate, which also sharpens 1080p playback.",
+    "uploadScale": 2
+  },
+  "watch": {
+    "$comment": "Rules every render must pass (src/pipeline/watch.ts): only what is never intended. Long still moments are reported, not blocked. Designed empty frames at both ends are exempt.",
+    "blankStdev": 3,
+    "maxBlankFrames": 0,
+    "forbidPeriodic": true
   }
 }

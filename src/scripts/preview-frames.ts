@@ -322,7 +322,7 @@ async function main() {
 
     scenes = storyboard.scenes as any;
     const lastScene = storyboard.scenes[storyboard.scenes.length - 1];
-    fpsCfg = channelConfig.visuals.fps || 30;
+    fpsCfg = 30; // legacy templates count frames at 30 fps (see remotion-render LEGACY_FPS)
     width = channelConfig.visuals.resolution?.width || 1920;
     height = channelConfig.visuals.resolution?.height || 1080;
     totalDuration = (lastScene as any).endTime || storyboard.totalDuration || 60;

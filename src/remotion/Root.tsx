@@ -10,7 +10,7 @@ import { BG, ACCENT_PINK } from "./palette";
 import { START_PADDING_SEC, END_PADDING_SEC } from "./compositions/MainComposition";
 import type { z } from "zod";
 import { CatalogVideo } from "./catalog/CatalogVideo";
-import { SHOWCASE, SHOWCASE_FPS } from "./catalog/showcase-data";
+import { SHOWCASE } from "./catalog/showcase-data";
 import { totalFrames } from "./timing";
 import { StyleFrame as StyleFrameA, STYLEFRAME_DURATION as SFA_DUR } from "./styleframes/a";
 import { StyleFrame as StyleFrameB, STYLEFRAME_DURATION as SFB_DUR } from "./styleframes/b";
@@ -225,9 +225,12 @@ export const RemotionRoot: React.FC = () => {
             const lastScene = projectProps.scenes[projectProps.scenes.length - 1];
             const contentDurationSec = lastScene?.endTime || 60;
             const totalDurationSec = START_PADDING_SEC + contentDurationSec + END_PADDING_SEC;
+            // Layout-2 render input carries the output fps (channel config); legacy input does not.
+            const fps = (projectProps as { fps?: number }).fps ?? FPS;
             return {
               props: projectProps,
-              durationInFrames: Math.ceil(totalDurationSec * FPS),
+              fps,
+              durationInFrames: Math.ceil(totalDurationSec * fps),
             };
           }
           return {};
@@ -248,7 +251,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="CatalogShowcase"
         component={CatalogVideo as unknown as React.FC<Record<string, unknown>>}
-        durationInFrames={totalFrames(SHOWCASE.scenes[SHOWCASE.scenes.length - 1].endTime, SHOWCASE_FPS)}
+        durationInFrames={totalFrames(SHOWCASE.scenes[SHOWCASE.scenes.length - 1].endTime, FPS)}
         fps={FPS}
         width={WIDTH}
         height={HEIGHT}

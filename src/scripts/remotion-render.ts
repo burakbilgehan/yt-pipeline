@@ -22,7 +22,8 @@ import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 import { assemble } from "./assemble.js";
 import { paths } from "../pipeline/v2.js";
-import { sha256, writeRenderStamp } from "../pipeline/publish.js";
+import { sha256, uploadScale, writeRenderStamp } from "../pipeline/publish.js";
+import { sceneSpans, watchDir, watchVideo, writeVerdict } from "../pipeline/watch.js";
 import { webpackOverride } from "../remotion/webpack-override";
 import { getLatestVersionedFile, loadProjectConfig, saveProjectConfig, loadChannelConfig, getProjectDir, loadStoryboardResolved } from "../utils/project";
 import { bridgeAllScenes } from "../utils/storyboard-bridge";
@@ -30,6 +31,12 @@ import type { AudioManifest } from "../types/index";
 import { START_PADDING_SEC, END_PADDING_SEC } from "../remotion/compositions/MainComposition";
 
 const REMOTION_ENTRY = path.resolve("src", "remotion", "index.ts");
+
+/**
+ * Legacy templates count time in frames at 30 fps; rendering them faster would speed them up.
+ * Only the catalog renderer follows channel-config visuals.fps.
+ */
+const LEGACY_FPS = 30;
 
 /**
  * Parse concurrency from CLI args or env var.
@@ -139,7 +146,8 @@ async function main() {
     inputProps = JSON.parse(renderInputBytes.toString("utf-8"));
     const scenes = inputProps.scenes as Array<{ endTime: number }>;
     totalDurationSec = scenes[scenes.length - 1].endTime;
-    fps = channelConfig.visuals.fps;
+    // Catalog render input carries the output fps; legacy-renderer input has none and keeps LEGACY_FPS.
+    fps = (inputProps.fps as number | undefined) ?? LEGACY_FPS;
     totalFrames = Math.ceil((totalDurationSec + START_PADDING_SEC + END_PADDING_SEC) * fps);
     compositionId = "MainVideo";
     width = channelConfig.visuals.resolution.width;
@@ -152,8 +160,8 @@ async function main() {
 
     totalDurationSec = videoConfig.durationSeconds || 60;
     fps = videoConfig.fps || (isShorts
-      ? ((channelConfig as any).shorts?.fps || channelConfig.visuals.fps)
-      : channelConfig.visuals.fps);
+      ? ((channelConfig as any).shorts?.fps || LEGACY_FPS)
+      : LEGACY_FPS);
     // Note: video-config durationSeconds should include padding; adding here for safety
     totalFrames = Math.ceil((totalDurationSec + START_PADDING_SEC + END_PADDING_SEC) * fps);
 
@@ -198,8 +206,8 @@ async function main() {
     const lastScene = scenes[scenes.length - 1];
     totalDurationSec = lastScene.endTime || storyboard.totalDuration || 60;
     fps = isShorts
-      ? ((channelConfig as any).shorts?.fps || channelConfig.visuals.fps)
-      : channelConfig.visuals.fps;
+      ? ((channelConfig as any).shorts?.fps || LEGACY_FPS)
+      : LEGACY_FPS;
     totalFrames = Math.ceil((totalDurationSec + START_PADDING_SEC + END_PADDING_SEC) * fps);
 
     // Determine composition and resolution based on format
@@ -463,6 +471,8 @@ async function main() {
     outputLocation: outputPath,
     inputProps,
     concurrency,
+    // Layout 2 renders at upload size (4K by default); legacy projects keep the composition size.
+    scale: (config as any).layout === 2 ? uploadScale() : 1,
     // x264 'fast' preset: ~40% faster encoding, ~5% larger file (negligible quality loss)
     x264Preset: "fast",
     // Use GPU encoding when available (e.g., NVENC on NVIDIA)
@@ -481,6 +491,11 @@ async function main() {
   if ((config as any).layout === 2) {
     // Stamp which render input produced this file; preflight compares it to decide freshness.
     writeRenderStamp(slug, renderInputHash!);
+    // Watch gate: the render must pass the watch rules; the verdict feeds the publishing gate.
+    const { lines, violations, rules } = await watchVideo(outputPath, { out: watchDir(outputPath), padding: true, scenes: (f) => sceneSpans(slug, f) });
+    writeVerdict(slug, rules, violations);
+    console.log(`\nWatch:\n${lines.join("\n")}`);
+    if (violations.length) process.exit(1);
     return;
   }
 

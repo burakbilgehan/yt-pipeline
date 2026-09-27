@@ -7,6 +7,9 @@ import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 import { bundle } from "@remotion/bundler";
 import { renderMedia, renderStill, selectComposition } from "@remotion/renderer";
+import { loadChannelConfig } from "../utils/project.js";
+import { totalFrames } from "../remotion/timing.js";
+import { SHOWCASE } from "../remotion/catalog/showcase-data.js";
 
 async function main() {
   const i = process.argv.indexOf("--out");
@@ -23,6 +26,9 @@ async function main() {
     }
     return;
   }
+  // The video is rendered at the channel's output fps; the catalog keeps its speed at any fps.
+  composition.fps = loadChannelConfig().visuals.fps;
+  composition.durationInFrames = totalFrames(SHOWCASE.scenes[SHOWCASE.scenes.length - 1].endTime, composition.fps);
   const started = Date.now();
   await renderMedia({ composition, serveUrl, codec: "h264", outputLocation: out });
   console.log(`${(composition.durationInFrames / composition.fps).toFixed(1)}s showcase rendered in ${((Date.now() - started) / 1000).toFixed(0)}s -> ${out}`);

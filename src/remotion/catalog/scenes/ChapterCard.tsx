@@ -5,9 +5,9 @@
  * the numeral snaps in from the left, the title's words snap up after it.
  */
 import React from "react";
-import { useCurrentFrame } from "remotion";
+
 import { COLOR, DUR, LAYOUT, MOTION, TYPE, caption, giant } from "../tokens";
-import { blurFor, overshoot, progress } from "../motion";
+import { blurFor, overshoot, progress, useFrame } from "../motion";
 import { Layer, Snap } from "../ui";
 import { giantInkOffset, giantWidth } from "./common";
 
@@ -20,7 +20,7 @@ const { content } = LAYOUT;
 const GAP = 72;
 
 export const ChapterCard: React.FC<ChapterCardProps> = ({ number, title }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const num = String(number).padStart(2, "0");
   const size = TYPE.giant.sizes.xl;
   const numW = giantWidth(num, size);

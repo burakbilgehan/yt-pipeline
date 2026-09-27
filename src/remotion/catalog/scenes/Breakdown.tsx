@@ -13,9 +13,9 @@
  * Shares in the legend are of the whole and are rounded; the drawn cells or lengths are exact.
  */
 import React from "react";
-import { useCurrentFrame } from "remotion";
+
 import { COLOR, DUR, EASE, LAYOUT, MOTION, SHAPE, caption, value as valueStyle } from "../tokens";
-import { progress } from "../motion";
+import { progress, useFrame } from "../motion";
 import { Layer, Snap } from "../ui";
 import { SegLabel, formatNumber, segLabelWidth, segLabels } from "./common";
 
@@ -48,7 +48,7 @@ function colorAt(p: Part, lit: boolean): string {
 const formatter = (prefix: string, decimals: number, unit?: string) => (v: number) => `${prefix}${formatNumber(v, decimals)}${unit === "%" ? "%" : ""}`;
 
 const BarBreakdown: React.FC<BreakdownProps> = ({ parts, total, unit, prefix = "", decimals = 0, highlightAt }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const fmt = formatter(prefix, decimals, unit);
   const whole = total ?? parts.reduce((s, p) => s + p.value, 0);
   const px = (v: number) => (v / whole) * WIDTH;
@@ -144,7 +144,7 @@ function allocate(parts: Part[], whole: number): number[] {
 }
 
 const Waffle: React.FC<BreakdownProps> = ({ parts, total, unit, prefix = "", decimals = 0, highlightAt }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const fmt = formatter(prefix, decimals, unit);
   const whole = total ?? parts.reduce((s, p) => s + p.value, 0);
   const cells = allocate(parts, whole);

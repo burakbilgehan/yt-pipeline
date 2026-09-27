@@ -8,9 +8,9 @@
  * it switches on the frame the stage is edge-on, so the back of the turn already carries it.
  */
 import React from "react";
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill } from "remotion";
 import { COLOR, DUR, EASE, LAYOUT, MOTION, caption } from "./tokens";
-import { progress } from "./motion";
+import { progress, useFrame } from "./motion";
 import { Chip, type ChipTone } from "./ui";
 
 export interface StageSlot {
@@ -24,7 +24,7 @@ export interface StageSlot {
 }
 
 const Swap: React.FC<{ slots: StageSlot[]; keyOf: (s: StageSlot) => string; pick: (s: StageSlot) => React.ReactNode }> = ({ slots, keyOf, pick }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   let i = -1;
   slots.forEach((s, idx) => {
     if (s.from <= frame) i = idx;

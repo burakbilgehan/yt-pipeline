@@ -16,9 +16,9 @@
  * The aside (LAYOUT.aside) holds the annotation when its anchored bar ends left of it.
  */
 import React from "react";
-import { useCurrentFrame } from "remotion";
+
 import { COLOR, DUR, EASE, LAYOUT, MOTION, SHAPE, TYPE, body, caption, staggerDelay, value as valueStyle } from "../tokens";
-import { blurFor, overshoot } from "../motion";
+import { blurFor, overshoot, useFrame } from "../motion";
 import { MINUS, formatNumber, niceTicks, progress } from "./common";
 
 export interface BarItem {
@@ -82,7 +82,7 @@ function approxWidth(text: string, px: number): number {
 }
 
 export const Bars: React.FC<BarsProps> = ({ items, unit, prefix = "", decimals = 0, ranked = false, reference, annotation, annotationAt }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const { content, aside } = LAYOUT;
   const sorted = ranked ? [...items].sort((a, b) => b.value - a.value) : items;
   const n = sorted.length;

@@ -6,9 +6,9 @@
  * highlight label, or the highlighted cell a highlight plate with bg ink.
  */
 import React from "react";
-import { useCurrentFrame } from "remotion";
+
 import { COLOR, DUR, EASE, LAYOUT, MOTION, SHAPE, body, caption, value as valueStyle } from "../tokens";
-import { progress } from "../motion";
+import { progress, useFrame } from "../motion";
 import { Layer, Snap } from "../ui";
 
 export interface MatrixProps {
@@ -31,7 +31,7 @@ function show(v: number | string): string {
 }
 
 export const Matrix: React.FC<MatrixProps> = ({ columns, rows, highlightCell, highlightRow, highlightAt }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const rowH = Math.min(120, Math.floor((content.bottom - content.top - HEAD_H - 80) / rows.length));
   const tableH = HEAD_H + rows.length * rowH;
   const top = Math.round(content.top + (content.bottom - content.top - tableH) / 2);

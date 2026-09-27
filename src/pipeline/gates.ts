@@ -9,6 +9,7 @@ import { assemble } from "../scripts/assemble.js";
 import { runClaimsCheck } from "./claims.js";
 import { buildMetadata, publishPaths, renderIsCurrent } from "./publish.js";
 import { loadGlobal, paths } from "./v2.js";
+import { watchVerdict } from "./watch.js";
 
 export interface GateResult {
   passed: boolean;
@@ -37,6 +38,10 @@ export const PUBLISH_GATES: Gate[] = [
       const r = renderIsCurrent(slug);
       return { passed: r.ok, message: r.why };
     },
+  },
+  {
+    name: "watch",
+    check: (slug) => watchVerdict(slug),
   },
   {
     name: "claims",

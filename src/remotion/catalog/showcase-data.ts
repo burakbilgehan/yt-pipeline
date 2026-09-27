@@ -5,6 +5,7 @@
  * stage turn between sections) and one kick are exercised.
  */
 import type { CatalogRenderScene, CatalogVideoProps } from "./CatalogVideo";
+import { DESIGN_FPS } from "../timing";
 
 type ShowcaseScene = Omit<CatalogRenderScene, "id" | "startTime" | "endTime" | "cues"> & { durationInFrames: number; cues?: Record<string, number> };
 
@@ -222,14 +223,13 @@ const SHOWCASE_SCENES: ShowcaseScene[] = [
   },
 ];
 
-/** The showcase as render input, laid out at 30 fps with no audio. */
-export const SHOWCASE_FPS = 30;
+/** The showcase as render input, no audio; durationInFrames and cues are design frames. */
 export const SHOWCASE: CatalogVideoProps = (() => {
   let t = 0;
   const scenes: CatalogRenderScene[] = SHOWCASE_SCENES.map((s, i) => {
     const { durationInFrames, cues, ...rest } = s;
     const startTime = t;
-    t += durationInFrames / SHOWCASE_FPS;
+    t += durationInFrames / DESIGN_FPS;
     return { ...rest, id: `showcase-${i + 1}`, startTime, endTime: t, cues: cues ?? {} } as CatalogRenderScene;
   });
   return { renderer: "catalog", title: "Catalog showcase", scenes, audioSegments: [] };

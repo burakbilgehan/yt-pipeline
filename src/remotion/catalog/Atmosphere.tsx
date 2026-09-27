@@ -3,11 +3,12 @@
  * Deterministic: a pure function of the frame.
  */
 import React from "react";
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill } from "remotion";
 import { ATMOSPHERE } from "./tokens";
+import { useFrame } from "./motion";
 
 export const Grain: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const g = ATMOSPHERE.grain;
   const seed = g.seedBase + (Math.floor(frame / g.framesPerSeed) % g.seedCycle);
   return (

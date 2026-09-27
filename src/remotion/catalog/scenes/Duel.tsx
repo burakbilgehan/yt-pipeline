@@ -11,9 +11,9 @@
  * snaps out and the second snaps in instead of turning cells.
  */
 import React from "react";
-import { Easing, useCurrentFrame } from "remotion";
+import { Easing } from "remotion";
 import { COLOR, DUR, EASE, LAYOUT, MOTION, SHAPE, TYPE, body, caption, giant, value as valueStyle } from "../tokens";
-import { progress, ramp } from "../motion";
+import { progress, ramp, useFrame } from "../motion";
 import { Layer, Panel, Snap } from "../ui";
 import { MINUS, fitGiant, formatNumber, niceTicks } from "./common";
 import type { BarItem } from "./Bars";
@@ -66,7 +66,7 @@ export const Duel: React.FC<DuelProps> & { applies: (p: { items: unknown[]; show
   secondAt,
   annotationAt,
 }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const [A, B] = items;
   const fmt = (v: number) => `${prefix}${formatNumber(v, decimals)}`;
   const lock = Math.max(secondAt ?? 80, 16 + DUR.rise);

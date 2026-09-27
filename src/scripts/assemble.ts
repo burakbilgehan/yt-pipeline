@@ -30,6 +30,7 @@ import {
 } from "../pipeline/v2.js";
 import { catalogVisualSchema, describeIssues, type CatalogVisual } from "../remotion/catalog/schema.js";
 import { countSpokenWords, sumExplicitBreaks } from "../utils/duration-predictor.js";
+import { DESIGN_FPS } from "../remotion/timing.js";
 
 /** Typographic quotes and apostrophes for on-screen text (never applied to narration). */
 export function smartPunctuation(s: string): string {
@@ -103,6 +104,7 @@ export function assemble(slug: string): { timeline: Timeline; stale: string[] } 
   const manifest = loadManifest(slug);
   const channel = loadChannelConfig() as any;
   const fps: number = channel.visuals.fps;
+  if (fps % DESIGN_FPS !== 0) throw new Error(`channel-config visuals.fps ${fps} must be a multiple of ${DESIGN_FPS} (catalog design frames)`);
 
   const blocks = orderedBlocks(slug);
   const stale = blocks
@@ -132,12 +134,13 @@ export function assemble(slug: string): { timeline: Timeline; stale: string[] } 
     const global = loadGlobal(slug) as any;
     const renderInput = {
       renderer: "catalog",
+      fps,
       title: (JSON.parse(fs.readFileSync(p.config, "utf8")) as any).title ?? slug,
       scenes: timeline.scenes.map((t) => {
         const v = catalog.get(t.id)!;
         const narration = loadNarration(slug, t.id);
         const cues = Object.fromEntries(
-          Object.entries(v.cues ?? {}).map(([name, phrase]) => [name, cueFrame(narration, phrase, t.audioDuration, fps, `storyboard/${t.id}.json cues.${name}`)]),
+          Object.entries(v.cues ?? {}).map(([name, phrase]) => [name, cueFrame(narration, phrase, t.audioDuration, DESIGN_FPS, `storyboard/${t.id}.json cues.${name}`)]),
         );
         return {
           id: t.id,

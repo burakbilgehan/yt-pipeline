@@ -7,9 +7,8 @@
  * line along the axis grows to it. The emphasis event gets a highlight dot and date.
  */
 import React from "react";
-import { useCurrentFrame, useVideoConfig } from "remotion";
 import { COLOR, DUR, EASE, LAYOUT, MOTION, SHAPE, body, value as valueStyle } from "../tokens";
-import { progress } from "../motion";
+import { progress, useFrame, useDuration } from "../motion";
 import { Layer, Snap } from "../ui";
 import { isoDate } from "../schema";
 
@@ -26,8 +25,8 @@ const INSET = 80;
 const TEXT_W = 380;
 
 export const Timeline: React.FC<TimelineProps> = ({ events, scale, eventAt = [] }) => {
-  const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
+  const frame = useFrame();
+  const durationInFrames = useDuration();
   const n = events.length;
   const x0 = content.left + INSET;
   const x1 = content.right - INSET;

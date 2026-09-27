@@ -18,3 +18,15 @@ export function toFrame(sec: number, fps: number): number {
 export function totalFrames(endSec: number, fps: number): number {
   return Math.ceil((START_PADDING_SEC + endSec + END_PADDING_SEC) * fps);
 }
+
+/**
+ * Unit of every catalog duration token (DUR, MOTION, cues): frames at this rate. The catalog
+ * reads time through useFrame (catalog/motion.ts), which converts the output frame rate to this
+ * unit, so animations run at the same speed at any output fps. Output fps must be a multiple.
+ */
+export const DESIGN_FPS = 30;
+
+/** Output frames to design frames. */
+export function toDesign(frames: number, fps: number): number {
+  return (frames * DESIGN_FPS) / fps;
+}

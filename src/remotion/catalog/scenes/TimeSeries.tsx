@@ -10,9 +10,9 @@
  * caption above the plot, landing on cues annotation1..3 (default: after the lines have drawn).
  */
 import React from "react";
-import { useCurrentFrame } from "remotion";
+
 import { COLOR, DUR, EASE, LAYOUT, MOTION, TYPE, caption, value as valueStyle } from "../tokens";
-import { progress } from "../motion";
+import { progress, useFrame } from "../motion";
 import { Layer, Snap } from "../ui";
 import { formatNumber, niceTicks } from "./common";
 
@@ -44,7 +44,7 @@ function niceRange(lo: number, hi: number): { lo: number; hi: number; step: numb
 }
 
 export const TimeSeries: React.FC<TimeSeriesProps> = ({ series, unit, prefix = "", decimals = 0, yMin, yMax, indexLine, annotations = [], annotationAt = [] }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const fmt = (v: number) => `${v < 0 ? "−" : ""}${prefix}${formatNumber(Math.abs(v), decimals)}`;
   const all = series.flatMap((s) => s.points);
   const ys = all.map((p) => p.y).concat(indexLine !== undefined ? [indexLine] : []);

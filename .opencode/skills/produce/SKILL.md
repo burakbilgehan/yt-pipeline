@@ -13,3 +13,4 @@ argument-hint: "<slug>"
 2. `npm run assemble -- <slug>`: builds the timeline and render input.
 3. Spot-check with `npm run preview-scene -- <slug> <block-id>` for scenes the user wants to see.
 4. Review in Remotion Studio (see AGENTS.md > Renders). Render with `npm run render -- <slug>` when the video file is needed.
+5. `preview-scene` and `render` exit 1 when the output breaks the watch rules; handle it as step 5 of the `fix` skill says.
