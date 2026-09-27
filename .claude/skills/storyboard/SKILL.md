@@ -41,8 +41,12 @@ Applies to videos with `"renderer": "catalog"` in `config.json` (every new video
 | 2 to 4 values by size | `compare-values` | `items` 2..4 {label (24), value, highlight, contrast}, `unit`, `prefix`, `decimals`, `showDelta`, `reference` {label, value}, `annotation` {text (40), item}. Two items with `showDelta` on (default) are a before/after duel: the first value on a digit board, the second rising on a zero-based measure and landing on cue `second` (the phrase that names it), then the percent change | `second`, `annotation` |
 | A ranking of 5 to 12 | `ranked-bars` | `items` 5..12, same item fields, `reference`, `annotation` | `annotation` |
 | Where something is | `map-focus` | `focus` ISO numeric ids 1..6, `contrast` (3), `route` [lon, lat] 2..6, `routeLabel` (30, "schematic" unless the route is traced from sourced coordinates), `marker` {lon, lat, label} (the point of interest), `frame` ("marker" zooms to the marker and route instead of the whole countries), `labels` {lon, lat, text, anchor} (6). Focus and contrast countries are named automatically | `zoom` |
+| The opening of a section | `chapter-card` | `number`, `title` (40). Use it as the first block of a section | |
+| A trend over time | `time-series` | `series` 1..4 {label (20), role highlight/contrast/neutral, points {x, y} 2..200}, `unit`, `prefix`, `decimals`, `yMin` (a y axis not starting at 0 is labeled cropped), `yMax`, `indexLine`, `annotations` {x, text (40)} 3 | `annotation1`..`annotation3` |
+| Dated events in order | `timeline` | `events` 3..7 {date (12), text (60), emphasis (one)}, `scale` even or proportional (proportional needs YYYY, YYYY-MM or YYYY-MM-DD dates) | `event2`..`event7` |
+| How a whole splits | `breakdown` | `parts` 2..8 {label (24), value, role}, `total` (when the parts do not add up to the whole), `unit` ("%" is written on each number), `prefix`, `decimals`, `variant` bar or waffle | `highlight` |
+| A small table | `matrix` | `columns` 2..4 (16), `rows` 2..5 {label (20), values}, `highlightRow` or `highlightCell` [row, column] | `highlight` |
 
-Not implemented yet (assemble rejects them): `chapter-card`, `time-series`, `timeline`, `breakdown`, `matrix`.
 
 Rules: on-screen quotes and apostrophes are typeset automatically; write plain ASCII. At most one `highlight` item (the one the narration names) and one `contrast` item per scene. Values are the real numbers from `research/`, never rounded to look better; bars are drawn to scale from zero, so a tiny value next to a huge one is correct. If a beat fits no type, tell the user instead of forcing one; a new type is added only in a design-system session.
 

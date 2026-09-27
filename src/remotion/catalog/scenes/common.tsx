@@ -1,5 +1,5 @@
 import React from "react";
-import { GIANT_BEARING, GIANT_EM, LAYOUT } from "../tokens";
+import { COLOR, GIANT_BEARING, GIANT_EM, LAYOUT, TYPE, caption, value } from "../tokens";
 
 export { progress } from "../motion";
 
@@ -55,3 +55,27 @@ export function giantInkOffset(text: string, px: number): number {
   const first = text.trim()[0] ?? "";
   return -Math.round((GIANT_BEARING[first] ?? GIANT_BEARING.default) * px);
 }
+
+/** Conservative width of a segment label (value over caption). */
+export function segLabelWidth(v: string, text: string): number {
+  return Math.max(v.length * TYPE.value.sizes.l * 0.62, text.length * TYPE.caption.sizes.xs * 0.78);
+}
+
+/**
+ * Left edges of labels centered under their segments, kept inside the content area and apart
+ * from each other by at least 48 px.
+ */
+export function segLabels(items: Array<{ cx: number; w: number }>): number[] {
+  const { content } = LAYOUT;
+  const xs = items.map((i) => Math.min(Math.max(i.cx - i.w / 2, content.left), content.right - i.w));
+  for (let k = 1; k < xs.length; k++) xs[k] = Math.max(xs[k], xs[k - 1] + items[k - 1].w + 48);
+  return xs.map((x, k) => Math.min(x, content.right - items[k].w));
+}
+
+/** A value over a caption, centered in its box. */
+export const SegLabel: React.FC<{ x: number; top: number; v: string; text: string; color: string }> = ({ x, top, v, text, color }) => (
+  <div style={{ position: "absolute", left: x, width: segLabelWidth(v, text), top, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+    <div style={value("l", color)}>{v}</div>
+    <div style={caption("xs", COLOR.textSecondary)}>{text}</div>
+  </div>
+);

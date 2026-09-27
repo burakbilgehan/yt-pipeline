@@ -8,6 +8,12 @@ import { z } from "zod";
 
 const str = (max: number) => z.string().min(1).max(max);
 const lonLat = z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]);
+/** Days since 1970 of a YYYY, YYYY-MM or YYYY-MM-DD date (start of the period), else null. */
+export function isoDate(s: string): number | null {
+  const m = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/.exec(s);
+  if (!m) return null;
+  return Date.UTC(+m[1], m[2] ? +m[2] - 1 : 0, m[3] ? +m[3] : 1) / 86400000;
+}
 const isoNumeric = z.string().regex(/^\d{3}$/, "ISO 3166-1 numeric id, 3 digits");
 
 const barItem = z
@@ -85,6 +91,10 @@ export const SCENE_PROPS = {
         )
         .min(1)
         .max(4),
+      unit: str(24).optional(),
+      prefix: z.string().max(3).optional(),
+      decimals: z.number().int().min(0).max(2).optional(),
+      /** A y axis that does not start at 0 is labeled on screen as cropped. */
       yMin: z.number().optional(),
       yMax: z.number().optional(),
       indexLine: z.number().optional(),
@@ -117,16 +127,27 @@ export const SCENE_PROPS = {
   timeline: z
     .object({
       events: z.array(z.object({ date: str(12), text: str(60), emphasis: z.boolean().optional() }).strict()).min(3).max(7),
+      /** proportional spaces events by date; every date must then be YYYY, YYYY-MM or YYYY-MM-DD, in order. */
       scale: z.enum(["even", "proportional"]),
     })
-    .strict(),
+    .strict()
+    .refine((p) => p.scale === "even" || p.events.every((e) => isoDate(e.date) !== null), { message: "proportional needs dates as YYYY, YYYY-MM or YYYY-MM-DD", path: ["events"] })
+    .refine((p) => p.scale === "even" || p.events.every((e, i) => i === 0 || (isoDate(e.date) ?? 0) > (isoDate(p.events[i - 1].date) ?? 0)), { message: "proportional needs events in date order", path: ["events"] })
+    .refine((p) => p.events.filter((e) => e.emphasis).length <= 1, { message: "at most one emphasis event", path: ["events"] }),
   breakdown: z
     .object({
       parts: z.array(z.object({ label: str(24), value: z.number().min(0), role: z.enum(["highlight", "contrast"]).optional() }).strict()).min(2).max(8),
+      /** The whole the parts belong to, when they do not add up to it; the rest is drawn as an empty track. */
       total: z.number().positive().optional(),
+      unit: str(24).optional(),
+      prefix: z.string().max(3).optional(),
+      decimals: z.number().int().min(0).max(2).optional(),
       variant: z.enum(["bar", "waffle"]),
     })
-    .strict(),
+    .strict()
+    .refine((p) => !p.total || p.parts.reduce((s, x) => s + x.value, 0) <= p.total * (1 + 1e-9), { message: "parts add up to more than total", path: ["total"] })
+    .refine((p) => p.parts.filter((x) => x.role === "highlight").length <= 1 && p.parts.filter((x) => x.role === "contrast").length <= 1, { message: "at most one highlight and one contrast part", path: ["parts"] })
+    .refine((p) => p.parts.some((x) => x.value > 0), { message: "at least one part must be above 0", path: ["parts"] }),
   matrix: z
     .object({
       columns: z.array(str(16)).min(2).max(4),
@@ -135,7 +156,10 @@ export const SCENE_PROPS = {
       highlightRow: z.number().int().min(0).optional(),
     })
     .strict()
-    .refine((p) => p.rows.every((r) => r.values.length === p.columns.length), { message: "every row needs one value per column", path: ["rows"] }),
+    .refine((p) => p.rows.every((r) => r.values.length === p.columns.length), { message: "every row needs one value per column", path: ["rows"] })
+    .refine((p) => !p.highlightCell || (p.highlightCell[0] < p.rows.length && p.highlightCell[1] < p.columns.length), { message: "highlightCell [row, column] is out of range", path: ["highlightCell"] })
+    .refine((p) => p.highlightRow === undefined || p.highlightRow < p.rows.length, { message: "highlightRow is out of range", path: ["highlightRow"] })
+    .refine((p) => !(p.highlightCell && p.highlightRow !== undefined), { message: "use highlightCell or highlightRow, not both", path: ["highlightRow"] }),
 } as const;
 
 export type SceneType = keyof typeof SCENE_PROPS;
@@ -145,7 +169,7 @@ export const SCENE_TYPES = Object.keys(SCENE_PROPS) as SceneType[];
 export const DATA_TYPES: readonly SceneType[] = ["big-number", "compare-values", "ranked-bars", "time-series", "map-focus", "timeline", "breakdown", "matrix"];
 
 /** Implemented in the renderer so far. assemble rejects the others until they exist. */
-export const IMPLEMENTED_TYPES: readonly SceneType[] = ["statement", "big-number", "compare-values", "ranked-bars", "map-focus"];
+export const IMPLEMENTED_TYPES: readonly SceneType[] = SCENE_TYPES;
 
 /** Cue names each type understands. A cue maps to a phrase of the block's narration. */
 export const CUES: Record<SceneType, readonly string[]> = {

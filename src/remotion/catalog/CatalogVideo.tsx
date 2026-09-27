@@ -33,6 +33,11 @@ import { BigNumber } from "./scenes/BigNumber";
 import { Bars } from "./scenes/Bars";
 import { Duel } from "./scenes/Duel";
 import { MapFocus } from "./scenes/MapFocus";
+import { ChapterCard } from "./scenes/ChapterCard";
+import { TimeSeries } from "./scenes/TimeSeries";
+import { Timeline } from "./scenes/Timeline";
+import { Breakdown } from "./scenes/Breakdown";
+import { Matrix } from "./scenes/Matrix";
 
 loadInter("normal", { weights: ["400", "500", "700"], subsets: ["latin"] });
 loadRedHatDisplay("normal", { weights: ["800"], subsets: ["latin"] });
@@ -78,6 +83,16 @@ function SceneBody({ scene }: { scene: CatalogRenderScene }) {
       return <Bars {...scene.props} ranked annotationAt={cues.annotation} />;
     case "map-focus":
       return <MapFocus {...scene.props} zoomAt={cues.zoom} />;
+    case "chapter-card":
+      return <ChapterCard {...scene.props} />;
+    case "time-series":
+      return <TimeSeries {...scene.props} annotationAt={[cues.annotation1, cues.annotation2, cues.annotation3]} />;
+    case "timeline":
+      return <Timeline {...scene.props} eventAt={[undefined, cues.event2, cues.event3, cues.event4, cues.event5, cues.event6, cues.event7]} />;
+    case "breakdown":
+      return <Breakdown {...scene.props} highlightAt={cues.highlight} />;
+    case "matrix":
+      return <Matrix {...scene.props} highlightAt={cues.highlight} />;
     default:
       // Rejected by the schema in assemble; drawn loudly if it ever gets here.
       return <div style={{ position: "absolute", inset: 0, background: "#ff00ff" }} />;

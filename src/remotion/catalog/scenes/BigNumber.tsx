@@ -18,7 +18,7 @@ import { useCurrentFrame } from "remotion";
 import { COLOR, DUR, EASE, LAYOUT, MOTION, SHAPE, TYPE, body, caption, giant, value as valueStyle } from "../tokens";
 import { progress } from "../motion";
 import { Layer, Panel, Snap } from "../ui";
-import { fitGiant, formatNumber, giantInkOffset, giantWidth } from "./common";
+import { SegLabel, fitGiant, formatNumber, giantInkOffset, giantWidth, segLabelWidth, segLabels } from "./common";
 
 export interface BigNumberProps {
   value: number;
@@ -134,8 +134,8 @@ const PartBar: React.FC<{
   const blue = progress(frame, refAt, 10, EASE.hard);
   const pink = progress(frame, restAt, 10, EASE.hard);
   const labels = segLabels([
-    { cx: content.left + px(part) / 2, w: labelWidth(fmt(part), refLabel) },
-    { cx: content.left + px(part) + px(rest) / 2, w: labelWidth(fmt(rest), restLabel) },
+    { cx: content.left + px(part) / 2, w: segLabelWidth(fmt(part), refLabel) },
+    { cx: content.left + px(part) + px(rest) / 2, w: segLabelWidth(fmt(rest), restLabel) },
   ]);
   if (frame < barAt) return null;
   const axisTop = BAR.top + BAR.h + 6;
@@ -156,37 +156,12 @@ const PartBar: React.FC<{
         </>
       )}
       <Snap frame={frame} at={refAt + 4} dur={9} from={{ y: 40 }}>
-        <SegLabel x={labels[0]} v={fmt(part)} text={refLabel} color={COLOR.contrast} />
+        <SegLabel x={labels[0]} top={BAR.top + BAR.h + 44} v={fmt(part)} text={refLabel} color={COLOR.contrast} />
       </Snap>
       <Snap frame={frame} at={restAt + 4} dur={9} from={{ y: 40 }}>
-        <SegLabel x={labels[1]} v={fmt(rest)} text={restLabel} color={COLOR.highlight} />
+        <SegLabel x={labels[1]} top={BAR.top + BAR.h + 44} v={fmt(rest)} text={restLabel} color={COLOR.highlight} />
       </Snap>
     </Layer>
-  );
-};
-
-/** Conservative width of a segment label (value over caption). */
-function labelWidth(v: string, text: string): number {
-  return Math.max(v.length * TYPE.value.sizes.l * 0.62, text.length * TYPE.caption.sizes.xs * 0.78);
-}
-
-/**
- * Left edges of labels centered under their segments, kept inside the content area and apart
- * from each other by at least 48 px.
- */
-function segLabels(items: Array<{ cx: number; w: number }>): number[] {
-  const xs = items.map((i) => Math.min(Math.max(i.cx - i.w / 2, content.left), content.right - i.w));
-  for (let k = 1; k < xs.length; k++) xs[k] = Math.max(xs[k], xs[k - 1] + items[k - 1].w + 48);
-  return xs.map((x, k) => Math.min(x, content.right - items[k].w));
-}
-
-const SegLabel: React.FC<{ x: number; v: string; text: string; color: string }> = ({ x, v, text, color }) => {
-  const w = labelWidth(v, text);
-  return (
-    <div style={{ position: "absolute", left: x, width: w, top: BAR.top + BAR.h + 44, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-      <div style={valueStyle("l", color)}>{v}</div>
-      <div style={caption("xs", COLOR.textSecondary)}>{text}</div>
-    </div>
   );
 };
 
